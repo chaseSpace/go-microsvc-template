@@ -1,0 +1,28 @@
+syntax = "proto3";
+package proto.svc.admin;
+option go_package = "microsvc/protocol/svc/admin";
+
+import "svc/common.proto";
+import "svc/const.proto";
+
+message AdminLoginReq {
+  AdminBaseReq base = 1;
+  int64 username = 2;
+  string password = 3;
+}
+
+// 这个结构体会写入 svc.AdminRsp.data, 具体参考代码
+message AdminLoginRsp{
+  string token = 1;
+  LoginResBody user_info = 2;
+}
+message LoginResBody {
+  int64 uid = 1;
+  string nick = 2;
+  Sex sex = 3;
+}
+
+
+service AdminSvc {
+  rpc AdminLogin(AdminLoginReq) returns (AdminLoginRsp);
+}

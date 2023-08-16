@@ -1,0 +1,2 @@
+svc: user
+# 存放user相关配置，db信息配置到根目录的deploy/

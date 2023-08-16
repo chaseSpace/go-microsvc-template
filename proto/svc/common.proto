@@ -2,8 +2,22 @@ syntax = "proto3";
 package proto.svc;
 option go_package = "microsvc/protocol/svc";
 
+import "include/google/protobuf/any.proto";
+
 message BaseExtReq {
   string app = 1;
   string app_version = 2;
   //...
+}
+
+message AdminBaseReq{
+  int64 uid = 1;
+  string nick = 2;
+  // ...
+}
+
+message AdminCommonRsp{
+  int32 code = 1;
+  string msg = 2;
+  google.protobuf.Any data = 3;
 }

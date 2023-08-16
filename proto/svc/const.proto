@@ -1,0 +1,9 @@
+syntax = "proto3";
+package proto.svc;
+option go_package = "microsvc/protocol/svc";
+
+enum Sex {
+  Unknown = 0;
+  Male = 1;
+  Female = 2;
+}
