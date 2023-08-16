@@ -1,0 +1,26 @@
+svc: common
+# 存放公共相关配置，比如db信息
+
+mysql:
+  microsvc:  # db name
+    host: 0.0.0.0
+    port: 3306
+    password: 123
+    gorm_args: "charset=utf8mb4&parseTime=True&loc=Local"
+
+  microsvc_log:
+    host: 0.0.0.1
+    port: 3306
+    password: 456
+    gorm_args: "charset=utf8mb4&parseTime=True&loc=Local"
+
+redis:
+  microsvc: # 自定义名
+    db: 0
+    addr: 0.0.0.0:6379
+    password: 123
+
+  microsvc_admin:  # admin服务使用
+    db: 0
+    addr: 0.0.0.0:6379
+    password: 123
