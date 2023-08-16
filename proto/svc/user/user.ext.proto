@@ -1,0 +1,26 @@
+syntax = "proto3";
+package proto.svc.user;
+option go_package = "microsvc/protocol/svc/user";
+
+import "svc/common.proto";
+
+message GetUserReq{
+  BaseExtReq req = 1;
+  repeated int64 uid = 2;
+}
+message GetUserRsp{
+  map<int64, User> umap = 1;
+}
+
+message User{
+  int64 uid = 1;
+  string nick = 2;
+  int32 age = 3;
+  int32 sex = 4;
+}
+
+// *Ext 是外部服务接口组，要鉴权
+// *Int 是内部服务接口组，可不鉴权
+service UserExt {
+  rpc GetUser(GetUserReq) returns (GetUserRsp);
+}

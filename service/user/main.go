@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	_ = deploy.XConf
+	_ = deploy.XConf // init config
 
 	infra.MustSetup(
 		cache.InitRedis(true),
