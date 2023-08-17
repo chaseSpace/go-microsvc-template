@@ -79,7 +79,7 @@ func RegisterAdminSvcHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/AdminLogin", runtime.WithHTTPPathPattern("/proto.svc.admin.AdminSvc/AdminLogin"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/AdminLogin", runtime.WithHTTPPathPattern("/admin/v1/AdminLogin"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -143,7 +143,7 @@ func RegisterAdminSvcHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/AdminLogin", runtime.WithHTTPPathPattern("/proto.svc.admin.AdminSvc/AdminLogin"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/AdminLogin", runtime.WithHTTPPathPattern("/admin/v1/AdminLogin"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -163,7 +163,7 @@ func RegisterAdminSvcHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 }
 
 var (
-	pattern_AdminSvc_AdminLogin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"proto.svc.admin.AdminSvc", "AdminLogin"}, ""))
+	pattern_AdminSvc_AdminLogin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"admin", "v1", "AdminLogin"}, ""))
 )
 
 var (
