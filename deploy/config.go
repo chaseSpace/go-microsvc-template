@@ -34,17 +34,25 @@ func init() {
 		panic(fmt.Sprintf("Error Unmarshal config: %s\n", err))
 		return
 	}
-
+	for dbname, v := range XConf.Mysql {
+		v.DBname = DBname(dbname)
+	}
 	_, _ = pp.Printf("********* init Config OK *********\n%+v\n", XConf)
 }
 
 type DBname string
 
 type Mysql struct {
+	DBname
 	Host     string `mapstructure:"host"`
 	Port     string `mapstructure:"port"`
+	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
 	GormArgs string `mapstructure:"gorm_args"`
+}
+
+func (m Mysql) Dsn() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", m.User, m.Password, m.Host, m.Port, m.DBname, m.GormArgs)
 }
 
 type Redis struct {

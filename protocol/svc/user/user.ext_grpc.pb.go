@@ -43,21 +43,19 @@ func (c *userExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grp
 }
 
 // UserExtServer is the server API for UserExt service.
-// All implementations must embed UnimplementedUserExtServer
+// All implementations should embed UnimplementedUserExtServer
 // for forward compatibility
 type UserExtServer interface {
 	GetUser(context.Context, *GetUserReq) (*GetUserRsp, error)
-	mustEmbedUnimplementedUserExtServer()
 }
 
-// UnimplementedUserExtServer must be embedded to have forward compatible implementations.
+// UnimplementedUserExtServer should be embedded to have forward compatible implementations.
 type UnimplementedUserExtServer struct {
 }
 
 func (UnimplementedUserExtServer) GetUser(context.Context, *GetUserReq) (*GetUserRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUserExtServer) mustEmbedUnimplementedUserExtServer() {}
 
 // UnsafeUserExtServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserExtServer will

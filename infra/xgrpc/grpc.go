@@ -33,24 +33,39 @@ func ServeGRPC(svr *grpc.Server, port ...int) {
 
 // -------- 下面是grpc中间件 -----------
 
-func WrapAdminRsp(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler) (resp interface{}, err error) {
+func WrapAdminRsp(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	rsp, err := handler(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	lastResp := new(svc.AdminCommonRsp)
 	if rsp == nil {
-		lastResp.Code = xerr.ErrInternal.Code
+		lastResp.Code = xerr.ErrInternal.Ecode
 		lastResp.Msg = "no error, but response is empty."
 		return lastResp, nil
 	}
 	data, err := anypb.New(rsp.(proto.Message))
 	if err != nil {
-		lastResp.Code = xerr.ErrInternal.Code
+		lastResp.Code = xerr.ErrInternal.Ecode
 		lastResp.Msg = fmt.Sprintf("call anypb.New() failed: %v", err)
 		return lastResp, nil
 	}
 	lastResp.Data = data
 	return lastResp, nil
+}
+
+func RecoverGrpcRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = xerr.ErrInternal.NewMsg(fmt.Sprintf("panic recovered: %v", err))
+		}
+	}()
+	rsp, err := handler(ctx, req)
+	return rsp, err
+}
+
+func LogGrpcRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+
+	rsp, err := handler(ctx, req)
+	return rsp, err
 }

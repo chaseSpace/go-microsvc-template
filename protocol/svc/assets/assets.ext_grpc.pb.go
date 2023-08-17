@@ -43,21 +43,19 @@ func (c *assetsExtClient) GetUser(ctx context.Context, in *GetUserAssetsReq, opt
 }
 
 // AssetsExtServer is the server API for AssetsExt service.
-// All implementations must embed UnimplementedAssetsExtServer
+// All implementations should embed UnimplementedAssetsExtServer
 // for forward compatibility
 type AssetsExtServer interface {
 	GetUser(context.Context, *GetUserAssetsReq) (*GetUserAssetsRsp, error)
-	mustEmbedUnimplementedAssetsExtServer()
 }
 
-// UnimplementedAssetsExtServer must be embedded to have forward compatible implementations.
+// UnimplementedAssetsExtServer should be embedded to have forward compatible implementations.
 type UnimplementedAssetsExtServer struct {
 }
 
 func (UnimplementedAssetsExtServer) GetUser(context.Context, *GetUserAssetsReq) (*GetUserAssetsRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedAssetsExtServer) mustEmbedUnimplementedAssetsExtServer() {}
 
 // UnsafeAssetsExtServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to AssetsExtServer will

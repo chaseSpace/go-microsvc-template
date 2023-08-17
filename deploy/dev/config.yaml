@@ -2,15 +2,17 @@ svc: common
 # 存放公共相关配置，比如db信息
 
 mysql:
-  microsvc:  # db name
+  microsvc:  # db name，根据实际修改
     host: 0.0.0.0
     port: 3306
+    user: root
     password: 123
     gorm_args: "charset=utf8mb4&parseTime=True&loc=Local"
 
   microsvc_log:
     host: 0.0.0.1
     port: 3306
+    user: root
     password: 456
     gorm_args: "charset=utf8mb4&parseTime=True&loc=Local"
 

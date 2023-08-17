@@ -1,32 +1,40 @@
 package xerr
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type XErr interface {
 	error
-	_signXErr()
+	NewMsg(msg string) XErr
+	AppendMsg(msg string) XErr
 }
 
-type T struct {
-	Code int32
-	Msg  string
+type E struct {
+	Ecode int32
+	Msg   string
 }
 
-func (t T) _signXErr() {
-	panic("no need to implement me")
+func IsXErr(err error) (bool, XErr) {
+	t := new(E)
+	_ = json.Unmarshal([]byte(err.Error()), t)
+	if t.Ecode > 0 {
+		return true, t
+	}
+	return false, nil
 }
 
-var _ XErr = new(T)
+var _ XErr = new(E)
 
-func (t T) Error() string {
-	return fmt.Sprintf("XErr: code=%d msg=%s", t.Code, t.Msg)
+func (t E) Error() string {
+	return fmt.Sprintf("XERR: ecode=%d msg=%s", t.Ecode, t.Msg)
 }
-func (t T) WithMsg(msg string) T {
+func (t E) NewMsg(msg string) XErr {
 	t.Msg = msg
 	return t
 }
-
-var (
-	ErrParams   = T{Code: 400, Msg: "request params err"}
-	ErrInternal = T{Code: 501, Msg: "server internal err"}
-)
+func (t E) AppendMsg(msg string) XErr {
+	t.Msg += " |append.err>> " + msg
+	return t
+}
