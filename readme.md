@@ -89,6 +89,8 @@ https://github.com/protocolbuffers/protobuf/releases
 ```shell
 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.16
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.16
 ```
 
 下载pb代码引用的库(否则生成的pb文件会报红)：

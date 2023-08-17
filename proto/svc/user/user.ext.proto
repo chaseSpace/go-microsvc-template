@@ -3,6 +3,7 @@ package proto.svc.user;
 option go_package = "microsvc/protocol/svc/user";
 
 import "svc/common.proto";
+import "google/api/annotations.proto";
 
 message GetUserReq{
   BaseExtReq req = 1;
@@ -23,4 +24,8 @@ message User{
 // *Int 是内部服务接口组，可不鉴权
 service UserExt {
   rpc GetUser(GetUserReq) returns (GetUserRsp);
+  option (google.api.http) = {
+    post: "/v1/GetUser"
+    body: "*"  // 这表示接受多种类型的body，如payload/form/multipart-form... 若不填此行则只解析URL params（当做Get请求处理）
+  };
 }
