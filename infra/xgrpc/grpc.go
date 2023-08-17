@@ -31,6 +31,8 @@ func ServeGRPC(svr *grpc.Server, port ...int) {
 	}
 }
 
+// -------- 下面是grpc中间件 -----------
+
 func WrapAdminRsp(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp interface{}, err error) {
 	rsp, err := handler(ctx, req)

@@ -18,6 +18,54 @@
 
 - shell脚本支持mac环境（默认linux）
 
+### 目录结构释义
+```
+├── consts
+├── deploy  # 部署需要的公共配置文件，如db配置
+│   ├── beta
+│   ├── dev
+│   └── prod
+├── infra   # 基础设施（的初始化或内部逻辑），不含业务代码
+│   ├── cache
+│   ├── orm
+│   ├── svccli
+│   ├── svcregistar
+│   ├── util
+│   └── xgrpc
+├── pkg     # 项目封装的常用包，比如err,time等，不含业务代码
+│   └── xerr
+├── proto   # proto文件
+│   ├── include    # 可能引用的第三方proto文件，比如Google发布的proto类型
+│   │   └── google
+│   ├── model      # 项目内的表结构对应的struct定义，以服务划分目录
+│   │   ├── admin
+│   │   └── user
+│   └── svc        # 各微服务使用的proto文件
+│       ├── admin
+│       ├── assets
+│       └── user
+│           ├── user.ext.proto    # user服务的外部接口组，仅允许外部调用，需要鉴权
+│           └── user.int.proto    # ...内部接口组，仅允许内部调用，可不鉴权
+├── protocol  # 生成的go文件
+│   └── svc
+│       ├── admin
+│       ├── assets
+│       └── user
+├── service   # 微服务目录，存放业务代码
+│   ├── admin
+│   ├── gateway
+│   └── user
+│       └── deploy   # 每个微服务都有的目录，存放各自使用的专属配置目录（不含公共db配置，所以内容更少）
+│           ├── beta
+│           ├── dev
+│           └── prod
+├── tool   # 项目使用的外部工具，主要是二进制文件，如protoc等
+│   └── protoc_v24   # 更改工具时，建议目录名包含版本
+├── tool_mac # mac环境使用的外部工具
+│   └── protoc_v24
+└── bizcomm  # 存放可共用的业务逻辑
+
+```
 ### 工具下载
 
 #### 下载protoc

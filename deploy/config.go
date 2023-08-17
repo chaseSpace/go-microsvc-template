@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
-	"microsvc/consts"
+	"microsvc/enums"
 )
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc   string             `mapstructure:"svc"`
-	Env   consts.Environment `mapstructure:"env"`
-	Mysql map[string]*Mysql  `mapstructure:"mysql"`
-	Redis map[string]*Redis  `mapstructure:"redis"`
+	Svc   string            `mapstructure:"svc"`
+	Env   enums.Environment `mapstructure:"env"`
+	Mysql map[string]*Mysql `mapstructure:"mysql"`
+	Redis map[string]*Redis `mapstructure:"redis"`
 }
 
 var XConf = &XConfig{}

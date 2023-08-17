@@ -1,4 +1,4 @@
-package consts
+package enums
 
 type Sex int32
 
@@ -7,3 +7,7 @@ const (
 	SexMale
 	SexFemale
 )
+
+func (s Sex) Int32() int32 {
+	return int32(s)
+}
