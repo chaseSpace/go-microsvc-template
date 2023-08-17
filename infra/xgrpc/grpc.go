@@ -3,31 +3,78 @@ package xgrpc
 import (
 	"context"
 	"fmt"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"log"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc"
 	"net"
+	"net/http"
+	"time"
 )
 
-func ServeGRPC(svr *grpc.Server, port ...int) {
-	_port := 3000
-	if len(port) > 0 {
-		_port = port[0]
+const grpcPort = ":3000"
+const httpPort = ":3200"
+
+type grpcHTTPRegister func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
+
+type XgRPC struct {
+	svr          *grpc.Server
+	httpRegister grpcHTTPRegister
+}
+
+func New(svr *grpc.Server) *XgRPC {
+	return &XgRPC{
+		svr:          svr,
+		httpRegister: nil,
 	}
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", _port)) // 监听在端口 50051
+}
+
+func (x *XgRPC) SetHTTPRegister(httpRegister grpcHTTPRegister) {
+	x.httpRegister = httpRegister
+}
+
+func (x *XgRPC) Serve() {
+	lis, err := net.Listen("tcp", grpcPort) // 监听在端口 50051
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	fmt.Println("\nCongratulations! ^_^")
-	fmt.Printf("GRPC Server is listening on grpc://localhost:%d\n", _port)
+	fmt.Printf("GRPC Server is listening on grpc://localhost:%d\n", grpcPort)
 
-	err = svr.Serve(lis)
+	if x.httpRegister != nil {
+		go func() {
+			time.Sleep(time.Second * 2)
+			serveHTTP(grpcPort, x.httpRegister)
+		}()
+	}
+
+	err = x.svr.Serve(lis)
 	if err != nil {
 		log.Fatalf("failed to Serve: %v", err)
+	}
+}
+
+func serveHTTP(grpcAddr string, registerHTTP grpcHTTPRegister) {
+	conn, err := grpc.Dial(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Failed to connect grpc: %v", err)
+	}
+	defer conn.Close()
+
+	mux := runtime.NewServeMux()
+	//opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	err = registerHTTP(context.TODO(), mux, conn)
+	if err != nil {
+		log.Fatalf("Failed to register http handler client: %v", err)
+	}
+	err = http.ListenAndServe(httpPort, mux)
+	if err != nil {
+		log.Fatalf("Failed to serve http: %v", err)
 	}
 }
 

@@ -23,9 +23,10 @@ message User{
 // *Ext 是外部服务接口组，要鉴权
 // *Int 是内部服务接口组，可不鉴权
 service UserExt {
-  rpc GetUser(GetUserReq) returns (GetUserRsp);
-  option (google.api.http) = {
-    post: "/v1/GetUser"
-    body: "*"  // 这表示接受多种类型的body，如payload/form/multipart-form... 若不填此行则只解析URL params（当做Get请求处理）
-  };
+  rpc GetUser(GetUserReq) returns (GetUserRsp){
+    option (google.api.http) = {
+      post: "/user/v1/GetUser"
+      body: "*"  // 这表示接受多种类型的body，如payload/form/multipart-form... 若不填此行则只解析URL params（当做Get请求处理）
+    };
+  }
 }

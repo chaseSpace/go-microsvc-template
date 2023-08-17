@@ -16,6 +16,7 @@ chmod +x $_bin_path/*
 PATH=$PATH:$_bin_path
 
 OUTPUT_DIR="./protocol/"
+mkdir -p $OUTPUT_DIR
 
 case $_pb_dir in
 clear)

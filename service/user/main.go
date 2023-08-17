@@ -17,8 +17,6 @@ import (
 func main() {
 	_ = deploy.XConf // 初始化config
 
-	dao.MustReady() // 检查dao层是否准备就绪
-
 	// 初始化各类infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.MustSetup(
 		cache.InitRedis(false),
@@ -26,6 +24,7 @@ func main() {
 		svcregistar.Init(true),
 		svccli.Init(true),
 	)
+	dao.MustReady() // 检查dao层是否准备就绪
 
 	// 创建一个grpc svr，并配置适当的中间件
 	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
@@ -38,5 +37,8 @@ func main() {
 	user.RegisterUserIntServer(server, new(handler.UserIntCtrl))
 
 	// 启动grpc服务
-	xgrpc.ServeGRPC(server)
+	x := xgrpc.New(server)
+	// -- 为UserExt启用 http反向代理 （http --call--> grpc）
+	x.SetHTTPRegister(user.RegisterUserExtHandler)
+	x.Serve()
 }

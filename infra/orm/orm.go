@@ -25,7 +25,8 @@ func InitGorm(must bool) func(func(must bool, err error)) {
 			for _, v := range deploy.XConf.Mysql {
 				db, err = gorm.Open(mysql.Open(v.Dsn()), gconf)
 				if err != nil {
-					fmt.Printf("\n****** failed to connect to mysql: %s\n\n", v.Dsn())
+					fmt.Printf("\n****** failed to connect to mysql: err:%v\n", err)
+					fmt.Printf("****** mysql.dsn: %s\n\n", v.Dsn())
 					break
 				}
 				instMap[v.DBname] = db

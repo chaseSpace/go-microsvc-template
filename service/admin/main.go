@@ -28,5 +28,7 @@ func main() {
 	))
 	admin.RegisterAdminSvcServer(server, new(handler.AdminCtrl))
 
-	xgrpc.ServeGRPC(server)
+	x := xgrpc.New(server)
+	x.SetHTTPRegister(admin.RegisterAdminSvcHandler)
+	x.Serve()
 }

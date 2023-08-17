@@ -4,6 +4,7 @@ option go_package = "microsvc/protocol/svc/admin";
 
 import "svc/common.proto";
 import "svc/const.proto";
+import "google/api/annotations.proto";
 
 message AdminLoginReq {
   AdminBaseReq base = 1;
@@ -24,5 +25,11 @@ message LoginResBody {
 
 
 service AdminSvc {
-  rpc AdminLogin(AdminLoginReq) returns (AdminLoginRsp);
+  rpc AdminLogin(AdminLoginReq) returns (AdminLoginRsp){
+    option(google.api.http) = {
+      post: "/admin/v1/AdminLogin",
+      body:"*"
+    };
+  }
+
 }
