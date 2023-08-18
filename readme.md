@@ -6,18 +6,18 @@
 
 计划支持以下模式或特性：
 
-- 使用单仓库多服务模式
-- 使用grpc+protobuf作为内部rpc通讯协议
+- ✔️使用单仓库多服务模式
+- ✔️使用grpc+protobuf作为内部rpc通讯协议
 - 使用grpc-gateway插件生成grpc服务的http反向代理
 - 使用consul作为服务注册发现组件，支持扩展
-- 使用gorm作为orm组件，支持扩展
+- ✔️使用gorm作为orm组件，支持扩展
 - 使用redis作为cache组件，支持扩展
 - 支持本地启动**多个**微服务
 
 其他有用的特性：
 
-- shell脚本支持mac环境（默认linux）
-- 定义了err类型，以便在跨服务传播
+- ✔️shell脚本支持mac环境（默认linux）
+- ✔️定义了err类型，以便跨服务传递error
 
 ### 1. 目录结构释义
 

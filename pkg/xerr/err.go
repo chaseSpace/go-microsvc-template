@@ -35,6 +35,6 @@ func (t E) NewMsg(msg string) XErr {
 	return t
 }
 func (t E) AppendMsg(msg string) XErr {
-	t.Msg += " |append.err>> " + msg
+	t.Msg += " |---append>> " + msg
 	return t
 }
