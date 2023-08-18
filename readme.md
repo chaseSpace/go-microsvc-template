@@ -71,7 +71,14 @@
 └── util  # 存放可共用的其他逻辑
 ```
 
-### 2. 工具下载
+### 2. 如何使用
+```shell
+git clone https://github.com/chaseSpace/go-microsvc-template.git
+cd go-microsvc-template/
+go mod tidy
+```
+
+### 3. 工具下载（更新）
 
 #### 下载protoc
 
@@ -86,15 +93,23 @@ https://github.com/protocolbuffers/protobuf/releases
 
 #### 下载protoc插件
 
+本仓库的`tool/`,`tool_mac/`都已经包含这些插件，这里只是演示如何下载，以便你了解如何更新插件版本。
 ```shell
 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.16
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.16
-```
 
-下载pb代码引用的库(否则生成的pb文件会报红)：
+# 检查是否下载成功
+[root@localhost go-microsvc-template]# ls $GOPATH/bin/
+protoc         protoc-gen-go-grpc     protoc-gen-grpc-gateway  protoc-gen-swagger
+protoc-gen-go  protoc-gen-openapiv2   
 
-```shell
-go get google.golang.org/grpc@v1.57.0
+# 下载后需要复制到仓库下的tool目录（以及tool_mac），其他人拉取代码后，无需再下载
+cp $GOPATH/bin/* tool/protoc_v24
 ```
+若要更改版本，建议同时修改`tool/proto_v24/`目录名称，并同步修改`build_pb.sh`脚本中对该目录的引用部分，以便更新版本后脚本能够正常运行。
+
+### 4. 其他建议
+
+- `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
