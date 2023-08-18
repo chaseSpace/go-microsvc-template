@@ -2,20 +2,26 @@ package main
 
 import (
 	"google.golang.org/grpc"
-	"microsvc/deploy"
 	"microsvc/infra"
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
 	"microsvc/infra/svccli"
 	"microsvc/infra/svcregistar"
 	"microsvc/infra/xgrpc"
+	"microsvc/pkg/xlog"
 	dao "microsvc/proto/model/user"
 	"microsvc/protocol/svc/user"
+	"microsvc/service/user/deploy"
 	"microsvc/service/user/handler"
 )
 
 func main() {
-	_ = deploy.XConf // 初始化config
+	// 初始化config
+	deploy.MustSetup(
+		// 在这里传入pkg内需要初始化的函数
+		xlog.Init,
+		// 假如我要新增kafka等组件，也是新增 pkg/xkafka目录，然后实现其init函数并添加在这里
+	)
 
 	// 初始化各类infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.MustSetup(

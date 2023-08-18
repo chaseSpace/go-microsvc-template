@@ -5,6 +5,8 @@ import (
 	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
 	"microsvc/enums"
+	"microsvc/util"
+	"os"
 )
 
 // XConfig 是主配置结构体
@@ -13,11 +15,25 @@ type XConfig struct {
 	Env   enums.Environment `mapstructure:"env"`
 	Mysql map[string]*Mysql `mapstructure:"mysql"`
 	Redis map[string]*Redis `mapstructure:"redis"`
+
+	// 接管svc的配置
+	svcConf SvcConfImpl
+}
+
+func (x XConfig) GetSvcConf() SvcConfImpl {
+	return x.svcConf
+}
+
+type Initializer func(cc *XConfig)
+
+type SvcConfImpl interface {
+	GetLogLevel() string
 }
 
 var XConf = &XConfig{}
 
-func init() {
+func Init(svc string, svcConfVar SvcConfImpl, initializers ...Initializer) {
+
 	XConf.Env = readEnv()
 
 	// 设置配置文件名（不包含扩展名）
@@ -37,7 +53,28 @@ func init() {
 	for dbname, v := range XConf.Mysql {
 		v.DBname = DBname(dbname)
 	}
-	_, _ = pp.Printf("********* init Config OK *********\n%+v\n", XConf)
+	_, _ = pp.Printf("\n************* init Share-Config OK *************\n%+v\n", XConf)
+
+	// ------------- 下面读取svc专有配置 -------------------
+
+	svcConfFile, err := os.Open(fmt.Sprintf("service/%s/deploy/%s/config.yaml", svc, XConf.Env))
+	util.AssertNilErr(err)
+
+	err = viper.ReadConfig(svcConfFile)
+	util.AssertNilErr(err)
+
+	err = viper.Unmarshal(&svcConfVar)
+	util.AssertNilErr(err)
+
+	_, _ = pp.Printf("\n************* init Svc-Config OK *************\n%+v\n", svcConfVar)
+
+	// svc conf 嵌入主配置
+	XConf.svcConf = svcConfVar
+
+	// 最后，执行传入的初始化函数
+	for _, initFn := range initializers {
+		initFn(XConf)
+	}
 }
 
 type DBname string
