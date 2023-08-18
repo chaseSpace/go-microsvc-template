@@ -16,10 +16,9 @@ import (
 )
 
 func main() {
-	// 初始化config
+	// 初始化config，并传入pkg目录下需要初始化的组件的init函数
 	deploy.MustSetup(
-		// 在这里传入pkg内需要初始化的函数
-		xlog.Init,
+		xlog.Init, // pkg/xlog
 		// 假如我要新增kafka等组件，也是新增 pkg/xkafka目录，然后实现其init函数并添加在这里
 	)
 
@@ -32,19 +31,13 @@ func main() {
 	)
 	dao.MustReady() // 检查dao层是否准备就绪
 
-	// 创建一个grpc svr，并配置适当的中间件
-	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		xgrpc.RecoverGrpcRequest,
-		xgrpc.LogGrpcRequest,
-	))
+	x := xgrpc.New() // New一个封装好的grpc对象
+	x.Apply(func(s *grpc.Server) {
+		// 注册外部和内部的rpc接口对象
+		user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
+		user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
+	})
 
-	// 注册外部和内部的rpc接口组
-	user.RegisterUserExtServer(server, new(handler.UserExtCtrl))
-	user.RegisterUserIntServer(server, new(handler.UserIntCtrl))
-
-	// 启动grpc服务
-	x := xgrpc.New(server)
-	// -- 为UserExt启用 http反向代理 （http --call--> grpc）
-	x.SetHTTPRegister(user.RegisterUserExtHandler)
-	x.Serve()
+	x.SetHTTPRegister(user.RegisterUserExtHandler) // -- 为外部接口对象 UserExt 启用 http反向代理 （http --call--> grpc）
+	x.Serve()                                      // 监听请求
 }

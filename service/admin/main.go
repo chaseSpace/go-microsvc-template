@@ -2,7 +2,6 @@ package main
 
 import (
 	"google.golang.org/grpc"
-	"microsvc/deploy"
 	"microsvc/infra"
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
@@ -14,8 +13,6 @@ import (
 )
 
 func main() {
-	_ = deploy.XConf // init config
-
 	infra.MustSetup(
 		cache.InitRedis(true),
 		orm.InitGorm(true),
@@ -23,12 +20,12 @@ func main() {
 		svccli.Init(true),
 	)
 
-	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		xgrpc.WrapAdminRsp,
-	))
-	admin.RegisterAdminSvcServer(server, new(handler.AdminCtrl))
+	x := xgrpc.New(xgrpc.WrapAdminRsp)
 
-	x := xgrpc.New(server)
+	x.Apply(func(s *grpc.Server) {
+		admin.RegisterAdminSvcServer(s, new(handler.AdminCtrl))
+	})
+
 	x.SetHTTPRegister(admin.RegisterAdminSvcHandler)
 	x.Serve()
 }

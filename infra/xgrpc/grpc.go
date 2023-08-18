@@ -26,11 +26,20 @@ type XgRPC struct {
 	httpRegister grpcHTTPRegister
 }
 
-func New(svr *grpc.Server) *XgRPC {
+func New(interceptors ...grpc.UnaryServerInterceptor) *XgRPC {
+	// 创建一个grpc svr，并配置适当的中间件
+	base := []grpc.UnaryServerInterceptor{RecoverGrpcRequest, LogGrpcRequest}
+	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		append(base, interceptors...)...,
+	))
 	return &XgRPC{
-		svr:          svr,
+		svr:          server,
 		httpRegister: nil,
 	}
+}
+
+func (x *XgRPC) Apply(regFunc func(s *grpc.Server)) {
+	regFunc(x.svr)
 }
 
 func (x *XgRPC) SetHTTPRegister(httpRegister grpcHTTPRegister) {
@@ -44,7 +53,7 @@ func (x *XgRPC) Serve() {
 	}
 
 	fmt.Println("\nCongratulations! ^_^")
-	fmt.Printf("GRPC Server is listening on grpc://localhost:%d\n", grpcPort)
+	fmt.Printf("GRPC Server is listening on grpc://localhost:%s\n", grpcPort)
 
 	if x.httpRegister != nil {
 		go func() {
