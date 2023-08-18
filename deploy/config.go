@@ -32,7 +32,7 @@ type SvcConfImpl interface {
 
 var XConf = &XConfig{}
 
-func Init(svc string, svcConfVar SvcConfImpl, initializers ...Initializer) {
+func Init(svc string, svcConfVar SvcConfImpl) {
 
 	XConf.Env = readEnv()
 
@@ -65,16 +65,12 @@ func Init(svc string, svcConfVar SvcConfImpl, initializers ...Initializer) {
 
 	err = viper.Unmarshal(&svcConfVar)
 	util.AssertNilErr(err)
+	util.AssertNotNil(svcConfVar)
 
 	_, _ = pp.Printf("\n************* init Svc-Config OK *************\n%+v\n", svcConfVar)
 
 	// svc conf 嵌入主配置
 	XConf.svcConf = svcConfVar
-
-	// 最后，执行传入的初始化函数
-	for _, initFn := range initializers {
-		initFn(XConf)
-	}
 }
 
 type DBname string
