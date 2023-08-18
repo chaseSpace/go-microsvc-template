@@ -72,6 +72,7 @@
 ```
 
 ### 2. 如何使用
+
 ```shell
 git clone https://github.com/chaseSpace/go-microsvc-template.git
 cd go-microsvc-template/
@@ -94,6 +95,7 @@ https://github.com/protocolbuffers/protobuf/releases
 #### 下载protoc插件
 
 本仓库的`tool/`,`tool_mac/`都已经包含这些插件，这里只是演示如何下载，以便你了解如何更新插件版本。
+
 ```shell
 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
@@ -108,8 +110,22 @@ protoc-gen-go  protoc-gen-openapiv2
 # 下载后需要复制到仓库下的tool目录（以及tool_mac），其他人拉取代码后，无需再下载
 cp $GOPATH/bin/* tool/protoc_v24
 ```
+
 若要更改版本，建议同时修改`tool/proto_v24/`目录名称，并同步修改`build_pb.sh`脚本中对该目录的引用部分，以便更新版本后脚本能够正常运行。
 
-### 4. 其他建议
+### 4. 本地启动微服务的原理
+
+理论上来说，调用微服务是走注册中心的，要想在本地启动多个微服务且能正常互相调用，又不想在本地部署一个类似etcd/consul/zookeeper
+的注册中心，最简单的办法是：
+
+```
+实现一个简单的单进程注册中心，当启动一个微服务且env=dev时，内部组件会检测本地是否有注册中心服务运行，若有则直接调用其接口进行注册；
+若没有则会启动一个注册中心服务，供其他服务使用。
+
+> 本地的注册中心使用一个可配置的固定端口。
+```
+注意：本地启动的微服务仍然连接的是**beta环境的数据库**。
+
+### 其他建议
 
 - `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
