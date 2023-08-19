@@ -29,7 +29,9 @@ func InitRedis(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 			instMap[v.DBname] = rdb
 		}
 
-		setupSvcDB()
+		if err == nil {
+			err = setupSvcDB()
+		}
 
 		onEnd(must, err)
 	}
@@ -58,13 +60,14 @@ func (m *RedisObj) String() string {
 
 var servicesDB []*RedisObj
 
-func setupSvcDB() {
+func setupSvcDB() error {
 	for _, obj := range servicesDB {
 		obj.Client = instMap[obj.name]
 		if obj.IsInvalid() {
-			panic(fmt.Sprintf("cache.RedisObj is invalid, %s", obj))
+			return fmt.Errorf("cache.RedisObj is invalid, %s", obj)
 		}
 	}
+	return nil
 }
 
 func Stop() {

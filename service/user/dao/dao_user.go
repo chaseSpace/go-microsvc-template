@@ -1,6 +1,9 @@
 package dao
 
-import "microsvc/proto/model/user"
+import (
+	"microsvc/infra/orm"
+	"microsvc/proto/model/user"
+)
 
 func GetUser(uid ...int64) (list []*user.User, row user.User, err error) {
 	if len(uid) == 1 {
@@ -8,5 +11,6 @@ func GetUser(uid ...int64) (list []*user.User, row user.User, err error) {
 	} else {
 		err = user.Q.Find(&list, "uid in (?)", uid).Error
 	}
+	err = orm.IgnoreNil(err)
 	return
 }

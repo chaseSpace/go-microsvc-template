@@ -35,7 +35,9 @@ func InitGorm(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 			}
 		}
 
-		setupSvcDB()
+		if err == nil {
+			err = setupSvcDB()
+		}
 
 		onEnd(must, err)
 	}
@@ -65,13 +67,14 @@ func (m *MysqlObj) String() string {
 
 var servicesDB []*MysqlObj
 
-func setupSvcDB() {
+func setupSvcDB() error {
 	for _, obj := range servicesDB {
 		obj.DB = instMap[obj.name]
 		if obj.IsInvalid() {
-			panic(fmt.Sprintf("orm.MysqlObj is invalid, %s", obj))
+			return fmt.Errorf("orm.MysqlObj is invalid, %s", obj)
 		}
 	}
+	return nil
 }
 
 func Stop() {
@@ -92,4 +95,11 @@ func RegSvcDB(obj ...*MysqlObj) {
 		}
 	}
 	servicesDB = obj
+}
+
+func IgnoreNil(err error) error {
+	if err == nil || err == gorm.ErrRecordNotFound {
+		return nil
+	}
+	return err
 }

@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
 	github.com/k0kubun/pp v2.4.0+incompatible
+	github.com/redis/go-redis/v9 v9.1.0
 	github.com/spf13/viper v1.16.0
 	go.uber.org/zap v1.21.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e
@@ -29,7 +30,6 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
-	github.com/redis/go-redis/v9 v9.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
