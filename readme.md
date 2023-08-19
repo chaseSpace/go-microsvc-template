@@ -10,6 +10,9 @@
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
 - ✅ 使用grpc-gateway插件生成grpc服务的http反向代理
 - 使用consul作为服务注册发现组件，支持扩展
+  - 包含健康检查、超时重试与熔断功能
+  - 包含服务之间通信流量的负载均衡
+  - 包含服务之间通信的认证与授权
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
 - 支持本地启动**多个**微服务
@@ -181,3 +184,8 @@ cp $GOPATH/bin/* tool/protoc_v24
 ### 其他建议
 
 - `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
+
+
+#### 资源链接
+
+- [Consul 官网介绍](https://developer.hashicorp.com/consul/docs/intro)
