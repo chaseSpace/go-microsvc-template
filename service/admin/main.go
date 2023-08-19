@@ -23,13 +23,13 @@ func main() {
 		svcregistar.Init(true),
 		svccli.Init(true),
 	)
+	defer infra.Stop()
 
 	x := xgrpc.New(xgrpc.WrapAdminRsp)
 
 	x.Apply(func(s *grpc.Server) {
 		admin.RegisterAdminSvcServer(s, new(handler.AdminCtrl))
 	})
-
 	x.SetHTTPRegister(admin.RegisterAdminSvcHandler)
 	x.Serve()
 }

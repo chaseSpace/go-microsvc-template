@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var Xlogger *zap.Logger
+var xlogger *zap.Logger
 
 func Init(cc *deploy.XConfig) {
 	//level := deploy.XConf.GetSvcConf().GetLogLevel()
@@ -24,11 +24,11 @@ func Init(cc *deploy.XConfig) {
 
 	writer := zapcore.AddSync(os.Stdout) // 写stdout，再用容器收集日志
 	core := zapcore.NewCore(getEncoder(lv), writer, lv)
-	Xlogger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	xlogger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
 func Stop() {
-	_ = Xlogger.Sync()
+	_ = xlogger.Sync()
 }
 
 func getEncoder(level zapcore.Level) zapcore.Encoder {
@@ -45,23 +45,23 @@ func getEncoder(level zapcore.Level) zapcore.Encoder {
 // --------------------------------
 
 func Debug(msg string, fields ...zapcore.Field) {
-	Xlogger.Debug(msg, fields...)
+	xlogger.Debug(msg, fields...)
 }
 
 func Info(msg string, fields ...zapcore.Field) {
-	Xlogger.Info(msg, fields...)
+	xlogger.Info(msg, fields...)
 }
 
 func Warn(msg string, fields ...zapcore.Field) {
-	Xlogger.Warn(msg, fields...)
+	xlogger.Warn(msg, fields...)
 }
 
 func Error(msg string, fields ...zapcore.Field) {
-	Xlogger.Error(msg, fields...)
+	xlogger.Error(msg, fields...)
 }
 
 func Panic(msg string, fields ...zapcore.Field) {
-	Xlogger.Panic(msg, fields...)
+	xlogger.Panic(msg, fields...)
 }
 
 // 这里不需要DPanic函数，因为Panic够用，且我们的grpc中间件会捕获panic，并封装包含panic信息的Response

@@ -37,7 +37,6 @@ import (
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg"
 	"microsvc/pkg/xlog"
-	dao "microsvc/proto/model/user"
 	"microsvc/protocol/svc/user"
 	deploy2 "microsvc/service/user/deploy"
 	"microsvc/service/user/handler"
@@ -46,7 +45,6 @@ import (
 func main() {
 	// 初始化config
 	deploy.Init("user", deploy2.UserConf)
-
 	// 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
 	pkg.Init(
 		xlog.Init,
@@ -55,12 +53,12 @@ func main() {
 
 	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.MustSetup(
-		cache.InitRedis(false),
+		cache.InitRedis(true),
 		orm.InitGorm(true),
 		svcregistar.Init(true),
 		svccli.Init(true),
 	)
-	dao.MustReady() // 检查dao层是否准备就绪
+	defer infra.Stop()
 
 	x := xgrpc.New() // New一个封装好的grpc对象
 	x.Apply(func(s *grpc.Server) {

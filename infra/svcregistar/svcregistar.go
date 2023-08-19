@@ -1,8 +1,10 @@
 package svcregistar
 
-func Init(must bool) func(func(must bool, err error)) {
+import "microsvc/deploy"
+
+func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	// 在这里 决定使用 etcd/consul
-	return func(onEnd func(must bool, err error)) {
+	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		// todo
 		var err error
 		onEnd(must, err)

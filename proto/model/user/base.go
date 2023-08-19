@@ -1,19 +1,27 @@
 package user
 
 import (
-	"fmt"
-	"gorm.io/gorm"
+	"microsvc/infra/cache"
 	"microsvc/infra/orm"
 )
 
-const dbName = "microsvc"
+const (
+	mysqlDBname  = "microsvc"
+	mysqlDBname2 = "microsvc_log"
+)
+const redisDBname = "microsvc"
 
-func MustReady() {
-	if Q() == nil {
-		panic(fmt.Sprintf("dbname [%s] is not found in instance map", dbName))
-	}
-}
+var (
+	Q    = orm.NewMysqlObj(mysqlDBname)
+	QLog = orm.NewMysqlObj(mysqlDBname2)
+)
 
-func Q() *gorm.DB {
-	return orm.GetMysqlInstance(dbName)
+var (
+	R = cache.NewRedisObj(redisDBname)
+)
+
+func init() {
+	// 此函数会在main函数执行前向orm注入服务需要使用的DB对象
+	orm.RegSvcDB(Q, QLog)
+	cache.RegSvcDB(R)
 }

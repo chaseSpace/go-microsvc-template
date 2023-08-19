@@ -53,6 +53,9 @@ func Init(svc string, svcConfVar SvcConfImpl) {
 	for dbname, v := range XConf.Mysql {
 		v.DBname = DBname(dbname)
 	}
+	for dbname, v := range XConf.Redis {
+		v.DBname = DBname(dbname)
+	}
 	_, _ = pp.Printf("\n************* init Share-Config OK *************\n%+v\n", XConf)
 
 	// ------------- 下面读取svc专有配置 -------------------
@@ -89,7 +92,8 @@ func (m Mysql) Dsn() string {
 }
 
 type Redis struct {
-	DB       int8   `mapstructure:"db"`
+	DBname
+	DB       int    `mapstructure:"db"`
 	Addr     string `mapstructure:"addr"`
 	Password string `mapstructure:"password"`
 }
