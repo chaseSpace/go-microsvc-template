@@ -189,3 +189,4 @@ cp $GOPATH/bin/* tool/protoc_v24
 #### 资源链接
 
 - [Consul 官网介绍](https://developer.hashicorp.com/consul/docs/intro)
+- [Consul 服务发现原理](https://developer.hashicorp.com/consul/docs/concepts/service-discovery)
