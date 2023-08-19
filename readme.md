@@ -75,7 +75,7 @@ func main() {
 
 ```
 ├── consts  # 公共常量（不含单个svc独享的常量）
-├── enums   # 枚举
+├── enums   # 所有枚举（含svc独享的枚举，enums数量一般小于consts，且大部分需要跨服务使用）
 ├── deploy  # 部署需要的公共配置文件，如db配置
 │   ├── beta
 │   ├── dev
