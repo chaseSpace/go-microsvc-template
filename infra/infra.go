@@ -1,9 +1,11 @@
 package infra
 
 import (
+	"go.uber.org/zap"
 	"microsvc/deploy"
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
+	"microsvc/pkg/xlog"
 )
 
 type initFunc func(cc *deploy.XConfig, onEnd func(must bool, err error))
@@ -14,7 +16,9 @@ func MustSetup(initFn ...initFunc) {
 			if must && err != nil {
 				panic(err)
 			}
-			// TODO LOG
+			if err != nil {
+				xlog.Error("infra.MustSetup err", zap.Error(err))
+			}
 		})
 	}
 }

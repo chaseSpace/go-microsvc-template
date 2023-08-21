@@ -7,7 +7,7 @@ import (
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
 	"microsvc/infra/svccli"
-	"microsvc/infra/svcregistar"
+	"microsvc/infra/svcdiscovery"
 	"microsvc/infra/xgrpc"
 	"microsvc/protocol/svc/admin"
 	deploy2 "microsvc/service/admin/deploy"
@@ -20,7 +20,7 @@ func main() {
 	infra.MustSetup(
 		cache.InitRedis(true),
 		orm.InitGorm(true),
-		svcregistar.Init(true),
+		svcdiscovery.Init(true),
 		svccli.Init(true),
 	)
 	defer infra.Stop()
