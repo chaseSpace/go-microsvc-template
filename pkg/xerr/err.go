@@ -7,8 +7,8 @@ import (
 
 type XErr interface {
 	error
-	NewMsg(msg string) XErr
-	AppendMsg(msg string) XErr
+	NewMsg(msg string, args ...any) XErr
+	AppendMsg(msg string, args ...any) XErr
 }
 
 type E struct {
@@ -30,11 +30,11 @@ var _ XErr = new(E)
 func (t E) Error() string {
 	return fmt.Sprintf("XERR: ecode=%d msg=%s", t.Ecode, t.Msg)
 }
-func (t E) NewMsg(msg string) XErr {
-	t.Msg = msg
+func (t E) NewMsg(msg string, args ...any) XErr {
+	t.Msg = fmt.Sprintf(msg, args...)
 	return t
 }
-func (t E) AppendMsg(msg string) XErr {
-	t.Msg += " |---append>> " + msg
+func (t E) AppendMsg(msg string, args ...any) XErr {
+	t.Msg += " |---append>> " + fmt.Sprintf(msg, args...)
 	return t
 }

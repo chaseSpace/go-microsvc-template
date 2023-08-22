@@ -5,6 +5,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
+	"microsvc/infra/svccli"
 	"microsvc/pkg/xlog"
 )
 
@@ -26,4 +27,5 @@ func MustSetup(initFn ...initFunc) {
 func Stop() {
 	orm.Stop()
 	cache.Stop()
+	svccli.Stop()
 }

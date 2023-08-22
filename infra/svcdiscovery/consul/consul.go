@@ -1,18 +1,19 @@
 package consul
 
 import (
+	"context"
 	"fmt"
 	capi "github.com/hashicorp/consul/api"
 	"microsvc/infra/svcdiscovery/define"
 )
 
-type consulSD struct {
+type ConsulSD struct {
 	client *capi.Client
 }
 
-var _ define.ServiceDiscovery = new(consulSD)
+var _ define.ServiceDiscovery = new(ConsulSD)
 
-func NewConsulSD() (*consulSD, error) {
+func NewConsulSD() (*ConsulSD, error) {
 	// 默认连接 Consul HTTP API Addr> 127.0.0.1:8500
 	cfg := capi.DefaultConfig()
 	//cfg.Address 可修改
@@ -20,10 +21,10 @@ func NewConsulSD() (*consulSD, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &consulSD{client: client}, nil
+	return &ConsulSD{client: client}, nil
 }
 
-func (c consulSD) Register(serviceName string, address string, port int, metadata map[string]string) error {
+func (c ConsulSD) Register(serviceName string, address string, port int, metadata map[string]string) error {
 	tcpAddr := fmt.Sprintf("%s:%d", address, port)
 	params := &capi.AgentServiceRegistration{
 		Name:    serviceName,
@@ -36,10 +37,31 @@ func (c consulSD) Register(serviceName string, address string, port int, metadat
 	return c.client.Agent().ServiceRegister(params)
 }
 
-func (c consulSD) Deregister(serviceName string) error {
+func (c ConsulSD) Deregister(serviceName string) error {
 	return c.client.Agent().ServiceDeregister(serviceName)
 }
 
-func (c consulSD) Discover(serviceName string) ([]define.ServiceInstance, error) {
-	c.client.Agent().Services()
+func (c ConsulSD) Discover(ctx context.Context, serviceName string) (inst []define.ServiceInstance, err error) {
+	return
+}
+
+func (c ConsulSD) getInstances(serviceName string, waitHash string) (list []define.ServiceInstance, lastHash string, err error) {
+
+	opt := &capi.QueryOptions{WaitHash: waitHash}
+	entries, meta, err := c.client.Health().Service(serviceName, "", true, opt)
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, s := range entries {
+		inst := define.ServiceInstance{
+			ID:       s.Service.ID,
+			Name:     serviceName,
+			Address:  s.Service.Address,
+			Port:     s.Service.Port,
+			Metadata: s.Service.Meta,
+		}
+		list = append(list, inst)
+	}
+	return list, meta.LastContentHash, nil
 }
