@@ -34,21 +34,27 @@ var sd define.ServiceDiscovery
 
 type InstanceImpl struct {
 	svc        string
-	entryCache map[string]int8
+	entryCache map[string]*GrpcConnObj
 	grpcConns  *list.List    // 链表
 	curr       *list.Element // 当前元素
 	quit       chan struct{}
+	genClient  GenClient
 }
 
 type GrpcConnObj struct {
-	ID   string
-	Conn *grpc.ClientConn
+	ID     string
+	cc     *grpc.ClientConn
+	Client interface{}
 }
 
-func NewInstance(svc string) *InstanceImpl {
+type GenClient func(conn *grpc.ClientConn) interface{}
+
+func NewInstance(svc string, genClient GenClient) *InstanceImpl {
 	ins := &InstanceImpl{
 		svc:       svc,
 		grpcConns: list.New(),
+		genClient: genClient,
+		quit:      make(chan struct{}),
 	}
 	go ins.backgroundRefresh()
 	return ins
@@ -92,7 +98,7 @@ func (i *InstanceImpl) backgroundRefresh() {
 		default:
 		}
 		if err != nil {
-			if err == xerr.ErrTimeout {
+			if err == context.DeadlineExceeded {
 				xlog.Debug(logPrefix + "Discover timeout")
 			} else {
 				xlog.Error(logPrefix+"Discover fail", zap.Error(err))
@@ -104,21 +110,23 @@ func (i *InstanceImpl) backgroundRefresh() {
 		for _, entry := range entries {
 			availableEntries[entry.ID] = 1
 			// check if entry is exists
-			if i.entryCache[entry.ID] == 1 {
+			if i.entryCache[entry.ID] != nil {
 				continue
 			}
-			i.entryCache[entry.ID] = 1
 			cc, err = newGrpcClient(entry.Addr())
 			if err == nil {
-				i.grpcConns.PushBack(&GrpcConnObj{ID: entry.Addr(), Conn: cc})
+				obj := &GrpcConnObj{ID: entry.Addr(), Client: i.genClient(cc), cc: cc}
+				i.entryCache[entry.ID] = obj
+				i.grpcConns.PushBack(obj)
 			} else {
 				xlog.Error(logPrefix+"newGrpcClient", zap.Error(err))
 			}
 		}
 
-		// clear non-available entries
-		for svcId := range i.entryCache {
+		// clear unavailable entries
+		for svcId, conn := range i.entryCache {
 			if availableEntries[svcId] == 0 {
+				_ = conn.cc.Close()
 				delete(i.entryCache, svcId)
 				i.removeGrpcConn(svcId)
 				xlog.Debug(logPrefix+"removeGrpcConn", zap.String("svcId", svcId))
@@ -144,6 +152,6 @@ func (i *InstanceImpl) removeGrpcConn(id string) {
 func newGrpcClient(target string) (cc *grpc.ClientConn, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	cc, err = grpc.DialContext(ctx, target, grpc.WithBlock(), grpc.WithInsecure())
+	cc, err = grpc.DialContext(ctx, target, grpc.WithInsecure())
 	return
 }

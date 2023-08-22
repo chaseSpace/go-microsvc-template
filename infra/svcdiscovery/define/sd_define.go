@@ -23,7 +23,3 @@ type ServiceInstance struct {
 func (s ServiceInstance) Addr() string {
 	return fmt.Sprintf("%s:%d", s.Address, s.Port)
 }
-
-type Instance interface {
-	GetInstance(svc string) (ServiceInstance, error)
-}
