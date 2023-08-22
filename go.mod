@@ -6,6 +6,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
 	github.com/hashicorp/consul/api v1.24.0
 	github.com/k0kubun/pp v2.4.0+incompatible
+	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/spf13/viper v1.16.0
 	go.uber.org/zap v1.21.0
