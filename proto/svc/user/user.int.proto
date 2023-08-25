@@ -19,8 +19,16 @@ message IntUser{
   int32 sex = 4;
 }
 
+message TestReq{
+  int32 old = 1;
+}
+message TestRsp{
+  int32 new = 2;
+}
+
 // *Ext 是外部服务接口组，要鉴权
 // *Int 是内部服务接口组，可不鉴权
 service UserInt {
   rpc GetUser(GetUserIntReq) returns (GetUserIntRsp);
+  rpc Test(TestReq) returns (TestRsp);
 }

@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserIntClient interface {
 	GetUser(ctx context.Context, in *GetUserIntReq, opts ...grpc.CallOption) (*GetUserIntRsp, error)
+	Test(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestRsp, error)
 }
 
 type userIntClient struct {
@@ -42,11 +43,21 @@ func (c *userIntClient) GetUser(ctx context.Context, in *GetUserIntReq, opts ...
 	return out, nil
 }
 
+func (c *userIntClient) Test(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestRsp, error) {
+	out := new(TestRsp)
+	err := c.cc.Invoke(ctx, "/proto.svc.user.UserInt/Test", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserIntServer is the server API for UserInt service.
 // All implementations should embed UnimplementedUserIntServer
 // for forward compatibility
 type UserIntServer interface {
 	GetUser(context.Context, *GetUserIntReq) (*GetUserIntRsp, error)
+	Test(context.Context, *TestReq) (*TestRsp, error)
 }
 
 // UnimplementedUserIntServer should be embedded to have forward compatible implementations.
@@ -55,6 +66,9 @@ type UnimplementedUserIntServer struct {
 
 func (UnimplementedUserIntServer) GetUser(context.Context, *GetUserIntReq) (*GetUserIntRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserIntServer) Test(context.Context, *TestReq) (*TestRsp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Test not implemented")
 }
 
 // UnsafeUserIntServer may be embedded to opt out of forward compatibility for this service.
@@ -86,6 +100,24 @@ func _UserInt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserInt_Test_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserIntServer).Test(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.svc.user.UserInt/Test",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserIntServer).Test(ctx, req.(*TestReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserInt_ServiceDesc is the grpc.ServiceDesc for UserInt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +128,10 @@ var UserInt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _UserInt_GetUser_Handler,
+		},
+		{
+			MethodName: "Test",
+			Handler:    _UserInt_Test_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
