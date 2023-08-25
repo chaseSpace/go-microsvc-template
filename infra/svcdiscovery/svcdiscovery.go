@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
 	"microsvc/infra/svcdiscovery/consul"
-	"microsvc/infra/svcdiscovery/define"
+	"microsvc/infra/svcdiscovery/sd"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"time"
@@ -19,9 +19,9 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 		// 在这里 决定使用 etcd/consul
 		cli, err := consul.NewConsulSD()
 		if err == nil {
-			sd = cli
+			rootSD = cli
 		} else {
-			err = errors.Wrap(err, "NewConsulSD")
+			err = errors.Wrap(err, "NewSD")
 		}
 		onEnd(must, err)
 	}
@@ -29,8 +29,11 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 
 const logPrefix = "svcdiscovery: "
 
-// sd init at Init
-var sd define.ServiceDiscovery
+var rootSD sd.ServiceDiscovery
+
+func GetSD() sd.ServiceDiscovery {
+	return rootSD
+}
 
 type InstanceImpl struct {
 	svc        string
@@ -60,7 +63,7 @@ func NewInstance(svc string, genClient GenClient) *InstanceImpl {
 	return ins
 }
 
-// GetInstance 每次返回链表的下一个元素（conn）
+// GetInstance 每次返回链表的下一个元素，实现负载均衡（conn）
 func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
 	if i.curr != nil {
 		obj := i.curr.Value.(*GrpcConnObj)
@@ -77,16 +80,15 @@ func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
 
 func (i *InstanceImpl) backgroundRefresh() {
 	var (
-		entries []define.ServiceInstance
+		entries []sd.ServiceInstance
 		cc      *grpc.ClientConn
 		err     error
+		ctx     context.Context
 	)
-	ctx := context.Background()
 
-	discovery := func() ([]define.ServiceInstance, error) {
-		ctx, cancel := context.WithTimeout(ctx, time.Minute)
-		defer cancel()
-		entries, err = sd.Discover(ctx, i.svc)
+	discovery := func() ([]sd.ServiceInstance, error) {
+		ctx = context.WithValue(context.Background(), sd.CtxDurKey{}, time.Minute*2)
+		entries, err = rootSD.Discover(ctx, i.svc)
 		return nil, err
 	}
 	for {

@@ -1,4 +1,4 @@
-package define
+package sd
 
 import (
 	"context"
@@ -23,3 +23,5 @@ type ServiceInstance struct {
 func (s ServiceInstance) Addr() string {
 	return fmt.Sprintf("%s:%d", s.Address, s.Port)
 }
+
+type CtxDurKey struct{}

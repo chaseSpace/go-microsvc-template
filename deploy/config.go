@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
+	"microsvc/consts"
 	"microsvc/enums"
 	"microsvc/util"
 	"os"
@@ -11,7 +12,7 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc   string            `mapstructure:"svc"`
+	Svc   consts.Svc        `mapstructure:"svc"`
 	Env   enums.Environment `mapstructure:"env"`
 	Mysql map[string]*Mysql `mapstructure:"mysql"`
 	Redis map[string]*Redis `mapstructure:"redis"`
@@ -32,7 +33,7 @@ type SvcConfImpl interface {
 
 var XConf = &XConfig{}
 
-func Init(svc string, svcConfVar SvcConfImpl) {
+func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
 
 	XConf.Env = readEnv()
 
@@ -69,7 +70,9 @@ func Init(svc string, svcConfVar SvcConfImpl) {
 	err = viper.Unmarshal(&svcConfVar)
 	util.AssertNilErr(err)
 	util.AssertNotNil(svcConfVar)
-
+	if svc != XConf.Svc {
+		panic(fmt.Sprintf("%s not match svc name:%s in config file", svc, XConf.Svc))
+	}
 	_, _ = pp.Printf("\n************* init Svc-Config OK *************\n%+v\n", svcConfVar)
 
 	// svc conf 嵌入主配置

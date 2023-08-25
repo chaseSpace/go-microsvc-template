@@ -2,6 +2,7 @@ package main
 
 import (
 	"google.golang.org/grpc"
+	"microsvc/consts"
 	"microsvc/deploy"
 	"microsvc/infra"
 	"microsvc/infra/cache"
@@ -15,7 +16,8 @@ import (
 )
 
 func main() {
-	deploy.Init("admin", deploy2.AdminConf)
+	svc := consts.SvcAdmin
+	deploy.Init(svc, deploy2.AdminConf)
 
 	infra.MustSetup(
 		cache.InitRedis(true),
@@ -23,10 +25,15 @@ func main() {
 		svcdiscovery.Init(true),
 		svccli.Init(true),
 	)
-	defer infra.Stop()
+	{
+		svcdiscovery.GetSD().Register(svc.Name(), "", 1, nil)
+	}
+	defer func() {
+		_ = svcdiscovery.GetSD().Deregister(svc.Name())
+		infra.Stop()
+	}()
 
 	x := xgrpc.New(xgrpc.WrapAdminRsp)
-
 	x.Apply(func(s *grpc.Server) {
 		admin.RegisterAdminSvcServer(s, new(handler.AdminCtrl))
 	})

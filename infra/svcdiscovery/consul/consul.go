@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	capi "github.com/hashicorp/consul/api"
-	"microsvc/infra/svcdiscovery/define"
+	"microsvc/infra/svcdiscovery/sd"
 	"microsvc/util"
 	"time"
 )
@@ -14,7 +14,7 @@ type ConsulSD struct {
 	lastIndex uint64
 }
 
-var _ define.ServiceDiscovery = (*ConsulSD)(nil)
+var _ sd.ServiceDiscovery = (*ConsulSD)(nil)
 
 func NewConsulSD() (*ConsulSD, error) {
 	// 默认连接 Consul HTTP API Addr> 127.0.0.1:8500
@@ -38,23 +38,32 @@ func (c *ConsulSD) Register(serviceName string, address string, port int, metada
 		Meta:    metadata,
 		Check:   newHealthCheck("microsvc-"+serviceName+"-health", tcpAddr),
 	}
-	return c.client.Agent().ServiceRegister(params)
+
+	err := c.client.Agent().ServiceRegister(params)
+	if err != nil {
+		return err
+	}
+	err = c.client.Agent().UpdateTTL(params.Check.CheckID, "PASS", capi.HealthPassing)
+	return err
 }
 
 func (c *ConsulSD) Deregister(serviceName string) error {
 	return c.client.Agent().ServiceDeregister(serviceName)
 }
 
-func (c *ConsulSD) Discover(ctx context.Context, serviceName string) (list []define.ServiceInstance, err error) {
+func (c *ConsulSD) Discover(ctx context.Context, serviceName string) (list []sd.ServiceInstance, err error) {
 	err = context.DeadlineExceeded // default
+	dur := time.Minute
+	if val := ctx.Value(sd.CtxDurKey{}); val != nil {
+		dur = val.(time.Duration)
+	}
 	util.RunTask(ctx, func() {
-		list, err = c.getInstances(serviceName, time.Minute)
+		list, err = c.getInstances(serviceName, dur)
 	})
 	return
 }
 
-func (c *ConsulSD) getInstances(serviceName string, waitTime time.Duration) (list []define.ServiceInstance, err error) {
-
+func (c *ConsulSD) getInstances(serviceName string, waitTime time.Duration) (list []sd.ServiceInstance, err error) {
 	opt := &capi.QueryOptions{WaitIndex: c.lastIndex, WaitTime: waitTime}
 	entries, meta, err := c.client.Health().Service(serviceName, "", true, opt)
 	if err != nil {
@@ -66,7 +75,7 @@ func (c *ConsulSD) getInstances(serviceName string, waitTime time.Duration) (lis
 		c.lastIndex = meta.LastIndex
 	}
 	for _, s := range entries {
-		inst := define.ServiceInstance{
+		inst := sd.ServiceInstance{
 			ID:       s.Service.ID,
 			Name:     serviceName,
 			Address:  s.Service.Address,

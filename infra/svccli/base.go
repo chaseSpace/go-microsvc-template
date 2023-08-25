@@ -5,6 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/consts"
 	"microsvc/deploy"
+	"microsvc/infra/svcdiscovery"
 )
 
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
@@ -15,11 +16,32 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	}
 }
 
-// 这里只会初始化 *IntClient , 即内部接口对象
-var (
-	userSvc  = newIntCli(consts.SvcUser)
-	adminSvc = newIntCli(consts.SvcAdmin)
-)
+type intCli struct {
+	inst      *svcdiscovery.InstanceImpl
+	genClient svcdiscovery.GenClient
+}
+
+var emptyConn = newFailGrpcClientConn()
+
+func newIntCli(svc consts.Svc, gc svcdiscovery.GenClient) *intCli {
+	cli := &intCli{inst: svcdiscovery.NewInstance(svc.Name(), gc), genClient: gc}
+	initializedSvc = append(initializedSvc, cli)
+	return cli
+}
+
+func (ic *intCli) Getter() any {
+	v, err := ic.inst.GetInstance()
+	if err == nil {
+		return v.Client
+	}
+	return ic.genClient(emptyConn)
+}
+
+func (i *intCli) Stop() {
+	if i.inst != nil {
+		i.inst.Stop()
+	}
+}
 
 var initializedSvc []*intCli
 
@@ -30,6 +52,6 @@ func Stop() {
 }
 
 func newFailGrpcClientConn() *grpc.ClientConn {
-	cc, _ := grpc.DialContext(context.Background(), "127.0.0.1")
+	cc, _ := grpc.DialContext(context.Background(), "127.0.0.1:1")
 	return cc
 }
