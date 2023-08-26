@@ -6,6 +6,8 @@ import (
 	"microsvc/consts"
 	"microsvc/deploy"
 	"microsvc/infra/svcdiscovery"
+	"microsvc/infra/svcdiscovery/sd"
+	"sync"
 )
 
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
@@ -17,19 +19,24 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 }
 
 type intCli struct {
-	inst      *svcdiscovery.InstanceImpl
-	genClient svcdiscovery.GenClient
+	once      sync.Once
+	svc       consts.Svc
+	inst      *sd.InstanceImpl
+	genClient sd.GenClient
 }
 
 var emptyConn = newFailGrpcClientConn()
 
-func newIntCli(svc consts.Svc, gc svcdiscovery.GenClient) *intCli {
-	cli := &intCli{inst: svcdiscovery.NewInstance(svc.Name(), gc), genClient: gc}
-	initializedSvc = append(initializedSvc, cli)
+func newIntCli(svc consts.Svc, gc sd.GenClient) *intCli {
+	cli := &intCli{svc: svc, genClient: gc}
 	return cli
 }
 
 func (ic *intCli) Getter() any {
+	ic.once.Do(func() {
+		ic.inst = sd.NewInstance(ic.svc.Name(), ic.genClient, svcdiscovery.GetSD())
+		initializedSvcCli = append(initializedSvcCli, ic)
+	})
 	v, err := ic.inst.GetInstance()
 	if err == nil {
 		return v.Client
@@ -43,10 +50,10 @@ func (i *intCli) Stop() {
 	}
 }
 
-var initializedSvc []*intCli
+var initializedSvcCli []*intCli
 
 func Stop() {
-	for _, svcCli := range initializedSvc {
+	for _, svcCli := range initializedSvcCli {
 		svcCli.Stop()
 	}
 }

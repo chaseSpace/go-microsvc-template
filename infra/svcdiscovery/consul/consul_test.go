@@ -26,14 +26,14 @@ func TestNewConsulSD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("discover %v", err)
 	}
-	time.Sleep(time.Second) // consul delay
+	//time.Sleep(time.Second) // consul delay
 	if len(list) == 0 {
 		t.Fatalf("len(list) == 0")
 	}
 	if list[0].Address != addr && list[0].Port != port {
 		t.Fatalf("unexpected ret:%+v", list)
 	}
-
+	//return
 	err = sd.Deregister(svc)
 	if err != nil {
 		t.Fatalf("Deregister %v", err)

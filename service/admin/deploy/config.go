@@ -1,10 +1,17 @@
 package deploy
 
-import "microsvc/deploy"
+import (
+	"microsvc/consts"
+	"microsvc/deploy"
+)
 
 type SvcConfig struct {
-	Svc      string `mapstructure:"svc"`
-	LogLevel string `mapstructure:"log_level"`
+	Svc      consts.Svc `mapstructure:"svc"`
+	LogLevel string     `mapstructure:"log_level"`
+}
+
+func (s SvcConfig) GetSvc() consts.Svc {
+	return s.Svc
 }
 
 func (s SvcConfig) GetLogLevel() string {

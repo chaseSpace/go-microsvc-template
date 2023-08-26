@@ -4,8 +4,6 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
 	"microsvc/infra"
-	"microsvc/infra/cache"
-	"microsvc/infra/orm"
 	"microsvc/infra/svccli"
 	"microsvc/infra/svcdiscovery"
 	"microsvc/infra/xgrpc"
@@ -14,6 +12,7 @@ import (
 	"microsvc/protocol/svc/user"
 	deploy2 "microsvc/service/user/deploy"
 	"microsvc/service/user/handler"
+	"microsvc/util/graceful"
 )
 
 func main() {
@@ -27,12 +26,12 @@ func main() {
 
 	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.MustSetup(
-		cache.InitRedis(true),
-		orm.InitGorm(true),
-		svcdiscovery.Init(true),
+		graceful.Init(),
+		//cache.InitRedis(true),
+		//orm.InitGorm(true),
+		svcdiscovery.Init(true, deploy2.UserConf),
 		svccli.Init(true),
 	)
-	defer infra.Stop()
 
 	x := xgrpc.New() // New一个封装好的grpc对象
 	x.Apply(func(s *grpc.Server) {
@@ -42,5 +41,11 @@ func main() {
 	})
 
 	x.SetHTTPRegister(user.RegisterUserExtHandler) // 为外部接口对象 UserExt 启用 http反向代理 （http --call--> grpc）
-	x.Serve()                                      // 监听请求
+
+	go graceful.OnExit(func() {
+		x.Stop()
+		infra.Stop()
+	})
+
+	x.Serve() // 监听请求
 }

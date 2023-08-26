@@ -1,6 +1,5 @@
-svc: common
 # 存放公共相关配置，比如db信息
-
+grpc_port: 6000
 mysql:
   microsvc:  # db name，根据实际修改
     host: 0.0.0.0

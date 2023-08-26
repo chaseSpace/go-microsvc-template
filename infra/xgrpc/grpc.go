@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"log"
+	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc"
 	"net"
@@ -16,7 +17,6 @@ import (
 	"time"
 )
 
-const grpcPort = ":3000"
 const httpPort = ":3200"
 
 type grpcHTTPRegister func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
@@ -46,8 +46,13 @@ func (x *XgRPC) SetHTTPRegister(httpRegister grpcHTTPRegister) {
 	x.httpRegister = httpRegister
 }
 
+func (x *XgRPC) Stop() {
+	x.svr.GracefulStop()
+}
+
 func (x *XgRPC) Serve() {
-	lis, err := net.Listen("tcp", grpcPort) // 监听在端口 50051
+	grpcPort := fmt.Sprintf(":%d", deploy.XConf.GRPCPort)
+	lis, err := net.Listen("tcp", grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

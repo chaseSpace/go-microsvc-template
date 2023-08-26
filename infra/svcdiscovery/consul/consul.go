@@ -40,10 +40,6 @@ func (c *ConsulSD) Register(serviceName string, address string, port int, metada
 	}
 
 	err := c.client.Agent().ServiceRegister(params)
-	if err != nil {
-		return err
-	}
-	err = c.client.Agent().UpdateTTL(params.Check.CheckID, "PASS", capi.HealthPassing)
 	return err
 }
 

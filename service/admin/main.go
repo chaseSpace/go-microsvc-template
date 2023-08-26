@@ -25,11 +25,8 @@ func main() {
 		svcdiscovery.Init(true),
 		svccli.Init(true),
 	)
-	{
-		svcdiscovery.GetSD().Register(svc.Name(), "", 1, nil)
-	}
+
 	defer func() {
-		_ = svcdiscovery.GetSD().Deregister(svc.Name())
 		infra.Stop()
 	}()
 

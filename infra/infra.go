@@ -6,6 +6,7 @@ import (
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
 	"microsvc/infra/svccli"
+	"microsvc/infra/svcdiscovery"
 	"microsvc/pkg/xlog"
 )
 
@@ -28,4 +29,5 @@ func Stop() {
 	orm.Stop()
 	cache.Stop()
 	svccli.Stop()
+	svcdiscovery.Stop()
 }

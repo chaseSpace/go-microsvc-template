@@ -1,39 +1,16 @@
-package svcdiscovery
+package sd
 
 import (
 	"container/list"
 	"context"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"microsvc/deploy"
-	"microsvc/infra/svcdiscovery/consul"
-	"microsvc/infra/svcdiscovery/sd"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"time"
 )
 
-func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
-	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
-		// 在这里 决定使用 etcd/consul
-		cli, err := consul.NewConsulSD()
-		if err == nil {
-			rootSD = cli
-		} else {
-			err = errors.Wrap(err, "NewSD")
-		}
-		onEnd(must, err)
-	}
-}
-
 const logPrefix = "svcdiscovery: "
-
-var rootSD sd.ServiceDiscovery
-
-func GetSD() sd.ServiceDiscovery {
-	return rootSD
-}
 
 type InstanceImpl struct {
 	svc        string
@@ -42,6 +19,7 @@ type InstanceImpl struct {
 	curr       *list.Element // 当前元素
 	quit       chan struct{}
 	genClient  GenClient
+	sd         ServiceDiscovery
 }
 
 type GrpcConnObj struct {
@@ -52,12 +30,13 @@ type GrpcConnObj struct {
 
 type GenClient func(conn *grpc.ClientConn) interface{}
 
-func NewInstance(svc string, genClient GenClient) *InstanceImpl {
+func NewInstance(svc string, genClient GenClient, discovery ServiceDiscovery) *InstanceImpl {
 	ins := &InstanceImpl{
 		svc:       svc,
 		grpcConns: list.New(),
 		genClient: genClient,
 		quit:      make(chan struct{}),
+		sd:        discovery,
 	}
 	go ins.backgroundRefresh()
 	return ins
@@ -80,22 +59,22 @@ func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
 
 func (i *InstanceImpl) backgroundRefresh() {
 	var (
-		entries []sd.ServiceInstance
+		entries []ServiceInstance
 		cc      *grpc.ClientConn
 		err     error
 		ctx     context.Context
 	)
 
-	discovery := func() ([]sd.ServiceInstance, error) {
-		ctx = context.WithValue(context.Background(), sd.CtxDurKey{}, time.Minute*2)
-		entries, err = rootSD.Discover(ctx, i.svc)
+	discovery := func() ([]ServiceInstance, error) {
+		ctx = context.WithValue(context.Background(), CtxDurKey{}, time.Minute*2)
+		entries, err = i.sd.Discover(ctx, i.svc)
 		return nil, err
 	}
 	for {
 		entries, err = discovery()
 		select {
 		case <-i.quit:
-			xlog.Debug(logPrefix+"quited", zap.String("svc", i.svc))
+			xlog.Debug(logPrefix+"quited", zap.String("Svc", i.svc))
 			return
 		default:
 		}
@@ -140,6 +119,7 @@ func (i *InstanceImpl) backgroundRefresh() {
 func (i *InstanceImpl) Stop() {
 	close(i.quit)
 }
+
 func (i *InstanceImpl) removeGrpcConn(id string) {
 	curr := i.grpcConns.Front()
 	for curr != nil {

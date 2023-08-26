@@ -12,10 +12,11 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc   consts.Svc        `mapstructure:"svc"`
-	Env   enums.Environment `mapstructure:"env"`
-	Mysql map[string]*Mysql `mapstructure:"mysql"`
-	Redis map[string]*Redis `mapstructure:"redis"`
+	Svc      consts.Svc        `mapstructure:"svc"`
+	Env      enums.Environment `mapstructure:"env"`
+	Mysql    map[string]*Mysql `mapstructure:"mysql"`
+	Redis    map[string]*Redis `mapstructure:"redis"`
+	GRPCPort int               `mapstructure:"grpc_port"`
 
 	// 接管svc的配置
 	svcConf SvcConfImpl
@@ -29,6 +30,7 @@ type Initializer func(cc *XConfig)
 
 type SvcConfImpl interface {
 	GetLogLevel() string
+	GetSvc() consts.Svc
 }
 
 var XConf = &XConfig{}
@@ -67,11 +69,10 @@ func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
 	err = viper.ReadConfig(svcConfFile)
 	util.AssertNilErr(err)
 
-	err = viper.Unmarshal(&svcConfVar)
+	err = viper.Unmarshal(svcConfVar)
 	util.AssertNilErr(err)
-	util.AssertNotNil(svcConfVar)
-	if svc != XConf.Svc {
-		panic(fmt.Sprintf("%s not match svc name:%s in config file", svc, XConf.Svc))
+	if svc != svcConfVar.GetSvc() {
+		panic(fmt.Sprintf("%s not match svc name:%s in config file", svc, svcConfVar.GetSvc()))
 	}
 	_, _ = pp.Printf("\n************* init Svc-Config OK *************\n%+v\n", svcConfVar)
 

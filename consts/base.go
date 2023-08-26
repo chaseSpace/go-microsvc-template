@@ -12,7 +12,7 @@ type CtxValue struct {
 type Svc string
 
 func (s Svc) Name() string {
-	return string(s)
+	return "go-" + string(s)
 }
 
 const (
