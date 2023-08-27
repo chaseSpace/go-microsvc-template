@@ -5,8 +5,8 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/consts"
 	"microsvc/deploy"
-	"microsvc/infra/svcdiscovery"
-	"microsvc/infra/svcdiscovery/sd"
+	"microsvc/infra/sd"
+	"microsvc/infra/sd/abstract"
 	"microsvc/pkg/xlog"
 	"sync"
 )
@@ -22,20 +22,20 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 type intCli struct {
 	once      sync.Once
 	svc       consts.Svc
-	inst      *sd.InstanceImpl
-	genClient sd.GenClient
+	inst      *abstract.InstanceImpl
+	genClient abstract.GenClient
 }
 
 var emptyConn = newFailGrpcClientConn()
 
-func newIntCli(svc consts.Svc, gc sd.GenClient) *intCli {
+func newIntCli(svc consts.Svc, gc abstract.GenClient) *intCli {
 	cli := &intCli{svc: svc, genClient: gc}
 	return cli
 }
 
 func (ic *intCli) Getter() any {
 	ic.once.Do(func() {
-		ic.inst = sd.NewInstance(ic.svc.Name(), ic.genClient, svcdiscovery.GetSD())
+		ic.inst = abstract.NewInstance(ic.svc.Name(), ic.genClient, sd.GetSD())
 		initializedSvcCli = append(initializedSvcCli, ic)
 	})
 	v, err := ic.inst.GetInstance()

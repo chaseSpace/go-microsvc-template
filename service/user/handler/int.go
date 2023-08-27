@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/user"
 )
 
@@ -15,6 +17,15 @@ func (u UserIntCtrl) Test(ctx context.Context, req *user.TestReq) (*user.TestRsp
 }
 
 func (u UserIntCtrl) GetUser(ctx context.Context, req *user.GetUserIntReq) (*user.GetUserIntRsp, error) {
-	//TODO implement me
-	panic("implement me")
+	if len(req.Uid) == 0 {
+		return nil, errors.New("参数无效")
+	}
+	umap := make(map[int64]*user.IntUser)
+	umap[1] = &user.IntUser{
+		Uid:  1,
+		Nick: "Luyi",
+		Age:  18,
+		Sex:  svc.Sex_Male,
+	}
+	return &user.GetUserIntRsp{Umap: umap}, nil
 }

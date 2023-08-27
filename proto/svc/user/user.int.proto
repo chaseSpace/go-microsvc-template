@@ -2,11 +2,10 @@ syntax = "proto3";
 package proto.svc.user;
 option go_package = "microsvc/protocol/svc/user";
 
-import "svc/common.proto";
+import "svc/const.proto";
 
 message GetUserIntReq{
-  BaseExtReq req = 1;
-  repeated int64 uid = 2;
+  repeated int64 uid = 1;
 }
 message GetUserIntRsp{
   map<int64, IntUser> umap = 1;
@@ -16,7 +15,7 @@ message IntUser{
   int64 uid = 1;
   string nick = 2;
   int32 age = 3;
-  int32 sex = 4;
+  Sex sex = 4;
 }
 
 message TestReq{

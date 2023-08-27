@@ -11,16 +11,24 @@ func RunTask(ctx context.Context, f func()) {
 		f()
 		quit <- struct{}{}
 	}()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-quit:
-			return
-		default:
-			time.Sleep(time.Millisecond * 100)
-		}
+	select {
+	case <-ctx.Done():
+		return
+	case <-quit:
+		return
 	}
+}
+
+func RunTaskWithTimeout(timeout time.Duration, f func()) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	RunTask(ctx, f)
+}
+
+func RunTaskWithCtxTimeout(timeout time.Duration, f func(ctx context.Context)) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	f(ctx)
 }
 
 func Protect(f func(), onPanic ...func(err interface{})) <-chan struct{} {

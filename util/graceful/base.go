@@ -3,7 +3,6 @@ package graceful
 import (
 	"go.uber.org/zap"
 	"microsvc/pkg/xlog"
-	"microsvc/util"
 	"os"
 	"os/signal"
 	"syscall"
@@ -38,15 +37,9 @@ func stopAll() {
 	}
 }
 
-func Run(backgroundSvc func()) {
-	cc := util.Protect(backgroundSvc, func(err interface{}) {
-		stopAll()                                                                  // case 1: backgroundSvc panic
-		xlog.Panic(logPrefix+"backgroundSvc panic recovered", zap.Any("err", err)) // 再次panic
-	})
+func Run() {
 	reason := ""
 	select {
-	case <-cc:
-		reason = "(svc exited)"
 	case <-sigChan:
 		reason = "(signal)"
 	}

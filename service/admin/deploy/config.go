@@ -20,4 +20,4 @@ func (s SvcConfig) GetLogLevel() string {
 
 var _ deploy.SvcConfImpl = new(SvcConfig)
 
-var AdminConf *SvcConfig
+var AdminConf = new(SvcConfig)

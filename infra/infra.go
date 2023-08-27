@@ -5,8 +5,8 @@ import (
 	"microsvc/deploy"
 	"microsvc/infra/cache"
 	"microsvc/infra/orm"
+	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
-	"microsvc/infra/svcdiscovery"
 	"microsvc/pkg/xlog"
 	"microsvc/util/graceful"
 )
@@ -29,6 +29,6 @@ func MustSetup(initFn ...initFunc) {
 		orm.Stop()
 		cache.Stop()
 		svccli.Stop()
-		svcdiscovery.Stop()
+		sd.Stop()
 	})
 }

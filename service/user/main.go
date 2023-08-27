@@ -4,10 +4,8 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
 	"microsvc/infra"
-	"microsvc/infra/cache"
-	"microsvc/infra/orm"
+	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
-	"microsvc/infra/svcdiscovery"
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg"
 	"microsvc/pkg/xlog"
@@ -31,9 +29,9 @@ func main() {
 
 	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.MustSetup(
-		cache.InitRedis(true),
-		orm.InitGorm(true),
-		svcdiscovery.Init(true),
+		//cache.InitRedis(true),
+		//orm.InitGorm(true),
+		sd.Init(true),
 		svccli.Init(true),
 	)
 
@@ -43,10 +41,15 @@ func main() {
 		user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
 		user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
 	})
+	// 仅开发环境需要启动HTTP端口来代理gRPC服务
+	if deploy.XConf.IsDevEnv() {
+		x.SetHTTPExtRegister(user.RegisterUserExtHandler)
+		x.SetHTTPIntRegister(user.RegisterUserIntHandler)
+	}
 
-	x.SetHTTPRegister(user.RegisterUserExtHandler) // 为外部接口对象 UserExt 启用 http反向代理 （http --call--> grpc）
+	x.Start(deploy.XConf)
+	// GRPC服务启动后 再注册服务
+	sd.Register(deploy.XConf)
 
-	graceful.Run(func() {
-		x.Serve()
-	})
+	graceful.Run()
 }

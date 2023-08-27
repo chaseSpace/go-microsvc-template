@@ -1,0 +1,7 @@
+###
+POST http://localhost:61402/admin/v1/GetUser
+Content-Type: application/json
+
+{
+  "uid": [1]
+}

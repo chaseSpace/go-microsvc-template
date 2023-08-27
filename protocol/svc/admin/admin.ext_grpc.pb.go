@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminSvcClient interface {
 	AdminLogin(ctx context.Context, in *AdminLoginReq, opts ...grpc.CallOption) (*AdminLoginRsp, error)
+	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRsp, error)
 }
 
 type adminSvcClient struct {
@@ -42,11 +43,21 @@ func (c *adminSvcClient) AdminLogin(ctx context.Context, in *AdminLoginReq, opts
 	return out, nil
 }
 
+func (c *adminSvcClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRsp, error) {
+	out := new(GetUserRsp)
+	err := c.cc.Invoke(ctx, "/proto.svc.admin.AdminSvc/GetUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminSvcServer is the server API for AdminSvc service.
 // All implementations should embed UnimplementedAdminSvcServer
 // for forward compatibility
 type AdminSvcServer interface {
 	AdminLogin(context.Context, *AdminLoginReq) (*AdminLoginRsp, error)
+	GetUser(context.Context, *GetUserReq) (*GetUserRsp, error)
 }
 
 // UnimplementedAdminSvcServer should be embedded to have forward compatible implementations.
@@ -55,6 +66,9 @@ type UnimplementedAdminSvcServer struct {
 
 func (UnimplementedAdminSvcServer) AdminLogin(context.Context, *AdminLoginReq) (*AdminLoginRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminLogin not implemented")
+}
+func (UnimplementedAdminSvcServer) GetUser(context.Context, *GetUserReq) (*GetUserRsp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 
 // UnsafeAdminSvcServer may be embedded to opt out of forward compatibility for this service.
@@ -86,6 +100,24 @@ func _AdminSvc_AdminLogin_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminSvc_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminSvcServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.svc.admin.AdminSvc/GetUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminSvcServer).GetUser(ctx, req.(*GetUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminSvc_ServiceDesc is the grpc.ServiceDesc for AdminSvc service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +128,10 @@ var AdminSvc_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminLogin",
 			Handler:    _AdminSvc_AdminLogin_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _AdminSvc_GetUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

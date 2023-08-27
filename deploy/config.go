@@ -12,26 +12,49 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc      consts.Svc        `mapstructure:"svc"` // set by this.svcConf
-	Env      enums.Environment `mapstructure:"env"`
-	Mysql    map[string]*Mysql `mapstructure:"mysql"`
-	Redis    map[string]*Redis `mapstructure:"redis"`
-	GRPCPort int               `mapstructure:"grpc_port"`
+	Svc   consts.Svc        `mapstructure:"svc"` // set by this.svcConf
+	Env   enums.Environment `mapstructure:"env"`
+	Mysql map[string]*Mysql `mapstructure:"mysql"`
+	Redis map[string]*Redis `mapstructure:"redis"`
+
+	gRPCPort int `mapstructure:"-"`
+	httpPort int `mapstructure:"-"`
 
 	// 接管svc的配置
 	svcConf SvcConfImpl
 }
 
-func (x XConfig) GetSvcConf() SvcConfImpl {
-	return x.svcConf
+func (x *XConfig) SetGRPC(port int) {
+	x.gRPCPort = port
+}
+
+func (x *XConfig) SetHTTP(port int) {
+	x.httpPort = port
+}
+
+func (s *XConfig) RegGRPCBase() (name string, addr string, port int) {
+	return s.Svc.Name(), "", s.gRPCPort
+}
+
+func (s *XConfig) RegGRPCMeta() map[string]string {
+	return nil
+}
+
+func (s *XConfig) GetSvcConf() SvcConfImpl {
+	return s.svcConf
+}
+
+func (s *XConfig) IsDevEnv() bool {
+	return s.Env == enums.EnvDev
 }
 
 type Initializer func(cc *XConfig)
 
 var XConf = &XConfig{}
+var _ SvcListenPortSetter = new(XConfig)
 
 func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
-
+	XConf.Svc = svc
 	XConf.Env = readEnv()
 
 	// 设置配置文件名（不包含扩展名）
@@ -73,7 +96,6 @@ func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
 
 	// svc conf 嵌入主配置
 	XConf.svcConf = svcConfVar
-	XConf.Svc = svc
 }
 
 type DBname string

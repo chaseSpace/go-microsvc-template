@@ -57,7 +57,7 @@ func TestNewConsulSD(t *testing.T) {
 	//	} else {
 	//		ctx = context.TODO()
 	//	}
-	//	list, err = sd.Discover(ctx, svc)
+	//	list, err = abstract.Discover(ctx, svc)
 	//	dur := int(time.Now().Sub(now).Seconds())
 	//	if i == 0 {
 	//		if err != context.DeadlineExceeded || dur != firstDur || len(list) != 0 {

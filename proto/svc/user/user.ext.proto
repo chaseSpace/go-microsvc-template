@@ -6,7 +6,7 @@ import "svc/common.proto";
 import "google/api/annotations.proto";
 
 message GetUserReq{
-  BaseExtReq req = 1;
+  BaseExtReq base = 1;
   repeated int64 uids = 2;
 }
 message GetUserRsp{

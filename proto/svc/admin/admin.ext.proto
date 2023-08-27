@@ -4,12 +4,12 @@ option go_package = "microsvc/protocol/svc/admin";
 
 import "svc/common.proto";
 import "svc/const.proto";
+import "svc/user/user.int.proto";
 import "google/api/annotations.proto";
 
 message AdminLoginReq {
-  AdminBaseReq base = 1;
-  int64 username = 2;
-  string password = 3;
+  int64 username = 1;
+  string password = 2;
 }
 
 // 这个结构体会写入 svc.AdminRsp.data, 具体参考代码
@@ -23,6 +23,14 @@ message LoginResBody {
   Sex sex = 3;
 }
 
+message GetUserReq{
+  AdminBaseReq base = 1;
+  repeated int64 uid = 2;
+}
+message GetUserRsp{
+  map<int64, user.IntUser> umap = 1;
+}
+
 
 service AdminSvc {
   rpc AdminLogin(AdminLoginReq) returns (AdminLoginRsp){
@@ -31,5 +39,10 @@ service AdminSvc {
       body:"*"
     };
   }
-
+  rpc GetUser(GetUserReq) returns (GetUserRsp) {
+    option(google.api.http) = {
+      post: "/admin/v1/GetUser",
+      body:"*"
+    };
+  }
 }
