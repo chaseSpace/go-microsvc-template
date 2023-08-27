@@ -82,6 +82,7 @@ func Stop() {
 		db, _ := gdb.DB()
 		_ = db.Close()
 	}
+	xlog.Debug("orm-mysql: resource released...")
 }
 
 func NewMysqlObj(dbname deploy.DBname) *MysqlObj {

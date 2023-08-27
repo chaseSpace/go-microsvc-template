@@ -7,6 +7,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/infra/svcdiscovery"
 	"microsvc/infra/svcdiscovery/sd"
+	"microsvc/pkg/xlog"
 	"sync"
 )
 
@@ -56,6 +57,7 @@ func Stop() {
 	for _, svcCli := range initializedSvcCli {
 		svcCli.Stop()
 	}
+	xlog.Debug("svccli: resource released...")
 }
 
 func newFailGrpcClientConn() *grpc.ClientConn {

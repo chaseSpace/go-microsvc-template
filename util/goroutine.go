@@ -22,3 +22,19 @@ func RunTask(ctx context.Context, f func()) {
 		}
 	}
 }
+
+func Protect(f func(), onPanic ...func(err interface{})) <-chan struct{} {
+	exit := make(chan struct{})
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				if len(onPanic) > 0 {
+					onPanic[0](err)
+				}
+			}
+			exit <- struct{}{}
+		}()
+		f()
+	}()
+	return exit
+}

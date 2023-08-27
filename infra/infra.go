@@ -8,6 +8,7 @@ import (
 	"microsvc/infra/svccli"
 	"microsvc/infra/svcdiscovery"
 	"microsvc/pkg/xlog"
+	"microsvc/util/graceful"
 )
 
 type initFunc func(cc *deploy.XConfig, onEnd func(must bool, err error))
@@ -23,11 +24,11 @@ func MustSetup(initFn ...initFunc) {
 			}
 		})
 	}
-}
 
-func Stop() {
-	orm.Stop()
-	cache.Stop()
-	svccli.Stop()
-	svcdiscovery.Stop()
+	graceful.AddStopFunc(func() {
+		orm.Stop()
+		cache.Stop()
+		svccli.Stop()
+		svcdiscovery.Stop()
+	})
 }

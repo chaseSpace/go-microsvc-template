@@ -62,9 +62,10 @@ func GetSD() sd.ServiceDiscovery {
 func Stop() {
 	for _, s := range registeredSvc {
 		err := rootSD.Deregister(s)
-		println(111, s)
 		if err != nil {
 			xlog.Error(logPrefix+"Deregister fail", zap.Error(err))
+		} else {
+			xlog.Debug(logPrefix+"Deregister success", zap.String("svc", s))
 		}
 	}
 }

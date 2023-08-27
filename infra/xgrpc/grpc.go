@@ -12,6 +12,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc"
+	"microsvc/util/graceful"
 	"net"
 	"net/http"
 	"time"
@@ -32,6 +33,7 @@ func New(interceptors ...grpc.UnaryServerInterceptor) *XgRPC {
 	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		append(base, interceptors...)...,
 	))
+	graceful.AddStopFunc(server.GracefulStop)
 	return &XgRPC{
 		svr:          server,
 		httpRegister: nil,
@@ -44,10 +46,6 @@ func (x *XgRPC) Apply(regFunc func(s *grpc.Server)) {
 
 func (x *XgRPC) SetHTTPRegister(httpRegister grpcHTTPRegister) {
 	x.httpRegister = httpRegister
-}
-
-func (x *XgRPC) Stop() {
-	x.svr.GracefulStop()
 }
 
 func (x *XgRPC) Serve() {

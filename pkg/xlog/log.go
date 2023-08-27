@@ -58,7 +58,7 @@ func getEncoder(level zapcore.Level) zapcore.Encoder {
 // --------------------------------
 
 func appendFields(fields *[]zapcore.Field) {
-	*fields = append(*fields, zap.String("SVC", svc))
+	*fields = append(*fields, zap.String("SERVICE", svc))
 }
 
 func Debug(msg string, fields ...zapcore.Field) {
@@ -85,6 +85,11 @@ func Error(msg string, fields ...zapcore.Field) {
 func Panic(msg string, fields ...zapcore.Field) {
 	appendFields(&fields)
 	xlogger.Panic(msg, fields...)
+}
+
+func DPanic(msg string, fields ...zapcore.Field) {
+	appendFields(&fields)
+	xlogger.DPanic(msg, fields...)
 }
 
 // 这里不需要DPanic函数，因为Panic够用，且我们的grpc中间件会捕获panic，并封装包含panic信息的Response

@@ -74,6 +74,7 @@ func Stop() {
 	for _, db := range instMap {
 		_ = db.Close()
 	}
+	xlog.Debug("cache-redis: resource released...")
 }
 
 func NewRedisObj(dbname deploy.DBname) *RedisObj {
