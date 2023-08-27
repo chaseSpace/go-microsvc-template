@@ -29,7 +29,7 @@ func main() {
 		graceful.Init(),
 		//cache.InitRedis(true),
 		//orm.InitGorm(true),
-		svcdiscovery.Init(true, deploy2.UserConf),
+		svcdiscovery.Init(true),
 		svccli.Init(true),
 	)
 

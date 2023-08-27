@@ -17,12 +17,7 @@ const logPrefix = "svcdiscovery: "
 
 var rootSD sd.ServiceDiscovery
 
-type RegisterSvc interface {
-	RegBase() (name string, addr string, port int)
-	RegMeta() map[string]string
-}
-
-func Init(must bool, reg ...RegisterSvc) func(*deploy.XConfig, func(must bool, err error)) {
+func Init(must bool, reg ...deploy.RegisterSvc) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		// 在这里 决定使用 etcd/consul
 		cli, err := consul.NewConsulSD()
@@ -32,6 +27,9 @@ func Init(must bool, reg ...RegisterSvc) func(*deploy.XConfig, func(must bool, e
 			if err != nil || len(localIps) == 0 {
 				xlog.Error(logPrefix+"GetLocalPrivateIPs failed, stop register", zap.Error(err), zap.Int("ip len", len(localIps)))
 			} else {
+				if len(reg) == 0 && deploy.XConf.GetSvcConf() != nil {
+					reg = append(reg, deploy.XConf.GetSvcConf())
+				}
 				for _, r := range reg {
 					name, addr, port := r.RegBase()
 					if name == "" {
@@ -42,9 +40,10 @@ func Init(must bool, reg ...RegisterSvc) func(*deploy.XConfig, func(must bool, e
 					}
 					err = rootSD.Register(name, addr, port, r.RegMeta())
 					if err != nil {
-						xlog.Error(logPrefix+"Register Svc failed, stop register", zap.String("Svc", cc.Svc.Name()), zap.Error(err))
+						xlog.Error(logPrefix+"Register Svc failed, stop register", zap.String("Svc", name), zap.Error(err))
 						break
 					}
+					xlog.Error(logPrefix+"Register Svc success", zap.String("reg_svc", name), zap.String("addr", fmt.Sprintf("%s:%d", addr, port)))
 					registeredSvc = append(registeredSvc, name)
 				}
 			}

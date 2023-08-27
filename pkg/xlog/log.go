@@ -1,6 +1,7 @@
 package xlog
 
 import (
+	"github.com/k0kubun/pp"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"microsvc/deploy"
@@ -10,7 +11,10 @@ import (
 
 var xlogger *zap.Logger
 
+var svc string
+
 func Init(cc *deploy.XConfig) {
+	svc = cc.Svc.Name()
 	//level := deploy.XConf.GetSvcConf().GetLogLevel()
 	var lv = zapcore.DebugLevel
 	switch cc.GetSvcConf().GetLogLevel() {
@@ -21,7 +25,6 @@ func Init(cc *deploy.XConfig) {
 	case "error":
 		lv = zapcore.ErrorLevel
 	}
-
 	writer := zapcore.AddSync(os.Stdout) // 写stdout，再用容器收集日志
 	core := zapcore.NewCore(getEncoder(lv), writer, lv)
 	xlogger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
@@ -32,35 +35,55 @@ func Stop() {
 }
 
 func getEncoder(level zapcore.Level) zapcore.Encoder {
-	var encoderConf zapcore.EncoderConfig
+	var ec zapcore.EncoderConfig
 	if level == zapcore.DebugLevel {
-		encoderConf = zap.NewDevelopmentEncoderConfig()
+		ec = zap.NewDevelopmentEncoderConfig()
 	} else {
-		encoderConf = zap.NewProductionEncoderConfig()
+		ec = zap.NewProductionEncoderConfig()
 	}
-	encoderConf.EncodeTime = zapcore.TimeEncoderOfLayout(xtime.Datetime)
-	return zapcore.NewConsoleEncoder(encoderConf)
+	customLevelEncoder := func(level zapcore.Level, encoder zapcore.PrimitiveArrayEncoder) {
+		encoder.AppendString("x-" + level.String()) // x-error  x-info 更容易与调用者打印的error字面量区分开
+	}
+	ec.EncodeLevel = customLevelEncoder
+	ec.EncodeTime = zapcore.TimeEncoderOfLayout(xtime.DatetimeMs)
+	ec.LevelKey = "LEVEL"
+	ec.TimeKey = "TS"
+	ec.CallerKey = "CALLER"
+	ec.MessageKey = "MSG"
+	ec.StacktraceKey = "STACK"
+	//return zapcore.NewConsoleEncoder(ec) // 按行打印
+	return zapcore.NewJSONEncoder(ec)
 }
 
 // --------------------------------
 
+func appendFields(fields *[]zapcore.Field) {
+	*fields = append(*fields, zap.String("SVC", svc))
+}
+
 func Debug(msg string, fields ...zapcore.Field) {
+	appendFields(&fields)
 	xlogger.Debug(msg, fields...)
 }
 
 func Info(msg string, fields ...zapcore.Field) {
+	appendFields(&fields)
 	xlogger.Info(msg, fields...)
 }
 
 func Warn(msg string, fields ...zapcore.Field) {
+	appendFields(&fields)
 	xlogger.Warn(msg, fields...)
 }
 
 func Error(msg string, fields ...zapcore.Field) {
+	_, _ = pp.Println("error happened") // 颜色打印，便于控制台肉眼观察
+	appendFields(&fields)
 	xlogger.Error(msg, fields...)
 }
 
 func Panic(msg string, fields ...zapcore.Field) {
+	appendFields(&fields)
 	xlogger.Panic(msg, fields...)
 }
 

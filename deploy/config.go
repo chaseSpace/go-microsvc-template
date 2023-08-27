@@ -12,7 +12,7 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc      consts.Svc        `mapstructure:"svc"`
+	Svc      consts.Svc        `mapstructure:"svc"` // set by this.svcConf
 	Env      enums.Environment `mapstructure:"env"`
 	Mysql    map[string]*Mysql `mapstructure:"mysql"`
 	Redis    map[string]*Redis `mapstructure:"redis"`
@@ -27,11 +27,6 @@ func (x XConfig) GetSvcConf() SvcConfImpl {
 }
 
 type Initializer func(cc *XConfig)
-
-type SvcConfImpl interface {
-	GetLogLevel() string
-	GetSvc() consts.Svc
-}
 
 var XConf = &XConfig{}
 
@@ -78,6 +73,7 @@ func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
 
 	// svc conf 嵌入主配置
 	XConf.svcConf = svcConfVar
+	XConf.Svc = svc
 }
 
 type DBname string
