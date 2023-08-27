@@ -4,6 +4,8 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
 	"microsvc/infra"
+	"microsvc/infra/cache"
+	"microsvc/infra/orm"
 	"microsvc/infra/svccli"
 	"microsvc/infra/svcdiscovery"
 	"microsvc/infra/xgrpc"
@@ -29,8 +31,8 @@ func main() {
 
 	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.MustSetup(
-		//cache.InitRedis(true),
-		//orm.InitGorm(true),
+		cache.InitRedis(true),
+		orm.InitGorm(true),
 		svcdiscovery.Init(true),
 		svccli.Init(true),
 	)
