@@ -20,7 +20,7 @@ func Init(cc *deploy.XConfig) {
 	switch cc.GetSvcConf().GetLogLevel() {
 	case "info":
 		lv = zapcore.InfoLevel
-	case "warning":
+	case "warn":
 		lv = zapcore.WarnLevel
 	case "error":
 		lv = zapcore.ErrorLevel
@@ -77,7 +77,7 @@ func Warn(msg string, fields ...zapcore.Field) {
 }
 
 func Error(msg string, fields ...zapcore.Field) {
-	_, _ = pp.Println("error happened") // 颜色打印，便于控制台肉眼观察
+	_, _ = pp.Println("xlog: errflag") // 颜色打印，便于控制台肉眼观察
 	appendFields(&fields)
 	xlogger.Error(msg, fields...)
 }

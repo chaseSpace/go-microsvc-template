@@ -44,7 +44,6 @@ func main() {
 	// 仅开发环境需要启动HTTP端口来代理gRPC服务
 	if deploy.XConf.IsDevEnv() {
 		x.SetHTTPExtRegister(user.RegisterUserExtHandler)
-		x.SetHTTPIntRegister(user.RegisterUserIntHandler)
 	}
 
 	x.Start(deploy.XConf)

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/user"
 )
 
@@ -11,6 +12,9 @@ type UserExtCtrl struct {
 var _ user.UserExtServer = new(UserExtCtrl)
 
 func (u UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserRsp, error) {
+	if len(req.Uids) == 0 {
+		return nil, xerr.ErrParams
+	}
 	//umap, err := cache.GetUser(req.Uids...)
 	//if err != nil {
 	//	return nil, err

@@ -1,8 +1,9 @@
-package svccli
+package rpc
 
 import (
 	"google.golang.org/grpc"
-	"microsvc/consts"
+	"microsvc/enums"
+	"microsvc/infra/svccli"
 	"microsvc/protocol/svc/user"
 )
 
@@ -10,7 +11,7 @@ import (
 // TODO: upgrade to DNS method.
 
 var (
-	userCli = newIntCli(consts.SvcUser, func(conn *grpc.ClientConn) interface{} { return user.NewUserIntClient(conn) })
+	userCli = svccli.NewCli(enums.SvcUser, func(conn *grpc.ClientConn) interface{} { return user.NewUserIntClient(conn) })
 )
 
 func User() user.UserIntClient {

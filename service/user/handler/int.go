@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"errors"
+	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/user"
@@ -18,8 +18,9 @@ func (u UserIntCtrl) Test(ctx context.Context, req *user.TestReq) (*user.TestRsp
 }
 
 func (u UserIntCtrl) GetUser(ctx context.Context, req *user.GetUserIntReq) (*user.GetUserIntRsp, error) {
-	if len(req.Uid) == 0 {
-		return nil, errors.New("参数无效")
+	if len(req.Uids) == 0 {
+		//return nil, errors.New("参数无效")
+		return nil, xerr.ErrParams
 	}
 	xlog.Info("222...")
 	umap := make(map[int64]*user.IntUser)

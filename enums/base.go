@@ -8,6 +8,20 @@ const (
 	EnvProd Environment = "prod"
 )
 
+func (e Environment) S() string {
+	return string(e)
+}
+
+type Svc string
+
+func (s Svc) Name() string {
+	if s == "" {
+		return "○"
+	}
+	return "go-" + string(s)
+}
+
 const (
-	EnvVariable = "MICROSVC_ENV"
+	SvcUser  Svc = "user"
+	SvcAdmin Svc = "admin"
 )

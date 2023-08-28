@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
-	"microsvc/consts"
 	"microsvc/enums"
 	"microsvc/util"
 	"os"
@@ -12,7 +11,7 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc   consts.Svc        `mapstructure:"svc"` // set by this.svcConf
+	Svc   enums.Svc         `mapstructure:"svc"` // set by this.svcConf
 	Env   enums.Environment `mapstructure:"env"`
 	Mysql map[string]*Mysql `mapstructure:"mysql"`
 	Redis map[string]*Redis `mapstructure:"redis"`
@@ -53,7 +52,7 @@ type Initializer func(cc *XConfig)
 var XConf = &XConfig{}
 var _ SvcListenPortSetter = new(XConfig)
 
-func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
+func Init(svc enums.Svc, svcConfVar SvcConfImpl) {
 	XConf.Svc = svc
 	XConf.Env = readEnv()
 
@@ -81,21 +80,30 @@ func Init(svc consts.Svc, svcConfVar SvcConfImpl) {
 
 	// ------------- 下面读取svc专有配置 -------------------
 
-	svcConfFile, err := os.Open(fmt.Sprintf("service/%s/deploy/%s/config.yaml", svc, XConf.Env))
-	util.AssertNilErr(err)
+	if svcConfVar != nil {
+		svcConfFile, err := os.Open(fmt.Sprintf("service/%s/deploy/%s/config.yaml", svc, XConf.Env))
+		util.AssertNilErr(err)
 
-	err = viper.ReadConfig(svcConfFile)
-	util.AssertNilErr(err)
+		err = viper.ReadConfig(svcConfFile)
+		util.AssertNilErr(err)
 
-	err = viper.Unmarshal(svcConfVar)
-	util.AssertNilErr(err)
-	if svc != svcConfVar.GetSvc() {
-		panic(fmt.Sprintf("%s not match svc name:%s in config file", svc, svcConfVar.GetSvc()))
+		err = viper.Unmarshal(svcConfVar)
+		util.AssertNilErr(err)
+
+		logLv := readLogLevelFromEnvVar()
+		if logLv != "" {
+			svcConfVar.OverrideLogLevel(logLv)
+			_, _ = pp.Printf("************ read log level from env: %s\n", logLv)
+		}
+
+		if svc != svcConfVar.GetSvc() {
+			panic(fmt.Sprintf("%s not match svc name:%s in config file", svc, svcConfVar.GetSvc()))
+		}
+		_, _ = pp.Printf("\n************* init Svc-Config OK *************\n%+v\n", svcConfVar)
+
+		// svc conf 嵌入主配置
+		XConf.svcConf = svcConfVar
 	}
-	_, _ = pp.Printf("\n************* init Svc-Config OK *************\n%+v\n", svcConfVar)
-
-	// svc conf 嵌入主配置
-	XConf.svcConf = svcConfVar
 }
 
 type DBname string

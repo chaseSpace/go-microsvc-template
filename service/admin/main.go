@@ -32,7 +32,7 @@ func main() {
 		svccli.Init(true),
 	)
 
-	x := xgrpc.New(xgrpc.WrapAdminRsp)
+	x := xgrpc.New()
 	x.Apply(func(s *grpc.Server) {
 		admin.RegisterAdminExtServer(s, new(handler.AdminCtrl))
 	})

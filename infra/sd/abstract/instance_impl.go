@@ -3,8 +3,10 @@ package abstract
 import (
 	"container/list"
 	"context"
+	"errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"time"
@@ -56,7 +58,7 @@ func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
 		i.curr = elem.Next()
 		return obj, nil
 	}
-	return nil, xerr.ErrInternal.NewMsg(logPrefix+"%s no instance available.", i.svc)
+	return nil, xerr.ErrInternal.NewMsg(logPrefix+"%s no instance available", i.svc)
 }
 
 func (i *InstanceImpl) backgroundRefresh() {
@@ -107,7 +109,7 @@ func (i *InstanceImpl) blockRefresh() error {
 		}
 		cc, err = newGRPCClient(addr)
 		if err == nil {
-			xlog.Debug(logPrefix+"newGRPCClient", zap.String("addr", addr))
+			xlog.Debug(logPrefix+"newGRPCClient OK", zap.String("addr", addr))
 			//println(2222, cc, addr)
 			obj := &GrpcConnObj{addr: addr, Client: i.genClient(cc), cc: cc}
 			i.entryCache[addr] = obj
@@ -147,11 +149,33 @@ func (i *InstanceImpl) removeGRPCConn(addr string) {
 func newGRPCClient(target string) (cc *grpc.ClientConn, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	cc, err = grpc.DialContext(ctx, target, grpc.WithInsecure(), grpc.WithChainUnaryInterceptor(LogGrpcCliRequest))
+	cc, err = grpc.DialContext(ctx, target,
+		grpc.WithInsecure(), grpc.WithBlock(),
+		grpc.WithChainUnaryInterceptor(LogGRPCCliRequest, ExtractGRPCErr))
 	return
 }
 
-func LogGrpcCliRequest(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-	xlog.Debug("grpcClient call log", zap.String("method", method), zap.Any("req", req), zap.Any("rsp", reply))
-	return nil
+func LogGRPCCliRequest(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	start := time.Now()
+	err := invoker(ctx, method, req, reply, cc, opts...)
+	elapsed := time.Now().Sub(start)
+	if err != nil {
+		xlog.Debug("grpcClient call err log", zap.String("method", method), zap.String("dur", elapsed.String()),
+			zap.Any("req", req), zap.Any("rsp", reply))
+	} else {
+		xlog.Debug("grpcClient call log", zap.String("method", method), zap.String("dur", elapsed.String()),
+			zap.Any("req", req), zap.Any("rsp", reply))
+	}
+	return err
+}
+
+func ExtractGRPCErr(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	err := invoker(ctx, method, req, reply, cc, opts...)
+	if err != nil {
+		e, ok := status.FromError(err)
+		if ok {
+			err = xerr.ToXErr(errors.New(e.Message()))
+		}
+	}
+	return err
 }

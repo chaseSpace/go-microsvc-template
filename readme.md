@@ -2,7 +2,7 @@
 
 一个简洁、清爽的微服务项目架构，从变量命名到不同职责的（多层）目录结构定义。
 
-> **完成进度：70%**
+> **完成进度：80%**
 
 计划支持以下模式或特性：
 
@@ -10,21 +10,27 @@
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
 - ✅ 使用grpc-gateway插件生成grpc服务的http反向代理
 - ✅ 使用consul作为服务注册发现组件，支持扩展
-  - 包含健康检查、超时重试与熔断功能
-  - 包含服务之间通信流量的负载均衡
-  - 包含服务之间通信的认证与授权
+    - 包含健康检查、超时重试与熔断功能
+    - 包含服务之间通信流量的负载均衡
+    - 包含服务之间通信的认证与授权
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
-- 支持本地启动**多个**微服务
+- ✅ 支持本地启动**多个**微服务
+    - 支持本地无注册中心启动多个微服务
 
 其他有用的特性：
 
 - ✅ shell脚本支持mac环境（默认linux）
-- ✅ 定义了err类型，以便跨服务传递error
+- ✅ 定义微服务ERROR类型，以便跨服务传递error（已实现对应GRPC拦截器）
 
+运行通过的示例：
+- ✅ 单服务GRPC接口测试用例（[ext_api_test](./test/user/ext_api_test.go)）
+- ✅ 跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
 
 ### Preview
-🍡  一瞥 🍡 
+
+🍡 一瞥 🍡
+
 ```go
 // service/user/main.go
 package main
@@ -33,10 +39,8 @@ import (
   "google.golang.org/grpc"
   "microsvc/deploy"
   "microsvc/infra"
-  "microsvc/infra/cache"
-  "microsvc/infra/orm"
+  "microsvc/infra/sd"
   "microsvc/infra/svccli"
-  "microsvc/infra/svcdiscovery"
   "microsvc/infra/xgrpc"
   "microsvc/pkg"
   "microsvc/pkg/xlog"
@@ -60,9 +64,9 @@ func main() {
 
   // 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
   infra.MustSetup(
-    cache.InitRedis(true),
-    orm.InitGorm(true),
-    svcdiscovery.Init(true),
+    //cache.InitRedis(true),
+    //orm.InitGorm(true),
+    sd.Init(true),
     svccli.Init(true),
   )
 
@@ -72,14 +76,19 @@ func main() {
     user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
     user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
   })
+  // 仅开发环境需要启动HTTP端口来代理gRPC服务
+  if deploy.XConf.IsDevEnv() {
+    x.SetHTTPExtRegister(user.RegisterUserExtHandler)
+  }
 
-  x.SetHTTPRegister(user.RegisterUserExtHandler) // 为外部接口对象 UserExt 启用 http反向代理 （http --call--> grpc）
+  x.Start(deploy.XConf)
+  // GRPC服务启动后 再注册服务
+  sd.Register(deploy.XConf)
 
-  graceful.Run(func() {
-    x.Serve()
-  })
+  graceful.Run()
 }
 ```
+
 ### 1. 目录结构释义
 
 ```
@@ -144,7 +153,8 @@ go mod tidy
 
 #### 下载protoc
 
-linux、mac版本都已经包含在本仓库的`tool/`,`tool_mac/`目录下，无需再下载，已下载的是protoc v24版本，其余插件也是编写本文档时的最新版本（下载时间2023年8月17日）。
+linux、mac版本都已经包含在本仓库的`tool/`,`tool_mac/`目录下，无需再下载，已下载的是protoc
+v24版本，其余插件也是编写本文档时的最新版本（下载时间2023年8月17日）。
 
 如需更换版本，可点击下方链接自行下载：
 
@@ -185,12 +195,12 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 > 本地的注册中心使用一个可配置的固定端口。
 ```
+
 注意：本地启动的微服务仍然连接的是**beta环境的数据库**。
 
 ### 其他建议
 
 - `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
-
 
 #### 资源链接
 

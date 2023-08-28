@@ -1,10 +1,9 @@
 package svccli
 
 import (
-	"context"
 	"google.golang.org/grpc"
-	"microsvc/consts"
 	"microsvc/deploy"
+	"microsvc/enums"
 	"microsvc/infra/sd"
 	"microsvc/infra/sd/abstract"
 	"microsvc/pkg/xlog"
@@ -19,39 +18,39 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	}
 }
 
-type intCli struct {
+type rpcClient struct {
 	once      sync.Once
-	svc       consts.Svc
+	svc       enums.Svc
 	inst      *abstract.InstanceImpl
 	genClient abstract.GenClient
 }
 
 var emptyConn = newFailGrpcClientConn()
 
-func newIntCli(svc consts.Svc, gc abstract.GenClient) *intCli {
-	cli := &intCli{svc: svc, genClient: gc}
+func NewCli(svc enums.Svc, gc abstract.GenClient) *rpcClient {
+	cli := &rpcClient{svc: svc, genClient: gc}
 	return cli
 }
 
-func (ic *intCli) Getter() any {
-	ic.once.Do(func() {
-		ic.inst = abstract.NewInstance(ic.svc.Name(), ic.genClient, sd.GetSD())
-		initializedSvcCli = append(initializedSvcCli, ic)
+func (c *rpcClient) Getter() any {
+	c.once.Do(func() {
+		c.inst = abstract.NewInstance(c.svc.Name(), c.genClient, sd.GetSD())
+		initializedSvcCli = append(initializedSvcCli, c)
 	})
-	v, err := ic.inst.GetInstance()
+	v, err := c.inst.GetInstance()
 	if err == nil {
 		return v.Client
 	}
-	return ic.genClient(emptyConn)
+	return c.genClient(emptyConn)
 }
 
-func (i *intCli) Stop() {
-	if i.inst != nil {
-		i.inst.Stop()
+func (c *rpcClient) Stop() {
+	if c.inst != nil {
+		c.inst.Stop()
 	}
 }
 
-var initializedSvcCli []*intCli
+var initializedSvcCli []*rpcClient
 
 func Stop() {
 	for _, svcCli := range initializedSvcCli {
@@ -61,6 +60,6 @@ func Stop() {
 }
 
 func newFailGrpcClientConn() *grpc.ClientConn {
-	cc, _ := grpc.DialContext(context.Background(), "127.0.0.1:1")
+	cc := &grpc.ClientConn{}
 	return cc
 }

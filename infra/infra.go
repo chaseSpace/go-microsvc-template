@@ -26,9 +26,9 @@ func MustSetup(initFn ...initFunc) {
 	}
 
 	graceful.AddStopFunc(func() {
-		orm.Stop()
-		cache.Stop()
 		svccli.Stop()
 		sd.Stop()
+		cache.Stop()
+		orm.Stop()
 	})
 }

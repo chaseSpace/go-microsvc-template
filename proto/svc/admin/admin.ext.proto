@@ -25,7 +25,7 @@ message LoginResBody {
 
 message GetUserReq{
   AdminBaseReq base = 1;
-  repeated int64 uid = 2;
+  repeated int64 uids = 2;
 }
 message GetUserRsp{
   map<int64, user.IntUser> umap = 1;

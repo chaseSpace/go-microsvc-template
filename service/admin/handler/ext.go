@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"go.uber.org/zap"
-	"microsvc/infra/svccli"
+	"microsvc/infra/svccli/rpc"
 	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/admin"
@@ -27,12 +27,12 @@ func (a AdminCtrl) AdminLogin(ctx context.Context, req *admin.AdminLoginReq) (*a
 }
 
 func (a AdminCtrl) GetUser(ctx context.Context, req *admin.GetUserReq) (*admin.GetUserRsp, error) {
-	rsp, err := svccli.User().GetUser(ctx, &user.GetUserIntReq{
-		Uid: req.Uid,
+	rsp, err := rpc.User().GetUser(ctx, &user.GetUserIntReq{
+		Uids: req.Uids,
 	})
 	if err != nil {
 		return nil, err
 	}
-	xlog.Info("111...", zap.Any("Umap", rsp.Umap))
+	xlog.Info("GetUser END...", zap.Any("Umap", rsp.Umap))
 	return &admin.GetUserRsp{Umap: rsp.Umap}, nil
 }

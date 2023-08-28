@@ -2,11 +2,11 @@ package integrated_test
 
 import (
 	"microsvc/infra/sd"
-	"microsvc/infra/svccli"
+	"microsvc/infra/svccli/rpc"
 	"testing"
 )
 
 func TestSvcCliNormal(t *testing.T) {
 	sd.Init(true)
-	svccli.User()
+	rpc.User()
 }

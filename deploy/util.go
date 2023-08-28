@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"microsvc/consts"
 	"microsvc/enums"
 	"os"
 )
@@ -8,7 +9,7 @@ import (
 // 读取系统环境变量，默认dev
 // export MICROSVC_ENV=beta/prod
 func readEnv() enums.Environment {
-	env := enums.Environment(os.Getenv(enums.EnvVariable))
+	env := enums.Environment(os.Getenv(consts.EnvVar))
 	switch env {
 	case "":
 		return enums.EnvDev
@@ -17,4 +18,13 @@ func readEnv() enums.Environment {
 	default:
 		panic("no valid env provided!")
 	}
+}
+
+func readLogLevelFromEnvVar() string {
+	lv := os.Getenv(consts.EnvVarLogLevel)
+	switch lv {
+	case "debug", "info", "warn", "error":
+		return lv
+	}
+	return ""
 }

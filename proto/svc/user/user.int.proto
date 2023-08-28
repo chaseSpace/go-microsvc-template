@@ -5,7 +5,7 @@ option go_package = "microsvc/protocol/svc/user";
 import "svc/const.proto";
 
 message GetUserIntReq{
-  repeated int64 uid = 1;
+  repeated int64 uids = 1;
 }
 message GetUserIntRsp{
   map<int64, IntUser> umap = 1;

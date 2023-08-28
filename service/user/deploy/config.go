@@ -1,22 +1,12 @@
 package deploy
 
 import (
-	"microsvc/consts"
 	"microsvc/deploy"
 )
 
 // SvcConfig 每个服务特有的配置结构
 type SvcConfig struct {
-	Svc      consts.Svc `mapstructure:"svc"`
-	LogLevel string     `mapstructure:"log_level"`
-}
-
-func (s SvcConfig) GetSvc() consts.Svc {
-	return s.Svc
-}
-
-func (s SvcConfig) GetLogLevel() string {
-	return s.LogLevel
+	deploy.CommConfig `mapstructure:"root"`
 }
 
 var _ deploy.SvcConfImpl = new(SvcConfig)
