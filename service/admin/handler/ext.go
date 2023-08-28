@@ -2,7 +2,9 @@ package handler
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"microsvc/infra/svccli"
+	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/admin"
 	"microsvc/protocol/svc/user"
@@ -11,7 +13,7 @@ import (
 type AdminCtrl struct {
 }
 
-var _ admin.AdminSvcServer = new(AdminCtrl)
+var _ admin.AdminExtServer = new(AdminCtrl)
 
 func (a AdminCtrl) AdminLogin(ctx context.Context, req *admin.AdminLoginReq) (*admin.AdminLoginRsp, error) {
 	return &admin.AdminLoginRsp{
@@ -31,5 +33,6 @@ func (a AdminCtrl) GetUser(ctx context.Context, req *admin.GetUserReq) (*admin.G
 	if err != nil {
 		return nil, err
 	}
+	xlog.Info("111...", zap.Any("Umap", rsp.Umap))
 	return &admin.GetUserRsp{Umap: rsp.Umap}, nil
 }

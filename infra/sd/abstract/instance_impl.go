@@ -39,14 +39,13 @@ func NewInstance(svc string, genClient GenClient, discovery ServiceDiscovery) *I
 		quit:       make(chan struct{}),
 		sd:         discovery,
 	}
-	_ = ins.refresh()
+	_ = ins.blockRefresh() // activate
 	go ins.backgroundRefresh()
 	return ins
 }
 
 // GetInstance 每次返回链表的下一个元素，实现负载均衡（conn）
 func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
-	time.Sleep(time.Second)
 	if i.curr != nil {
 		obj := i.curr.Value.(*GrpcConnObj)
 		i.curr = i.curr.Next()
@@ -62,22 +61,22 @@ func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
 
 func (i *InstanceImpl) backgroundRefresh() {
 	for {
-		err := i.refresh()
+		err := i.blockRefresh()
 		select {
 		case <-i.quit:
 			xlog.Debug(logPrefix+"quited", zap.String("Svc", i.svc))
 			return
 		default:
 			if err != nil {
-				xlog.Error(logPrefix+"refresh err, hold on...", zap.Error(err))
+				xlog.Error(logPrefix+"blockRefresh err, hold on...", zap.Error(err))
 				time.Sleep(time.Second * 3)
 			}
 		}
-
 	}
 }
 
-func (i *InstanceImpl) refresh() error {
+// 阻塞刷新（首次请求不阻塞）
+func (i *InstanceImpl) blockRefresh() error {
 	var (
 		entries []ServiceInstance
 		cc      *grpc.ClientConn
@@ -97,20 +96,20 @@ func (i *InstanceImpl) refresh() error {
 		}
 		return err
 	}
+	xlog.Debug(logPrefix+"discover result", zap.Any("entries", entries))
+
 	var availableEntries = make(map[string]int8)
 	for _, entry := range entries {
 		addr := entry.Addr()
-		// check if entry is exists
-		if i.entryCache[addr] != nil {
+		availableEntries[addr] = 1
+		if obj := i.entryCache[addr]; obj != nil {
 			continue
 		}
 		cc, err = newGRPCClient(addr)
 		if err == nil {
 			xlog.Debug(logPrefix+"newGRPCClient", zap.String("addr", addr))
-
 			//println(2222, cc, addr)
 			obj := &GrpcConnObj{addr: addr, Client: i.genClient(cc), cc: cc}
-			availableEntries[addr] = 1
 			i.entryCache[addr] = obj
 			i.grpcConns.PushBack(obj)
 		} else {
@@ -148,6 +147,11 @@ func (i *InstanceImpl) removeGRPCConn(addr string) {
 func newGRPCClient(target string) (cc *grpc.ClientConn, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	cc, err = grpc.DialContext(ctx, target, grpc.WithInsecure())
+	cc, err = grpc.DialContext(ctx, target, grpc.WithInsecure(), grpc.WithChainUnaryInterceptor(LogGrpcCliRequest))
 	return
+}
+
+func LogGrpcCliRequest(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	xlog.Debug("grpcClient call log", zap.String("method", method), zap.Any("req", req), zap.Any("rsp", reply))
+	return nil
 }

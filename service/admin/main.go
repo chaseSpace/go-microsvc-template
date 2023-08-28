@@ -34,12 +34,12 @@ func main() {
 
 	x := xgrpc.New(xgrpc.WrapAdminRsp)
 	x.Apply(func(s *grpc.Server) {
-		admin.RegisterAdminSvcServer(s, new(handler.AdminCtrl))
+		admin.RegisterAdminExtServer(s, new(handler.AdminCtrl))
 	})
 
 	// 仅开发环境需要启动HTTP端口来代理gRPC服务
 	if deploy.XConf.IsDevEnv() {
-		x.SetHTTPExtRegister(admin.RegisterAdminSvcHandler)
+		x.SetHTTPExtRegister(admin.RegisterAdminExtHandler)
 	}
 
 	x.Start(deploy.XConf)

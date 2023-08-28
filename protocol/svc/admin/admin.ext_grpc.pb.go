@@ -18,120 +18,120 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AdminSvcClient is the client API for AdminSvc service.
+// AdminExtClient is the client API for AdminExt service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AdminSvcClient interface {
+type AdminExtClient interface {
 	AdminLogin(ctx context.Context, in *AdminLoginReq, opts ...grpc.CallOption) (*AdminLoginRsp, error)
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRsp, error)
 }
 
-type adminSvcClient struct {
+type adminExtClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAdminSvcClient(cc grpc.ClientConnInterface) AdminSvcClient {
-	return &adminSvcClient{cc}
+func NewAdminExtClient(cc grpc.ClientConnInterface) AdminExtClient {
+	return &adminExtClient{cc}
 }
 
-func (c *adminSvcClient) AdminLogin(ctx context.Context, in *AdminLoginReq, opts ...grpc.CallOption) (*AdminLoginRsp, error) {
+func (c *adminExtClient) AdminLogin(ctx context.Context, in *AdminLoginReq, opts ...grpc.CallOption) (*AdminLoginRsp, error) {
 	out := new(AdminLoginRsp)
-	err := c.cc.Invoke(ctx, "/proto.svc.admin.AdminSvc/AdminLogin", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.admin.AdminExt/AdminLogin", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *adminSvcClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRsp, error) {
+func (c *adminExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRsp, error) {
 	out := new(GetUserRsp)
-	err := c.cc.Invoke(ctx, "/proto.svc.admin.AdminSvc/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.admin.AdminExt/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AdminSvcServer is the server API for AdminSvc service.
-// All implementations should embed UnimplementedAdminSvcServer
+// AdminExtServer is the server API for AdminExt service.
+// All implementations should embed UnimplementedAdminExtServer
 // for forward compatibility
-type AdminSvcServer interface {
+type AdminExtServer interface {
 	AdminLogin(context.Context, *AdminLoginReq) (*AdminLoginRsp, error)
 	GetUser(context.Context, *GetUserReq) (*GetUserRsp, error)
 }
 
-// UnimplementedAdminSvcServer should be embedded to have forward compatible implementations.
-type UnimplementedAdminSvcServer struct {
+// UnimplementedAdminExtServer should be embedded to have forward compatible implementations.
+type UnimplementedAdminExtServer struct {
 }
 
-func (UnimplementedAdminSvcServer) AdminLogin(context.Context, *AdminLoginReq) (*AdminLoginRsp, error) {
+func (UnimplementedAdminExtServer) AdminLogin(context.Context, *AdminLoginReq) (*AdminLoginRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminLogin not implemented")
 }
-func (UnimplementedAdminSvcServer) GetUser(context.Context, *GetUserReq) (*GetUserRsp, error) {
+func (UnimplementedAdminExtServer) GetUser(context.Context, *GetUserReq) (*GetUserRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 
-// UnsafeAdminSvcServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AdminSvcServer will
+// UnsafeAdminExtServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AdminExtServer will
 // result in compilation errors.
-type UnsafeAdminSvcServer interface {
-	mustEmbedUnimplementedAdminSvcServer()
+type UnsafeAdminExtServer interface {
+	mustEmbedUnimplementedAdminExtServer()
 }
 
-func RegisterAdminSvcServer(s grpc.ServiceRegistrar, srv AdminSvcServer) {
-	s.RegisterService(&AdminSvc_ServiceDesc, srv)
+func RegisterAdminExtServer(s grpc.ServiceRegistrar, srv AdminExtServer) {
+	s.RegisterService(&AdminExt_ServiceDesc, srv)
 }
 
-func _AdminSvc_AdminLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AdminExt_AdminLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AdminLoginReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminSvcServer).AdminLogin(ctx, in)
+		return srv.(AdminExtServer).AdminLogin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.svc.admin.AdminSvc/AdminLogin",
+		FullMethod: "/svc.admin.AdminExt/AdminLogin",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminSvcServer).AdminLogin(ctx, req.(*AdminLoginReq))
+		return srv.(AdminExtServer).AdminLogin(ctx, req.(*AdminLoginReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminSvc_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AdminExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminSvcServer).GetUser(ctx, in)
+		return srv.(AdminExtServer).GetUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.svc.admin.AdminSvc/GetUser",
+		FullMethod: "/svc.admin.AdminExt/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminSvcServer).GetUser(ctx, req.(*GetUserReq))
+		return srv.(AdminExtServer).GetUser(ctx, req.(*GetUserReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AdminSvc_ServiceDesc is the grpc.ServiceDesc for AdminSvc service.
+// AdminExt_ServiceDesc is the grpc.ServiceDesc for AdminExt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AdminSvc_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.svc.admin.AdminSvc",
-	HandlerType: (*AdminSvcServer)(nil),
+var AdminExt_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "svc.admin.AdminExt",
+	HandlerType: (*AdminExtServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AdminLogin",
-			Handler:    _AdminSvc_AdminLogin_Handler,
+			Handler:    _AdminExt_AdminLogin_Handler,
 		},
 		{
 			MethodName: "GetUser",
-			Handler:    _AdminSvc_GetUser_Handler,
+			Handler:    _AdminExt_GetUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

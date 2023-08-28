@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"log"
@@ -71,7 +72,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 	fmt.Println("\nCongratulations! ^_^")
 	fmt.Printf("gRPC Server is ready on grpc://localhost%v\n", grpcAddr)
 
-	graceful.AddStopFunc(func() {
+	defer graceful.AddStopFunc(func() { // grpc server should stop before http
 		x.svr.GracefulStop()
 		xlog.Info("xgrpc: gRPC server shutdown completed")
 	})
@@ -101,14 +102,24 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 }
 
 func serveHTTP(grpcAddr string, httpListener net.Listener, extHandlerRegister, intHandlerRegister grpcHTTPRegister) {
-	conn, err := grpc.Dial(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(grpcAddr, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		xlog.Panic("xgrpc: grpc.Dial failed", zap.String("grpcAddr", grpcAddr), zap.Error(err))
 	}
 	defer conn.Close()
 
-	mux := runtime.NewServeMux()
-	//opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	//marshaler := gatewayMarshaler()
+	muxOpt := []runtime.ServeMuxOption{
+		//runtime.WithMarshalerOption(marshaler.ContentType(nil), marshaler),
+		//runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
+		//	var header = map[string]bool{
+		//		"x-token": true,
+		//	}
+		//	s = strings.ToLower(s)
+		//	return s, header[s]
+		//}),
+	}
+	mux := runtime.NewServeMux(muxOpt...) // create http gateway router for grpc service
 
 	if extHandlerRegister != nil {
 		err = extHandlerRegister(context.TODO(), mux, conn)
@@ -136,6 +147,21 @@ func serveHTTP(grpcAddr string, httpListener net.Listener, extHandlerRegister, i
 	}
 }
 
+func gatewayMarshaler() *runtime.JSONPb {
+	return &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			AllowPartial:    true,
+			UseProtoNames:   true,
+			UseEnumNumbers:  true,
+			EmitUnpopulated: true,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			AllowPartial:   true,
+			DiscardUnknown: true,
+		},
+	}
+}
+
 // -------- 下面是grpc中间件 -----------
 
 func WrapAdminRsp(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -146,13 +172,13 @@ func WrapAdminRsp(ctx context.Context, req interface{}, info *grpc.UnaryServerIn
 	lastResp := new(svc.AdminCommonRsp)
 	if rsp == nil {
 		lastResp.Code = xerr.ErrInternal.Ecode
-		lastResp.Msg = "no error, but response is empty."
+		lastResp.Msg = "mw: no error, but response is empty"
 		return lastResp, nil
 	}
 	data, err := anypb.New(rsp.(proto.Message))
 	if err != nil {
 		lastResp.Code = xerr.ErrInternal.Ecode
-		lastResp.Msg = fmt.Sprintf("call anypb.New() failed: %v", err)
+		lastResp.Msg = fmt.Sprintf("mw: call anypb.New() failed: %v", err)
 		return lastResp, nil
 	}
 	lastResp.Data = data
@@ -164,7 +190,7 @@ func RecoverGrpcRequest(ctx context.Context, req interface{}, info *grpc.UnarySe
 		if r := recover(); r != nil {
 			err = xerr.ErrInternal.NewMsg(fmt.Sprintf("panic recovered: %v", r))
 			xlog.DPanic("RecoverGrpcRequest", zap.String("method", info.FullMethod), zap.Any("err", r))
-			fmt.Println("PANIC\n", string(debug.Stack()))
+			fmt.Printf("PANIC %v\n%s", r, string(debug.Stack()))
 		}
 	}()
 	rsp, err := handler(ctx, req)
@@ -172,7 +198,6 @@ func RecoverGrpcRequest(ctx context.Context, req interface{}, info *grpc.UnarySe
 }
 
 func LogGrpcRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-
 	rsp, err := handler(ctx, req)
 	return rsp, err
 }

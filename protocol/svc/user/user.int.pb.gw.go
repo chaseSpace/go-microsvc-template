@@ -113,7 +113,7 @@ func RegisterUserIntHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.user.UserInt/GetUser", runtime.WithHTTPPathPattern("/proto.svc.user.UserInt/GetUser"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserInt/GetUser", runtime.WithHTTPPathPattern("/svc.user.UserInt/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -138,7 +138,7 @@ func RegisterUserIntHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.user.UserInt/Test", runtime.WithHTTPPathPattern("/proto.svc.user.UserInt/Test"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserInt/Test", runtime.WithHTTPPathPattern("/svc.user.UserInt/Test"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -202,7 +202,7 @@ func RegisterUserIntHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.user.UserInt/GetUser", runtime.WithHTTPPathPattern("/proto.svc.user.UserInt/GetUser"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserInt/GetUser", runtime.WithHTTPPathPattern("/svc.user.UserInt/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -224,7 +224,7 @@ func RegisterUserIntHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.user.UserInt/Test", runtime.WithHTTPPathPattern("/proto.svc.user.UserInt/Test"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserInt/Test", runtime.WithHTTPPathPattern("/svc.user.UserInt/Test"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -244,9 +244,9 @@ func RegisterUserIntHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 }
 
 var (
-	pattern_UserInt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"proto.svc.user.UserInt", "GetUser"}, ""))
+	pattern_UserInt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"svc.user.UserInt", "GetUser"}, ""))
 
-	pattern_UserInt_Test_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"proto.svc.user.UserInt", "Test"}, ""))
+	pattern_UserInt_Test_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"svc.user.UserInt", "Test"}, ""))
 )
 
 var (

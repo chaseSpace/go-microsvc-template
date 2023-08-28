@@ -1,5 +1,5 @@
 syntax = "proto3";
-package proto.svc;
+package svc;
 option go_package = "microsvc/protocol/svc";
 
 import "include/google/protobuf/any.proto";

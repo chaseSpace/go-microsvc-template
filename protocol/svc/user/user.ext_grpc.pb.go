@@ -35,7 +35,7 @@ func NewUserExtClient(cc grpc.ClientConnInterface) UserExtClient {
 
 func (c *userExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRsp, error) {
 	out := new(GetUserRsp)
-	err := c.cc.Invoke(ctx, "/proto.svc.user.UserExt/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.user.UserExt/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func _UserExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.svc.user.UserExt/GetUser",
+		FullMethod: "/svc.user.UserExt/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserExtServer).GetUser(ctx, req.(*GetUserReq))
@@ -90,7 +90,7 @@ func _UserExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserExt_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.svc.user.UserExt",
+	ServiceName: "svc.user.UserExt",
 	HandlerType: (*UserExtServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

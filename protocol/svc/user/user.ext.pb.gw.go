@@ -79,7 +79,7 @@ func RegisterUserExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.user.UserExt/GetUser", runtime.WithHTTPPathPattern("/user/v1/GetUser"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserExt/GetUser", runtime.WithHTTPPathPattern("/user/v1/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -143,7 +143,7 @@ func RegisterUserExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.user.UserExt/GetUser", runtime.WithHTTPPathPattern("/user/v1/GetUser"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserExt/GetUser", runtime.WithHTTPPathPattern("/user/v1/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

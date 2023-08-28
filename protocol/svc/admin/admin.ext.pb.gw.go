@@ -31,7 +31,7 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
-func request_AdminSvc_AdminLogin_0(ctx context.Context, marshaler runtime.Marshaler, client AdminSvcClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_AdminExt_AdminLogin_0(ctx context.Context, marshaler runtime.Marshaler, client AdminExtClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AdminLoginReq
 	var metadata runtime.ServerMetadata
 
@@ -48,7 +48,7 @@ func request_AdminSvc_AdminLogin_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func local_request_AdminSvc_AdminLogin_0(ctx context.Context, marshaler runtime.Marshaler, server AdminSvcServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_AdminExt_AdminLogin_0(ctx context.Context, marshaler runtime.Marshaler, server AdminExtServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AdminLoginReq
 	var metadata runtime.ServerMetadata
 
@@ -65,7 +65,7 @@ func local_request_AdminSvc_AdminLogin_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_AdminSvc_GetUser_0(ctx context.Context, marshaler runtime.Marshaler, client AdminSvcClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_AdminExt_GetUser_0(ctx context.Context, marshaler runtime.Marshaler, client AdminExtClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetUserReq
 	var metadata runtime.ServerMetadata
 
@@ -82,7 +82,7 @@ func request_AdminSvc_GetUser_0(ctx context.Context, marshaler runtime.Marshaler
 
 }
 
-func local_request_AdminSvc_GetUser_0(ctx context.Context, marshaler runtime.Marshaler, server AdminSvcServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_AdminExt_GetUser_0(ctx context.Context, marshaler runtime.Marshaler, server AdminExtServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetUserReq
 	var metadata runtime.ServerMetadata
 
@@ -99,13 +99,13 @@ func local_request_AdminSvc_GetUser_0(ctx context.Context, marshaler runtime.Mar
 
 }
 
-// RegisterAdminSvcHandlerServer registers the http handlers for service AdminSvc to "mux".
-// UnaryRPC     :call AdminSvcServer directly.
+// RegisterAdminExtHandlerServer registers the http handlers for service AdminExt to "mux".
+// UnaryRPC     :call AdminExtServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAdminSvcHandlerFromEndpoint instead.
-func RegisterAdminSvcHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AdminSvcServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAdminExtHandlerFromEndpoint instead.
+func RegisterAdminExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AdminExtServer) error {
 
-	mux.Handle("POST", pattern_AdminSvc_AdminLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AdminExt_AdminLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -113,12 +113,12 @@ func RegisterAdminSvcHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/AdminLogin", runtime.WithHTTPPathPattern("/admin/v1/AdminLogin"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.admin.AdminExt/AdminLogin", runtime.WithHTTPPathPattern("/admin/v1/AdminLogin"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_AdminSvc_AdminLogin_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_AdminExt_AdminLogin_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -126,11 +126,11 @@ func RegisterAdminSvcHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 			return
 		}
 
-		forward_AdminSvc_AdminLogin_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_AdminExt_AdminLogin_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_AdminSvc_GetUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AdminExt_GetUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -138,12 +138,12 @@ func RegisterAdminSvcHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/GetUser", runtime.WithHTTPPathPattern("/admin/v1/GetUser"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.admin.AdminExt/GetUser", runtime.WithHTTPPathPattern("/admin/v1/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_AdminSvc_GetUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_AdminExt_GetUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -151,16 +151,16 @@ func RegisterAdminSvcHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 			return
 		}
 
-		forward_AdminSvc_GetUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_AdminExt_GetUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterAdminSvcHandlerFromEndpoint is same as RegisterAdminSvcHandler but
+// RegisterAdminExtHandlerFromEndpoint is same as RegisterAdminExtHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterAdminSvcHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterAdminExtHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
@@ -180,63 +180,63 @@ func RegisterAdminSvcHandlerFromEndpoint(ctx context.Context, mux *runtime.Serve
 		}()
 	}()
 
-	return RegisterAdminSvcHandler(ctx, mux, conn)
+	return RegisterAdminExtHandler(ctx, mux, conn)
 }
 
-// RegisterAdminSvcHandler registers the http handlers for service AdminSvc to "mux".
+// RegisterAdminExtHandler registers the http handlers for service AdminExt to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterAdminSvcHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterAdminSvcHandlerClient(ctx, mux, NewAdminSvcClient(conn))
+func RegisterAdminExtHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterAdminExtHandlerClient(ctx, mux, NewAdminExtClient(conn))
 }
 
-// RegisterAdminSvcHandlerClient registers the http handlers for service AdminSvc
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AdminSvcClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AdminSvcClient"
+// RegisterAdminExtHandlerClient registers the http handlers for service AdminExt
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AdminExtClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AdminExtClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "AdminSvcClient" to call the correct interceptors.
-func RegisterAdminSvcHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AdminSvcClient) error {
+// "AdminExtClient" to call the correct interceptors.
+func RegisterAdminExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AdminExtClient) error {
 
-	mux.Handle("POST", pattern_AdminSvc_AdminLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AdminExt_AdminLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/AdminLogin", runtime.WithHTTPPathPattern("/admin/v1/AdminLogin"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.admin.AdminExt/AdminLogin", runtime.WithHTTPPathPattern("/admin/v1/AdminLogin"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_AdminSvc_AdminLogin_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_AdminExt_AdminLogin_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_AdminSvc_AdminLogin_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_AdminExt_AdminLogin_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_AdminSvc_GetUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AdminExt_GetUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.admin.AdminSvc/GetUser", runtime.WithHTTPPathPattern("/admin/v1/GetUser"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.admin.AdminExt/GetUser", runtime.WithHTTPPathPattern("/admin/v1/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_AdminSvc_GetUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_AdminExt_GetUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_AdminSvc_GetUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_AdminExt_GetUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -244,13 +244,13 @@ func RegisterAdminSvcHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 }
 
 var (
-	pattern_AdminSvc_AdminLogin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"admin", "v1", "AdminLogin"}, ""))
+	pattern_AdminExt_AdminLogin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"admin", "v1", "AdminLogin"}, ""))
 
-	pattern_AdminSvc_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"admin", "v1", "GetUser"}, ""))
+	pattern_AdminExt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"admin", "v1", "GetUser"}, ""))
 )
 
 var (
-	forward_AdminSvc_AdminLogin_0 = runtime.ForwardResponseMessage
+	forward_AdminExt_AdminLogin_0 = runtime.ForwardResponseMessage
 
-	forward_AdminSvc_GetUser_0 = runtime.ForwardResponseMessage
+	forward_AdminExt_GetUser_0 = runtime.ForwardResponseMessage
 )

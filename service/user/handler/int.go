@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/user"
 )
@@ -20,6 +21,7 @@ func (u UserIntCtrl) GetUser(ctx context.Context, req *user.GetUserIntReq) (*use
 	if len(req.Uid) == 0 {
 		return nil, errors.New("参数无效")
 	}
+	xlog.Info("222...")
 	umap := make(map[int64]*user.IntUser)
 	umap[1] = &user.IntUser{
 		Uid:  1,

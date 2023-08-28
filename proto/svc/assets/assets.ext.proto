@@ -1,5 +1,5 @@
 syntax = "proto3";
-package proto.svc.assets;
+package svc.assets;
 option go_package = "microsvc/protocol/svc/assets";
 
 import "svc/common.proto";

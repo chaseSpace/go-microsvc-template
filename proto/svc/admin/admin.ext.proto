@@ -1,5 +1,5 @@
 syntax = "proto3";
-package proto.svc.admin;
+package svc.admin;
 option go_package = "microsvc/protocol/svc/admin";
 
 import "svc/common.proto";
@@ -32,7 +32,7 @@ message GetUserRsp{
 }
 
 
-service AdminSvc {
+service AdminExt {
   rpc AdminLogin(AdminLoginReq) returns (AdminLoginRsp){
     option(google.api.http) = {
       post: "/admin/v1/AdminLogin",

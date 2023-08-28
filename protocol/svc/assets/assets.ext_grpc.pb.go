@@ -35,7 +35,7 @@ func NewAssetsExtClient(cc grpc.ClientConnInterface) AssetsExtClient {
 
 func (c *assetsExtClient) GetUser(ctx context.Context, in *GetUserAssetsReq, opts ...grpc.CallOption) (*GetUserAssetsRsp, error) {
 	out := new(GetUserAssetsRsp)
-	err := c.cc.Invoke(ctx, "/proto.svc.assets.AssetsExt/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.assets.AssetsExt/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func _AssetsExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.svc.assets.AssetsExt/GetUser",
+		FullMethod: "/svc.assets.AssetsExt/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AssetsExtServer).GetUser(ctx, req.(*GetUserAssetsReq))
@@ -90,7 +90,7 @@ func _AssetsExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AssetsExt_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.svc.assets.AssetsExt",
+	ServiceName: "svc.assets.AssetsExt",
 	HandlerType: (*AssetsExtServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

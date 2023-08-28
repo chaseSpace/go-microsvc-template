@@ -36,7 +36,7 @@ func NewUserIntClient(cc grpc.ClientConnInterface) UserIntClient {
 
 func (c *userIntClient) GetUser(ctx context.Context, in *GetUserIntReq, opts ...grpc.CallOption) (*GetUserIntRsp, error) {
 	out := new(GetUserIntRsp)
-	err := c.cc.Invoke(ctx, "/proto.svc.user.UserInt/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.user.UserInt/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *userIntClient) GetUser(ctx context.Context, in *GetUserIntReq, opts ...
 
 func (c *userIntClient) Test(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestRsp, error) {
 	out := new(TestRsp)
-	err := c.cc.Invoke(ctx, "/proto.svc.user.UserInt/Test", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.user.UserInt/Test", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func _UserInt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.svc.user.UserInt/GetUser",
+		FullMethod: "/svc.user.UserInt/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserIntServer).GetUser(ctx, req.(*GetUserIntReq))
@@ -110,7 +110,7 @@ func _UserInt_Test_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.svc.user.UserInt/Test",
+		FullMethod: "/svc.user.UserInt/Test",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserIntServer).Test(ctx, req.(*TestReq))
@@ -122,7 +122,7 @@ func _UserInt_Test_Handler(srv interface{}, ctx context.Context, dec func(interf
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserInt_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.svc.user.UserInt",
+	ServiceName: "svc.user.UserInt",
 	HandlerType: (*UserIntServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

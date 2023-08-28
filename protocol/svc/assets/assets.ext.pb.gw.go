@@ -79,7 +79,7 @@ func RegisterAssetsExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.svc.assets.AssetsExt/GetUser", runtime.WithHTTPPathPattern("/proto.svc.assets.AssetsExt/GetUser"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.assets.AssetsExt/GetUser", runtime.WithHTTPPathPattern("/svc.assets.AssetsExt/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -143,7 +143,7 @@ func RegisterAssetsExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.svc.assets.AssetsExt/GetUser", runtime.WithHTTPPathPattern("/proto.svc.assets.AssetsExt/GetUser"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.assets.AssetsExt/GetUser", runtime.WithHTTPPathPattern("/svc.assets.AssetsExt/GetUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -163,7 +163,7 @@ func RegisterAssetsExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 }
 
 var (
-	pattern_AssetsExt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"proto.svc.assets.AssetsExt", "GetUser"}, ""))
+	pattern_AssetsExt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"svc.assets.AssetsExt", "GetUser"}, ""))
 )
 
 var (

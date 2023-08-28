@@ -1,5 +1,4 @@
-###
-POST http://localhost:61176/admin/v1/GetUser
+POST http://localhost:61016/user/v1/GetUser
 Content-Type: application/json
 
 {
