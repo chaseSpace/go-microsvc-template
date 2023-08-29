@@ -26,7 +26,7 @@ func (t *TcpListenerFetcher) Get() (lis net.Listener, port int, err error) {
 		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 		if err != nil {
 			if strings.Contains(err.Error(), "already") {
-				println("continue", port)
+				//println("continue", port)
 				continue
 			}
 			return nil, 0, err
