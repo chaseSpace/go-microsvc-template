@@ -3,10 +3,10 @@ package xerr
 // Common error
 var (
 	_           = 0
-	ErrOK       = E{ECode: 200, EMsg: "OK"}
-	ErrParams   = E{ECode: 400, EMsg: "ErrParams"}
-	ErrInternal = E{ECode: 500, EMsg: "ErrInternal"}
-	ErrTimeout  = E{ECode: 1000, EMsg: "ErrTimeout"}
+	ErrOK       = XErr{Code: 200, Msg: "OK"}
+	ErrParams   = XErr{Code: 400, Msg: "ErrParams"}
+	ErrInternal = XErr{Code: 500, Msg: "ErrInternal"}
+	ErrTimeout  = XErr{Code: 1000, Msg: "ErrTimeout"}
 )
 
 // Internal error

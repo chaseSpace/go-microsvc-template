@@ -145,21 +145,21 @@ type proxyRespMarshaler struct {
 
 func (c *proxyRespMarshaler) Marshal(grpcRsp interface{}) (b []byte, err error) {
 	lastResp := &svc.HttpCommonRsp{
-		Code: xerr.ErrOK.ECode,
-		Msg:  xerr.ErrOK.EMsg,
+		Code: xerr.ErrOK.Code,
+		Msg:  xerr.ErrOK.Msg,
 		Data: nil,
 	}
 	defer func() {
 		b, err = c.JSONPb.Marshal(lastResp)
 	}()
 	if grpcRsp == nil {
-		lastResp.Code = xerr.ErrInternal.ECode
+		lastResp.Code = xerr.ErrInternal.Code
 		lastResp.Msg = "http-proxy: no error, but grpc response is empty"
 		return
 	}
 	data, err := anypb.New(grpcRsp.(proto.Message))
 	if err != nil {
-		lastResp.Code = xerr.ErrInternal.ECode
+		lastResp.Code = xerr.ErrInternal.Code
 		lastResp.Msg = fmt.Sprintf("http-proxy: call anypb.New() failed: %v, rsp:%+v", err, grpcRsp)
 		return
 	}
@@ -196,14 +196,14 @@ func newHTTPMuxOpts() []runtime.ServeMuxOption {
 		}),
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, writer http.ResponseWriter, request *http.Request, err error) {
 			rsp := &svc.HttpCommonRsp{
-				Code: xerr.ErrInternal.ECode,
+				Code: xerr.ErrInternal.Code,
 				Msg:  err.Error(),
 			}
 			s, ok := status.FromError(err)
 			if ok {
 				if e, ok := xerr.FromErrStr(s.Message()); ok {
-					rsp.Code = e.ECode
-					rsp.Msg = e.EMsg
+					rsp.Code = e.Code
+					rsp.Msg = e.Msg
 				} else {
 					rsp.Msg = s.Message()
 				}
