@@ -201,9 +201,9 @@ func newHTTPMuxOpts() []runtime.ServeMuxOption {
 			}
 			s, ok := status.FromError(err)
 			if ok {
-				if e := xerr.FromErr(errors.New(s.Message())); e != nil {
-					rsp.Code = e.Code()
-					rsp.Msg = e.Msg()
+				if e, ok := xerr.FromErrStr(s.Message()); ok {
+					rsp.Code = e.ECode
+					rsp.Msg = e.EMsg
 				} else {
 					rsp.Msg = s.Message()
 				}
@@ -254,8 +254,8 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 	elapsed := time.Now().Sub(start)
 	if err != nil {
 		errmsg := err.Error()
-		if xe := xerr.FromErr(err); xe != nil {
-			errmsg = xe.FlatMsg()
+		if e, ok := xerr.FromErr(err); ok {
+			errmsg = e.FlatMsg()
 		}
 		xlog.Error("xgrpc: api error log", zap.String("method", info.FullMethod), zap.String("dur", elapsed.String()),
 			zap.Any("req", req), zap.String("err", errmsg))

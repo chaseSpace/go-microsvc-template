@@ -47,7 +47,7 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 	elapsed := time.Now().Sub(start)
 	if err != nil {
 		errmsg := err.Error()
-		if e := xerr.FromErrStr(errmsg); e != nil {
+		if e, ok := xerr.FromErrStr(errmsg); ok {
 			errmsg = e.FlatMsg()
 		}
 		xlog.Debug("grpcClient call err log", zap.String("method", method), zap.String("dur", elapsed.String()),
