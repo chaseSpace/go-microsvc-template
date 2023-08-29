@@ -90,7 +90,59 @@ func main() {
 }
 ```
 
-### 1. 目录结构释义
+### 1. 启动&停止日志输出
+
+<details>
+<summary>点击展开/折叠</summary>
+
+```shell
+************* init Share-Config OK *************
+&deploy.XConfig{                                           
+  Svc:   "admin",                                          
+  Env:   "dev",                                            
+  Mysql: map[string]*deploy.Mysql{                         
+    "microsvc": &deploy.Mysql{                             
+      DBname:   "microsvc",                                
+      Host:     "0.0.0.0",                                 
+      Port:     "3306",                                    
+      User:     "root",                                    
+      Password: "123",                                     
+      Password: "123",
+    },
+  },
+  gRPCPort: 0,
+  httpPort: 0,
+  svcConf:  nil,
+}
+
+************* init Svc-Config OK *************
+&deploy.SvcConfig{
+  CommConfig: deploy.CommConfig{
+    Svc:      "admin",
+    LogLevel: "debug",
+  },
+}
+
+Congratulations! ^_^
+serving gRPC on grpc://localhost:60797
+serving HTTP on http://localhost:61064
+
+{"LEVEL":"x-info","TS":"2023-08-29 15:44:41.625","CALLER":"sd/base.go:61","MSG":"sd: register svc success","reg_svc":"go-admin","addr":"192.168.10.9:60797","SERVICE":"go-admin"}
+
+### 停止服务...
+
+{"LEVEL":"x-warn","TS":"2023-08-29 15:44:43.163","CALLER":"graceful/base.go:46","MSG":"****** graceful ****** server ready to exit(signal)","SERVICE":"go-admin"}
+{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.163","CALLER":"svccli/base.go:69","MSG":"svccli: resource released...","SERVICE":"go-admin"}
+{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.164","CALLER":"sd/base.go:72","MSG":"sd: deregister success","svc":"go-admin","SERVICE":"go-admin"}
+{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.165","CALLER":"cache/redis.go:77","MSG":"cache-redis: resource released...","SERVICE":"go-admin"}
+{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.165","CALLER":"orm/mysql.go:85","MSG":"orm-mysql: resource released...","SERVICE":"go-admin"}
+{"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"xgrpc/grpc.go:79","MSG":"xgrpc: gRPC server shutdown completed","SERVICE":"go-admin"}
+{"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"xgrpc/grpc.go:132","MSG":"xgrpc: HTTP server shutdown completed","SERVICE":"go-admin"}
+{"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"graceful/base.go:30","MSG":"****** graceful ****** server exited","SERVICE":"go-admin"}
+```
+</details>
+
+### 2. 目录结构释义
 
 ```
 ├── consts  # 公共常量（不含单个svc独享的常量）
@@ -142,7 +194,7 @@ func main() {
 └── util  # 存放可共用的其他逻辑
 ```
 
-### 2. 如何使用
+### 3. 如何使用
 
 ```shell
 git clone https://github.com/chaseSpace/go-microsvc-template.git
@@ -150,7 +202,7 @@ cd go-microsvc-template/
 go mod tidy
 ```
 
-### 3. 工具下载（更新）
+### 4. 工具下载（更新）
 
 #### 下载protoc
 
@@ -185,7 +237,7 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 若要更改版本，建议同时修改`tool/proto_v24/`目录名称，并同步修改`build_pb.sh`脚本中对该目录的引用部分，以便更新版本后脚本能够正常运行。
 
-### 4. 本地启动微服务的原理
+### 5. 本地启动微服务的原理
 
 理论上来说，调用微服务是走注册中心的，要想在本地启动多个微服务且能正常互相调用，又不想在本地部署一个类似etcd/consul/zookeeper
 的注册中心，最简单的办法是：
