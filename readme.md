@@ -9,6 +9,7 @@
 - ✅ 使用单仓库多服务模式
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
 - ✅ 使用grpc-gateway插件生成grpc服务的http反向代理
+- 统一API Gateway管理南北流量
 - ✅ 使用consul作为服务注册发现组件，支持扩展
     - ✅ 包含健康检查
     - 包含服务之间通信流量的负载均衡
