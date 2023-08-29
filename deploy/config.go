@@ -16,9 +16,9 @@ type XConfig struct {
 	Mysql map[string]*Mysql `mapstructure:"mysql"`
 	Redis map[string]*Redis `mapstructure:"redis"`
 
-	gRPCPort int `mapstructure:"-"`
-	httpPort int `mapstructure:"-"`
-
+	// 私有字段
+	gRPCPort int
+	httpPort int
 	// 接管svc的配置
 	svcConf SvcConfImpl
 }
@@ -93,7 +93,7 @@ func Init(svc enums.Svc, svcConfVar SvcConfImpl) {
 		logLv := readLogLevelFromEnvVar()
 		if logLv != "" {
 			svcConfVar.OverrideLogLevel(logLv)
-			_, _ = pp.Printf("************ read log level from env: %s\n", logLv)
+			_, _ = pp.Printf("************* read log level from env: %s\n", logLv)
 		}
 
 		if svc != svcConfVar.GetSvc() {

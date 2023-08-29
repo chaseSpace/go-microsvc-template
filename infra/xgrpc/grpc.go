@@ -225,11 +225,12 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 	resp, err = handler(ctx, req)
 	elapsed := time.Now().Sub(start)
 	if err != nil {
-		if e, ok := status.FromError(err); ok {
-			err = errors.New(e.Message())
+		errmsg := err.Error()
+		if xe := xerr.FromErr(err); xe != nil {
+			errmsg = xe.FlatMsg()
 		}
 		xlog.Error("xgrpc: api error log", zap.String("method", info.FullMethod), zap.String("dur", elapsed.String()),
-			zap.Any("req", req), zap.Error(err))
+			zap.Any("req", req), zap.String("err", errmsg))
 	} else {
 		xlog.Debug("xgrpc: api log", zap.String("method", info.FullMethod), zap.String("dur", elapsed.String()),
 			zap.Any("req", req), zap.Any("resp", resp))

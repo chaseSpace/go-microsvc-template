@@ -16,7 +16,6 @@ func init() {
 }
 
 func TestGetUser(t *testing.T) {
-
 	rsp, err := rpcext.User().GetUser(context.TODO(), &user.GetUserReq{
 		Base: nil,
 		Uids: nil,

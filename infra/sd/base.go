@@ -2,11 +2,11 @@ package sd
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"microsvc/deploy"
 	"microsvc/infra/sd/abstract"
 	"microsvc/infra/sd/consul"
+	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/util/ip"
 )
@@ -20,19 +20,24 @@ var rootSD abstract.ServiceDiscovery
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		// 在这里 决定使用 etcd/consul
-		cli, err := consul.NewConsulSD()
-		if err == nil {
-			rootSD = cli
-		} else {
+		cli, err := NewSD()
+		if err != nil {
 			xlog.Error(logPrefix+"NewSD failed", zap.Error(err))
-			err = errors.Wrap(err, "NewSD")
+		} else {
+			rootSD = cli
 		}
 		onEnd(must, err)
 	}
 }
 
-func GetSD() abstract.ServiceDiscovery {
-	return rootSD
+func NewSD() (abstract.ServiceDiscovery, error) {
+	cli, err := consul.NewConsulSD()
+	if err == nil {
+		rootSD = cli
+	} else {
+		return nil, xerr.ErrInternal.NewMsg(err.Error())
+	}
+	return cli, nil
 }
 
 func Register(reg ...deploy.RegisterSvc) {

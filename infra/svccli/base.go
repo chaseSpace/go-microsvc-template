@@ -1,19 +1,31 @@
 package svccli
 
 import (
-	"google.golang.org/grpc"
+	"go.uber.org/zap"
 	"microsvc/deploy"
 	"microsvc/enums"
 	"microsvc/infra/sd"
 	"microsvc/infra/sd/abstract"
+	"microsvc/infra/xgrpc"
 	"microsvc/pkg/xlog"
 	"sync"
 )
 
+var defaultSD abstract.ServiceDiscovery
+
+func SetDefaultSD(sd abstract.ServiceDiscovery) {
+	defaultSD = sd
+}
+
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
-		// todo
 		var err error
+		if defaultSD == nil {
+			defaultSD, err = sd.NewSD()
+			if err != nil {
+				xlog.Error("svccli: NewSD failed", zap.Error(err))
+			}
+		}
 		onEnd(must, err)
 	}
 }
@@ -25,8 +37,6 @@ type rpcClient struct {
 	genClient abstract.GenClient
 }
 
-var emptyConn = newFailGrpcClientConn()
-
 func NewCli(svc enums.Svc, gc abstract.GenClient) *rpcClient {
 	cli := &rpcClient{svc: svc, genClient: gc}
 	return cli
@@ -34,14 +44,14 @@ func NewCli(svc enums.Svc, gc abstract.GenClient) *rpcClient {
 
 func (c *rpcClient) Getter() any {
 	c.once.Do(func() {
-		c.inst = abstract.NewInstance(c.svc.Name(), c.genClient, sd.GetSD())
+		c.inst = abstract.NewInstance(c.svc.Name(), c.genClient, defaultSD)
 		initializedSvcCli = append(initializedSvcCli, c)
 	})
 	v, err := c.inst.GetInstance()
 	if err == nil {
 		return v.Client
 	}
-	return c.genClient(emptyConn)
+	return c.genClient(xgrpc.NewInvalidGRPCConn(c.svc.Name()))
 }
 
 func (c *rpcClient) Stop() {
@@ -57,9 +67,4 @@ func Stop() {
 		svcCli.Stop()
 	}
 	xlog.Debug("svccli: resource released...")
-}
-
-func newFailGrpcClientConn() *grpc.ClientConn {
-	cc := &grpc.ClientConn{}
-	return cc
 }

@@ -8,6 +8,7 @@ import (
 type ServiceDiscovery interface {
 	Register(serviceName string, address string, port int, metadata map[string]string) error
 	Deregister(serviceName string) error
+	// Discover must support block query
 	Discover(ctx context.Context, serviceName string) ([]ServiceInstance, error)
 }
 

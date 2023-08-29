@@ -6,6 +6,7 @@ import (
 	"microsvc/enums"
 	"microsvc/infra"
 	"microsvc/infra/sd"
+	"microsvc/infra/sd/abstract"
 	"microsvc/infra/svccli"
 	"microsvc/pkg"
 	"microsvc/pkg/xlog"
@@ -15,9 +16,8 @@ import (
 )
 
 func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
-	_ = os.Setenv(consts.EnvVarLogLevel, "info")
+	_ = os.Setenv(consts.EnvVarLogLevel, "debug")
 	graceful.SetupSignal()
-	defer graceful.OnExit()
 
 	wd, _ := os.Getwd()
 	parentDir := filepath.Dir(filepath.Dir(wd))
@@ -30,4 +30,26 @@ func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
 		sd.Init(true),
 		svccli.Init(true),
 	)
+}
+
+func TearUpWithEmptySD(svc enums.Svc, svcConf deploy.SvcConfImpl) {
+	_ = os.Setenv(consts.EnvVarLogLevel, "debug")
+	graceful.SetupSignal()
+
+	wd, _ := os.Getwd()
+	parentDir := filepath.Dir(filepath.Dir(wd))
+	_ = os.Chdir(parentDir)
+	deploy.Init(svc, svcConf)
+	pkg.Init(
+		xlog.Init,
+	)
+	svccli.SetDefaultSD(abstract.EmptySD{})
+	infra.MustSetup(
+		//sd.Init(true),
+		svccli.Init(true),
+	)
+}
+
+func TearDown() {
+	graceful.OnExit()
 }
