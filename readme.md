@@ -24,8 +24,9 @@
 - ✅ 定义微服务ERROR类型，以便跨服务传递error（已实现对应GRPC拦截器）
 
 运行通过的示例：
-- ✅ 单服务GRPC接口测试用例（[ext_api_test](./test/user/ext_api_test.go)）
+- ✅ 单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
 - ✅ 跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
+- ✅ HTTP代理GRPC接口调用测试用例（[admin-apitest.http](./test/admin/apitest.http)）
 
 ### Preview
 
