@@ -21,3 +21,9 @@ message AdminCommonRsp{
   string msg = 2;
   google.protobuf.Any data = 3;
 }
+
+message HttpCommonRsp{
+  int32 code = 1;
+  string msg = 2;
+  google.protobuf.Any data = 3;
+}

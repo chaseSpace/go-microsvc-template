@@ -1,6 +1,6 @@
-POST http://localhost:61570/admin/v1/GetUser
+POST http://localhost:61829/admin/v1/GetUser
 Content-Type: application/json
 
 {
-  "uid": []
+  "uids": [1]
 }

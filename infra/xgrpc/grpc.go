@@ -7,7 +7,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -105,7 +104,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 }
 
 func serveHTTP(grpcAddr string, httpListener net.Listener, extHandlerRegister, intHandlerRegister grpcHTTPRegister) {
-	conn, err := grpc.Dial(grpcAddr, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(grpcAddr, grpc.WithBlock(), grpc.WithInsecure())
 	if err != nil {
 		xlog.Panic("xgrpc: grpc.Dial failed", zap.String("grpcAddr", grpcAddr), zap.Error(err))
 	}
@@ -140,8 +139,36 @@ func serveHTTP(grpcAddr string, httpListener net.Listener, extHandlerRegister, i
 	}
 }
 
-func gatewayMarshaler() *runtime.JSONPb {
-	return &runtime.JSONPb{
+type proxyRespMarshaler struct {
+	runtime.JSONPb
+}
+
+func (c *proxyRespMarshaler) Marshal(grpcRsp interface{}) (b []byte, err error) {
+	lastResp := &svc.HttpCommonRsp{
+		Code: xerr.ErrOK.ECode,
+		Msg:  xerr.ErrOK.EMsg,
+		Data: nil,
+	}
+	defer func() {
+		b, err = c.JSONPb.Marshal(lastResp)
+	}()
+	if grpcRsp == nil {
+		lastResp.Code = xerr.ErrInternal.ECode
+		lastResp.Msg = "http-proxy: no error, but grpc response is empty"
+		return
+	}
+	data, err := anypb.New(grpcRsp.(proto.Message))
+	if err != nil {
+		lastResp.Code = xerr.ErrInternal.ECode
+		lastResp.Msg = fmt.Sprintf("http-proxy: call anypb.New() failed: %v, rsp:%+v", err, grpcRsp)
+		return
+	}
+	lastResp.Data = data
+	return
+}
+
+func gatewayMarshaler() *proxyRespMarshaler {
+	jpb := runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{
 			AllowPartial:    true,
 			UseProtoNames:   true,
@@ -153,6 +180,7 @@ func gatewayMarshaler() *runtime.JSONPb {
 			DiscardUnknown: true,
 		},
 	}
+	return &proxyRespMarshaler{JSONPb: jpb}
 }
 
 func newHTTPMuxOpts() []runtime.ServeMuxOption {
@@ -167,7 +195,7 @@ func newHTTPMuxOpts() []runtime.ServeMuxOption {
 			return s, header[s]
 		}),
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, writer http.ResponseWriter, request *http.Request, err error) {
-			rsp := &svc.AdminCommonRsp{
+			rsp := &svc.HttpCommonRsp{
 				Code: xerr.ErrInternal.ECode,
 				Msg:  err.Error(),
 			}
