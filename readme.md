@@ -10,9 +10,10 @@
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
 - ✅ 使用grpc-gateway插件生成grpc服务的http反向代理
 - ✅ 使用consul作为服务注册发现组件，支持扩展
-    - 包含健康检查、超时重试与熔断功能
+    - ✅ 包含健康检查
     - 包含服务之间通信流量的负载均衡
     - 包含服务之间通信的认证与授权
+- RPC超时重试与熔断功能
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
 - ✅ 支持本地启动**多个**微服务
@@ -24,6 +25,7 @@
 - ✅ 定义微服务ERROR类型，以便跨服务传递error（已实现对应GRPC拦截器）
 
 运行通过的示例：
+
 - ✅ 单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
 - ✅ 跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
 - ✅ HTTP代理GRPC接口调用测试用例（[admin-apitest.http](./test/admin/apitest.http)）
@@ -37,56 +39,56 @@
 package main
 
 import (
-  "google.golang.org/grpc"
-  "microsvc/deploy"
-  "microsvc/infra"
-  "microsvc/infra/sd"
-  "microsvc/infra/svccli"
-  "microsvc/infra/xgrpc"
-  "microsvc/pkg"
-  "microsvc/pkg/xlog"
-  "microsvc/protocol/svc/user"
-  deploy2 "microsvc/service/user/deploy"
-  "microsvc/service/user/handler"
-  "microsvc/util/graceful"
+	"google.golang.org/grpc"
+	"microsvc/deploy"
+	"microsvc/infra"
+	"microsvc/infra/sd"
+	"microsvc/infra/svccli"
+	"microsvc/infra/xgrpc"
+	"microsvc/pkg"
+	"microsvc/pkg/xlog"
+	"microsvc/protocol/svc/user"
+	deploy2 "microsvc/service/user/deploy"
+	"microsvc/service/user/handler"
+	"microsvc/util/graceful"
 )
 
 func main() {
-  graceful.SetupSignal()
-  defer graceful.OnExit()
+	graceful.SetupSignal()
+	defer graceful.OnExit()
 
-  // 初始化config
-  deploy.Init("user", deploy2.UserConf)
-  // 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
-  pkg.Init(
-    xlog.Init,
-    // 假如我要新增kafka等组件，也是新增 pkg/xkafka目录，然后实现其init函数并添加在这里
-  )
+	// 初始化config
+	deploy.Init("user", deploy2.UserConf)
+	// 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
+	pkg.Init(
+		xlog.Init,
+		// 假如我要新增kafka等组件，也是新增 pkg/xkafka目录，然后实现其init函数并添加在这里
+	)
 
-  // 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
-  infra.MustSetup(
-    //cache.InitRedis(true),
-    //orm.InitGorm(true),
-    sd.Init(true),
-    svccli.Init(true),
-  )
+	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
+	infra.MustSetup(
+		//cache.InitRedis(true),
+		//orm.InitGorm(true),
+		sd.Init(true),
+		svccli.Init(true),
+	)
 
-  x := xgrpc.New() // New一个封装好的grpc对象
-  x.Apply(func(s *grpc.Server) {
-    // 注册外部和内部的rpc接口对象
-    user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
-    user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
-  })
-  // 仅开发环境需要启动HTTP端口来代理gRPC服务
-  if deploy.XConf.IsDevEnv() {
-    x.SetHTTPExtRegister(user.RegisterUserExtHandler)
-  }
+	x := xgrpc.New() // New一个封装好的grpc对象
+	x.Apply(func(s *grpc.Server) {
+		// 注册外部和内部的rpc接口对象
+		user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
+		user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
+	})
+	// 仅开发环境需要启动HTTP端口来代理gRPC服务
+	if deploy.XConf.IsDevEnv() {
+		x.SetHTTPExtRegister(user.RegisterUserExtHandler)
+	}
 
-  x.Start(deploy.XConf)
-  // GRPC服务启动后 再注册服务
-  sd.Register(deploy.XConf)
+	x.Start(deploy.XConf)
+	// GRPC服务启动后 再注册服务
+	sd.Register(deploy.XConf)
 
-  graceful.Run()
+	graceful.Run()
 }
 ```
 
@@ -140,6 +142,7 @@ serving HTTP on http://localhost:61064
 {"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"xgrpc/grpc.go:132","MSG":"xgrpc: HTTP server shutdown completed","SERVICE":"go-admin"}
 {"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"graceful/base.go:30","MSG":"****** graceful ****** server exited","SERVICE":"go-admin"}
 ```
+
 </details>
 
 ### 2. 目录结构释义
@@ -251,9 +254,26 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 注意：本地启动的微服务仍然连接的是**beta环境的数据库**。
 
-### 其他建议
+### 其他
+
+#### 建议
 
 - `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
+
+#### 使用的外部组件
+
+- github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
+- github.com/hashicorp/consul/api v1.24.0
+- github.com/k0kubun/pp v2.4.0+incompatible
+- github.com/pkg/errors v0.9.1
+- github.com/redis/go-redis/v9 v9.1.0
+- github.com/spf13/viper v1.16.0
+- go.uber.org/zap v1.21.0
+- google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e
+- google.golang.org/grpc v1.57.0
+- google.golang.org/protobuf v1.31.0
+- gorm.io/driver/mysql v1.5.1
+- gorm.io/gorm v1.25.3
 
 #### 资源链接
 
