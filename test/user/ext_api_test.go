@@ -11,11 +11,10 @@ import (
 	"testing"
 )
 
-func init() {
-	tbase.TearUp(enums.SvcUser, deploy2.UserConf)
-}
-
 func TestGetUser(t *testing.T) {
+	tbase.TearUp(enums.SvcUser, deploy2.UserConf)
+	defer tbase.TearDown()
+
 	rsp, err := rpcext.User().GetUser(context.TODO(), &user.GetUserReq{
 		Base: nil,
 		Uids: nil,

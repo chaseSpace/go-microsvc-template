@@ -2,9 +2,7 @@ package handler
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"microsvc/infra/svccli/rpc"
-	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/admin"
 	"microsvc/protocol/svc/user"
@@ -33,6 +31,5 @@ func (a AdminCtrl) GetUser(ctx context.Context, req *admin.GetUserReq) (*admin.G
 	if err != nil {
 		return nil, err
 	}
-	xlog.Info("GetUser END...", zap.Any("Umap", rsp.Umap))
 	return &admin.GetUserRsp{Umap: rsp.Umap}, nil
 }

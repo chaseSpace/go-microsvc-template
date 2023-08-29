@@ -24,6 +24,7 @@ func TestNoRPCClient(t *testing.T) {
 	}
 }
 
+// Run user svc first.
 func TestHaveRPCClient(t *testing.T) {
 	TearUp(enums.SvcUser, deploy2.UserConf)
 	defer TearDown()

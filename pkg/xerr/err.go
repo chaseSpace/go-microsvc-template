@@ -7,18 +7,6 @@ import (
 	"strings"
 )
 
-//type XErr interface {
-//	error
-//	Code() int32
-//	Msg() string
-//	FlatMsg() string
-//	NewMsg(msg string, args ...any) E
-//	AppendMsg(msg string, args ...any) E
-//	DeepEqual(err error) bool
-//	Equal(err error) bool
-//	Is(err error) bool
-//}
-
 type E struct {
 	ECode int32
 	EMsg  string

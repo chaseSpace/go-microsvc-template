@@ -216,27 +216,6 @@ func newHTTPMuxOpts() []runtime.ServeMuxOption {
 
 // -------- 下面是grpc中间件 -----------
 
-func WrapAdminRsp(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	rsp, err := handler(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	lastResp := new(svc.AdminCommonRsp)
-	if rsp == nil {
-		lastResp.Code = xerr.ErrInternal.ECode
-		lastResp.Msg = "mw: no error, but response is empty"
-		return lastResp, nil
-	}
-	data, err := anypb.New(rsp.(proto.Message))
-	if err != nil {
-		lastResp.Code = xerr.ErrInternal.ECode
-		lastResp.Msg = fmt.Sprintf("mw: call anypb.New() failed: %v", err)
-		return lastResp, nil
-	}
-	lastResp.Data = data
-	return lastResp, nil
-}
-
 func RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {

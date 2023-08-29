@@ -13,43 +13,77 @@ import (
 	"microsvc/util/graceful"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
-func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
-	_ = os.Setenv(consts.EnvVarLogLevel, "debug")
-	graceful.SetupSignal()
+var oncemap sync.Map
 
-	wd, _ := os.Getwd()
-	parentDir := filepath.Dir(filepath.Dir(wd))
-	_ = os.Chdir(parentDir)
-	deploy.Init(svc, svcConf)
-	pkg.Init(
-		xlog.Init,
-	)
-	infra.MustSetup(
-		sd.Init(true),
-		svccli.Init(true),
-	)
+func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
+	var o = new(sync.Once)
+	v, ok := oncemap.Load(svc.Name())
+	if !ok {
+		oncemap.Store(svc.Name(), o)
+	} else {
+		o = v.(*sync.Once)
+	}
+	o.Do(func() {
+		//println(111, svc.Name())
+		_ = os.Setenv(consts.EnvVarLogLevel, "debug")
+		graceful.SetupSignal()
+
+		if !isProjectRootDir() {
+			wd, _ := os.Getwd()
+			parentDir := filepath.Dir(filepath.Dir(wd))
+			_ = os.Chdir(parentDir)
+		}
+		deploy.Init(svc, svcConf)
+		pkg.Init(
+			xlog.Init,
+		)
+		infra.MustSetup(
+			sd.Init(true),
+			svccli.Init(true),
+		)
+	})
 }
 
-func TearUpWithEmptySD(svc enums.Svc, svcConf deploy.SvcConfImpl) {
-	_ = os.Setenv(consts.EnvVarLogLevel, "debug")
-	graceful.SetupSignal()
+var oncemapEmptySD sync.Map
 
-	wd, _ := os.Getwd()
-	parentDir := filepath.Dir(filepath.Dir(wd))
-	_ = os.Chdir(parentDir)
-	deploy.Init(svc, svcConf)
-	pkg.Init(
-		xlog.Init,
-	)
-	svccli.SetDefaultSD(abstract.EmptySD{})
-	infra.MustSetup(
-		//sd.Init(true),
-		svccli.Init(true),
-	)
+func TearUpWithEmptySD(svc enums.Svc, svcConf deploy.SvcConfImpl) {
+	var o = new(sync.Once)
+	v, ok := oncemapEmptySD.Load(svc.Name())
+	if !ok {
+		oncemapEmptySD.Store(svc.Name(), o)
+	} else {
+		o = v.(*sync.Once)
+	}
+
+	o.Do(func() {
+		_ = os.Setenv(consts.EnvVarLogLevel, "debug")
+		graceful.SetupSignal()
+
+		if !isProjectRootDir() {
+			wd, _ := os.Getwd()
+			parentDir := filepath.Dir(filepath.Dir(wd))
+			_ = os.Chdir(parentDir)
+		}
+		deploy.Init(svc, svcConf)
+		pkg.Init(
+			xlog.Init,
+		)
+		svccli.SetDefaultSD(abstract.EmptySD{})
+		infra.MustSetup(
+			//sd.Init(true),
+			svccli.Init(true),
+		)
+	})
 }
 
 func TearDown() {
 	graceful.OnExit()
+}
+
+func isProjectRootDir() bool {
+	_, err := os.Stat("go.mod")
+	return err == nil
 }

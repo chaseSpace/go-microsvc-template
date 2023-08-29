@@ -81,6 +81,8 @@ func Init(svc enums.Svc, svcConfVar SvcConfImpl) {
 	// ------------- 下面读取svc专有配置 -------------------
 
 	if svcConfVar != nil {
+		//wd, _ := os.Getwd()
+		//println("getwd", wd)
 		svcConfFile, err := os.Open(fmt.Sprintf("service/%s/deploy/%s/config.yaml", svc, XConf.Env))
 		util.AssertNilErr(err)
 
