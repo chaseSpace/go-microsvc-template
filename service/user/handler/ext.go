@@ -16,10 +16,10 @@ type UserExtCtrl struct {
 
 var _ user.UserExtServer = new(UserExtCtrl)
 
-func (u UserExtCtrl) GatewayCall(ctx context.Context, req *svc.GatewayReq) (grsp *svc.GatewayRsp, err error) {
-	op := api.LoadUserApi(req.ApiName)
+func (u UserExtCtrl) GatewayCall(ctx context.Context, req *svc.ForwardReq) (grsp *svc.ForwardRes, err error) {
+	op := api.LoadUserApi(req.Method)
 	if op == nil {
-		return nil, xerr.ErrApiNotFound.AppendMsg(req.ApiName)
+		return nil, xerr.ErrApiNotFound.AppendMsg(req.Method)
 	}
 	freq := op.Req()
 	err = json.Unmarshal(req.Body, freq)
@@ -32,17 +32,17 @@ func (u UserExtCtrl) GatewayCall(ctx context.Context, req *svc.GatewayReq) (grsp
 			return
 		}
 		if res == nil {
-			err = xerr.ErrInternal.NewMsg("[%s] rpc reply is empty", req.ApiName)
+			err = xerr.ErrInternal.NewMsg("[%s] rpc reply is empty", req.Method)
 		}
-		grsp = &svc.GatewayRsp{Body: util.ToJson(res)}
+		grsp = &svc.ForwardRes{Body: util.ToJson(res)}
 	}()
 
 	// hardcode has better performance than reflect
-	switch req.ApiName {
+	switch req.Method {
 	case "GetUser":
 		res, err = u.GetUser(ctx, freq.(*user.GetUserReq))
 	default:
-		err = xerr.ErrInternal.NewMsg("add api(%s) firstly", req.ApiName)
+		err = xerr.ErrInternal.NewMsg("add api(%s) firstly", req.Method)
 	}
 	return
 }

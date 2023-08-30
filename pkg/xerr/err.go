@@ -80,3 +80,7 @@ func (t XErr) Is(err error) bool {
 	}
 	return false
 }
+
+func (t XErr) IsOK() bool {
+	return t.Code == ErrOK.Code
+}

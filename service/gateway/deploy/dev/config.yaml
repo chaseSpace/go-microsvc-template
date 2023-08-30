@@ -1,5 +1,4 @@
 root:
   svc: gateway
   log_level: debug
-  http_port: 8000
-  # 存放user相关配置，db信息配置到根目录的deploy/
+http_port: 8000

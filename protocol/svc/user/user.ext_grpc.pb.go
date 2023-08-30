@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserExtClient interface {
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error)
-	GatewayCall(ctx context.Context, in *svc.GatewayReq, opts ...grpc.CallOption) (*svc.GatewayRsp, error)
+	GatewayCall(ctx context.Context, in *svc.ForwardReq, opts ...grpc.CallOption) (*svc.ForwardRes, error)
 }
 
 type userExtClient struct {
@@ -44,8 +44,8 @@ func (c *userExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grp
 	return out, nil
 }
 
-func (c *userExtClient) GatewayCall(ctx context.Context, in *svc.GatewayReq, opts ...grpc.CallOption) (*svc.GatewayRsp, error) {
-	out := new(svc.GatewayRsp)
+func (c *userExtClient) GatewayCall(ctx context.Context, in *svc.ForwardReq, opts ...grpc.CallOption) (*svc.ForwardRes, error) {
+	out := new(svc.ForwardRes)
 	err := c.cc.Invoke(ctx, "/svc.user.UserExt/GatewayCall", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (c *userExtClient) GatewayCall(ctx context.Context, in *svc.GatewayReq, opt
 // for forward compatibility
 type UserExtServer interface {
 	GetUser(context.Context, *GetUserReq) (*GetUserRes, error)
-	GatewayCall(context.Context, *svc.GatewayReq) (*svc.GatewayRsp, error)
+	GatewayCall(context.Context, *svc.ForwardReq) (*svc.ForwardRes, error)
 }
 
 // UnimplementedUserExtServer should be embedded to have forward compatible implementations.
@@ -68,7 +68,7 @@ type UnimplementedUserExtServer struct {
 func (UnimplementedUserExtServer) GetUser(context.Context, *GetUserReq) (*GetUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUserExtServer) GatewayCall(context.Context, *svc.GatewayReq) (*svc.GatewayRsp, error) {
+func (UnimplementedUserExtServer) GatewayCall(context.Context, *svc.ForwardReq) (*svc.ForwardRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GatewayCall not implemented")
 }
 
@@ -102,7 +102,7 @@ func _UserExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(int
 }
 
 func _UserExt_GatewayCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(svc.GatewayReq)
+	in := new(svc.ForwardReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func _UserExt_GatewayCall_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/svc.user.UserExt/GatewayCall",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserExtServer).GatewayCall(ctx, req.(*svc.GatewayReq))
+		return srv.(UserExtServer).GatewayCall(ctx, req.(*svc.ForwardReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -42,6 +42,7 @@ func NewCli(svc enums.Svc, gc abstract.GenClient) *rpcClient {
 	return cli
 }
 
+// Getter returns gRPC Server Client
 func (c *rpcClient) Getter() any {
 	c.once.Do(func() {
 		c.inst = abstract.NewInstance(c.svc.Name(), c.genClient, defaultSD)

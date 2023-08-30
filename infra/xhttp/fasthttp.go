@@ -16,6 +16,8 @@ func New(port int, handler fasthttp.RequestHandler) *FastHttpSvr {
 }
 
 func (f FastHttpSvr) Start() {
+	fmt.Println("\nCongratulations! ^_^")
+	fmt.Printf("serving HTTP on http://localhost:%v\n\n", f.port)
 	err := fasthttp.ListenAndServe(fmt.Sprintf(":%d", f.port), f.handler)
 	if err != nil {
 		xlog.Error(fmt.Sprintf("xhttp: failed to server HTTP on: localhost:%d", f.port))

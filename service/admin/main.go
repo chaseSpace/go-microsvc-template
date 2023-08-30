@@ -22,11 +22,11 @@ func main() {
 
 	deploy.Init(enums.SvcAdmin, deploy2.AdminConf)
 
-	pkg.Init(
+	pkg.Setup(
 		xlog.Init,
 	)
 
-	infra.MustSetup(
+	infra.Setup(
 		//cache.InitRedis(true),
 		//orm.InitGorm(true),
 		sd.Init(true),

@@ -287,7 +287,7 @@ func (x *GetUserRsp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUserRes.ProtoReflect.Descriptor instead.
+// Deprecated: Use GetUserRsp.ProtoReflect.Descriptor instead.
 func (*GetUserRsp) Descriptor() ([]byte, []int) {
 	return file_svc_admin_admin_ext_proto_rawDescGZIP(), []int{4}
 }
@@ -374,8 +374,8 @@ var file_svc_admin_admin_ext_proto_goTypes = []interface{}{
 	(*AdminLoginRsp)(nil),    // 1: svc.admin.AdminLoginRsp
 	(*LoginResBody)(nil),     // 2: svc.admin.LoginResBody
 	(*GetUserReq)(nil),       // 3: svc.admin.GetUserReq
-	(*GetUserRsp)(nil),       // 4: svc.admin.GetUserRes
-	nil,                      // 5: svc.admin.GetUserRes.UmapEntry
+	(*GetUserRsp)(nil),       // 4: svc.admin.GetUserRsp
+	nil,                      // 5: svc.admin.GetUserRsp.UmapEntry
 	(svc.Sex)(0),             // 6: svc.Sex
 	(*svc.AdminBaseReq)(nil), // 7: svc.AdminBaseReq
 	(*user.IntUser)(nil),     // 8: svc.user.IntUser
@@ -384,12 +384,12 @@ var file_svc_admin_admin_ext_proto_depIdxs = []int32{
 	2, // 0: svc.admin.AdminLoginRsp.user_info:type_name -> svc.admin.LoginResBody
 	6, // 1: svc.admin.LoginResBody.sex:type_name -> svc.Sex
 	7, // 2: svc.admin.GetUserReq.base:type_name -> svc.AdminBaseReq
-	5, // 3: svc.admin.GetUserRes.umap:type_name -> svc.admin.GetUserRes.UmapEntry
-	8, // 4: svc.admin.GetUserRes.UmapEntry.value:type_name -> svc.user.IntUser
+	5, // 3: svc.admin.GetUserRsp.umap:type_name -> svc.admin.GetUserRsp.UmapEntry
+	8, // 4: svc.admin.GetUserRsp.UmapEntry.value:type_name -> svc.user.IntUser
 	0, // 5: svc.admin.AdminExt.AdminLogin:input_type -> svc.admin.AdminLoginReq
 	3, // 6: svc.admin.AdminExt.GetUser:input_type -> svc.admin.GetUserReq
 	1, // 7: svc.admin.AdminExt.AdminLogin:output_type -> svc.admin.AdminLoginRsp
-	4, // 8: svc.admin.AdminExt.GetUser:output_type -> svc.admin.GetUserRes
+	4, // 8: svc.admin.AdminExt.GetUser:output_type -> svc.admin.GetUserRsp
 	7, // [7:9] is the sub-list for method output_type
 	5, // [5:7] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name

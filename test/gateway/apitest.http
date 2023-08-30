@@ -1,0 +1,30 @@
+POST http://localhost:8000/svc.user.UserExt/GetUser
+Content-Type: application/json
+
+{
+  "uids": [1]
+}
+
+
+###
+#HTTP/1.1 200 OK
+#Content-Type: application/json
+#Grpc-Metadata-Content-Type: application/grpc
+#Date: Tue, 29 Aug 2023 07:33:08 GMT
+#Content-Length: 139
+
+#{
+#  "code": 200,
+#  "msg": "OK",
+#  "data": {
+#    "@type": "type.googleapis.com/svc.admin.GetUserRsp",
+#    "umap": {
+#      "1": {
+#        "uid": "1",
+#        "nick": "Luyi",
+#        "age": 18,
+#        "sex": 1
+#      }
+#    }
+#  }
+#}

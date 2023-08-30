@@ -37,10 +37,10 @@ func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
 			_ = os.Chdir(parentDir)
 		}
 		deploy.Init(svc, svcConf)
-		pkg.Init(
+		pkg.Setup(
 			xlog.Init,
 		)
-		infra.MustSetup(
+		infra.Setup(
 			sd.Init(true),
 			svccli.Init(true),
 		)
@@ -68,12 +68,12 @@ func TearUpWithEmptySD(svc enums.Svc, svcConf deploy.SvcConfImpl) {
 			_ = os.Chdir(parentDir)
 		}
 		deploy.Init(svc, svcConf)
-		pkg.Init(
+		pkg.Setup(
 			xlog.Init,
 		)
 		svccli.SetDefaultSD(abstract.EmptySD{})
-		infra.MustSetup(
-			//sd.Init(true),
+		infra.Setup(
+			//sd.Setup(true),
 			svccli.Init(true),
 		)
 	})

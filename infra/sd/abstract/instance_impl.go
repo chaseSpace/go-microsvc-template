@@ -25,7 +25,7 @@ type InstanceImpl struct {
 
 type GrpcConnObj struct {
 	addr   string
-	cc     *grpc.ClientConn
+	Conn   *grpc.ClientConn
 	Client interface{}
 }
 
@@ -46,7 +46,7 @@ func NewInstance(svc string, genClient GenClient, discovery ServiceDiscovery) *I
 }
 
 // GetInstance 每次返回链表的下一个元素，实现负载均衡（conn）
-func (i *InstanceImpl) GetInstance() (inst *GrpcConnObj, err error) {
+func (i *InstanceImpl) GetInstance() (obj *GrpcConnObj, err error) {
 	if i.curr != nil {
 		obj := i.curr.Value.(*GrpcConnObj)
 		i.curr = i.curr.Next()
@@ -109,8 +109,8 @@ func (i *InstanceImpl) blockRefresh() error {
 		cc, err = xgrpc.NewGRPCClient(addr, i.svc)
 		if err == nil {
 			xlog.Debug(logPrefix+"newGRPCClient OK", zap.String("addr", addr))
-			//println(2222, cc, addr)
-			obj := &GrpcConnObj{addr: addr, Client: i.genClient(cc), cc: cc}
+			//println(2222, Conn, addr)
+			obj := &GrpcConnObj{addr: addr, Client: i.genClient(cc), Conn: cc}
 			i.entryCache[addr] = obj
 			i.grpcConns.PushBack(obj)
 		} else {
@@ -121,7 +121,7 @@ func (i *InstanceImpl) blockRefresh() error {
 	// clear unavailable entries
 	for addr, conn := range i.entryCache {
 		if availableEntries[addr] == 0 {
-			_ = conn.cc.Close()
+			_ = conn.Conn.Close()
 			delete(i.entryCache, addr)
 			i.removeGRPCConn(addr)
 			xlog.Debug(logPrefix+"removeGRPCConn", zap.String("addr", addr))

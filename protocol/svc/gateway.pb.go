@@ -20,17 +20,17 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type GatewayReq struct {
+type ForwardReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ApiName string `protobuf:"bytes,1,opt,name=api_name,json=apiName,proto3" json:"api_name,omitempty"`
-	Body    []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	Method string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
+	Body   []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 }
 
-func (x *GatewayReq) Reset() {
-	*x = GatewayReq{}
+func (x *ForwardReq) Reset() {
+	*x = ForwardReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_svc_gateway_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -38,13 +38,13 @@ func (x *GatewayReq) Reset() {
 	}
 }
 
-func (x *GatewayReq) String() string {
+func (x *ForwardReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GatewayReq) ProtoMessage() {}
+func (*ForwardReq) ProtoMessage() {}
 
-func (x *GatewayReq) ProtoReflect() protoreflect.Message {
+func (x *ForwardReq) ProtoReflect() protoreflect.Message {
 	mi := &file_svc_gateway_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -56,26 +56,26 @@ func (x *GatewayReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GatewayReq.ProtoReflect.Descriptor instead.
-func (*GatewayReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use ForwardReq.ProtoReflect.Descriptor instead.
+func (*ForwardReq) Descriptor() ([]byte, []int) {
 	return file_svc_gateway_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GatewayReq) GetApiName() string {
+func (x *ForwardReq) GetMethod() string {
 	if x != nil {
-		return x.ApiName
+		return x.Method
 	}
 	return ""
 }
 
-func (x *GatewayReq) GetBody() []byte {
+func (x *ForwardReq) GetBody() []byte {
 	if x != nil {
 		return x.Body
 	}
 	return nil
 }
 
-type GatewayRsp struct {
+type ForwardRes struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -83,8 +83,8 @@ type GatewayRsp struct {
 	Body []byte `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
 }
 
-func (x *GatewayRsp) Reset() {
-	*x = GatewayRsp{}
+func (x *ForwardRes) Reset() {
+	*x = ForwardRes{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_svc_gateway_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -92,13 +92,13 @@ func (x *GatewayRsp) Reset() {
 	}
 }
 
-func (x *GatewayRsp) String() string {
+func (x *ForwardRes) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GatewayRsp) ProtoMessage() {}
+func (*ForwardRes) ProtoMessage() {}
 
-func (x *GatewayRsp) ProtoReflect() protoreflect.Message {
+func (x *ForwardRes) ProtoReflect() protoreflect.Message {
 	mi := &file_svc_gateway_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -110,31 +110,99 @@ func (x *GatewayRsp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GatewayRsp.ProtoReflect.Descriptor instead.
-func (*GatewayRsp) Descriptor() ([]byte, []int) {
+// Deprecated: Use ForwardRes.ProtoReflect.Descriptor instead.
+func (*ForwardRes) Descriptor() ([]byte, []int) {
 	return file_svc_gateway_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GatewayRsp) GetBody() []byte {
+func (x *ForwardRes) GetBody() []byte {
 	if x != nil {
 		return x.Body
 	}
 	return nil
 }
 
+type GatewayHttpRsp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Code        int32  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Msg         string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	FromGateway bool   `protobuf:"varint,3,opt,name=from_gateway,json=fromGateway,proto3" json:"from_gateway,omitempty"`
+}
+
+func (x *GatewayHttpRsp) Reset() {
+	*x = GatewayHttpRsp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_svc_gateway_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GatewayHttpRsp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GatewayHttpRsp) ProtoMessage() {}
+
+func (x *GatewayHttpRsp) ProtoReflect() protoreflect.Message {
+	mi := &file_svc_gateway_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GatewayHttpRsp.ProtoReflect.Descriptor instead.
+func (*GatewayHttpRsp) Descriptor() ([]byte, []int) {
+	return file_svc_gateway_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GatewayHttpRsp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GatewayHttpRsp) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
+func (x *GatewayHttpRsp) GetFromGateway() bool {
+	if x != nil {
+		return x.FromGateway
+	}
+	return false
+}
+
 var File_svc_gateway_proto protoreflect.FileDescriptor
 
 var file_svc_gateway_proto_rawDesc = []byte{
 	0x0a, 0x11, 0x73, 0x76, 0x63, 0x2f, 0x67, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x12, 0x03, 0x73, 0x76, 0x63, 0x22, 0x3b, 0x0a, 0x0a, 0x47, 0x61, 0x74, 0x65,
-	0x77, 0x61, 0x79, 0x52, 0x65, 0x71, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x70, 0x69, 0x5f, 0x6e, 0x61,
-	0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x70, 0x69, 0x4e, 0x61, 0x6d,
-	0x65, 0x12, 0x12, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52,
-	0x04, 0x62, 0x6f, 0x64, 0x79, 0x22, 0x20, 0x0a, 0x0a, 0x47, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79,
-	0x52, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x0c, 0x52, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x42, 0x17, 0x5a, 0x15, 0x6d, 0x69, 0x63, 0x72, 0x6f,
-	0x73, 0x76, 0x63, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x73, 0x76, 0x63,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x74, 0x6f, 0x12, 0x03, 0x73, 0x76, 0x63, 0x22, 0x38, 0x0a, 0x0a, 0x46, 0x6f, 0x72, 0x77,
+	0x61, 0x72, 0x64, 0x52, 0x65, 0x71, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x12, 0x12,
+	0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x62, 0x6f,
+	0x64, 0x79, 0x22, 0x20, 0x0a, 0x0a, 0x46, 0x6f, 0x72, 0x77, 0x61, 0x72, 0x64, 0x52, 0x65, 0x73,
+	0x12, 0x12, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04,
+	0x62, 0x6f, 0x64, 0x79, 0x22, 0x59, 0x0a, 0x0e, 0x47, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x48,
+	0x74, 0x74, 0x70, 0x52, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73,
+	0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x12, 0x21, 0x0a, 0x0c,
+	0x66, 0x72, 0x6f, 0x6d, 0x5f, 0x67, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x0b, 0x66, 0x72, 0x6f, 0x6d, 0x47, 0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x42,
+	0x17, 0x5a, 0x15, 0x6d, 0x69, 0x63, 0x72, 0x6f, 0x73, 0x76, 0x63, 0x2f, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x73, 0x76, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -149,10 +217,11 @@ func file_svc_gateway_proto_rawDescGZIP() []byte {
 	return file_svc_gateway_proto_rawDescData
 }
 
-var file_svc_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_svc_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_svc_gateway_proto_goTypes = []interface{}{
-	(*GatewayReq)(nil), // 0: svc.GatewayReq
-	(*GatewayRsp)(nil), // 1: svc.GatewayRsp
+	(*ForwardReq)(nil),     // 0: svc.ForwardReq
+	(*ForwardRes)(nil),     // 1: svc.ForwardRes
+	(*GatewayHttpRsp)(nil), // 2: svc.GatewayHttpRsp
 }
 var file_svc_gateway_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -169,7 +238,7 @@ func file_svc_gateway_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_svc_gateway_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GatewayReq); i {
+			switch v := v.(*ForwardReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -181,7 +250,19 @@ func file_svc_gateway_proto_init() {
 			}
 		}
 		file_svc_gateway_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GatewayRsp); i {
+			switch v := v.(*ForwardRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_svc_gateway_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GatewayHttpRsp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -199,7 +280,7 @@ func file_svc_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_svc_gateway_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

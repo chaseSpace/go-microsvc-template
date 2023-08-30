@@ -66,6 +66,8 @@ func (i ClientInterceptor) ExtractGRPCErr(ctx context.Context, method string, re
 		e, ok := status.FromError(err)
 		if ok {
 			err = xerr.ToXErr(errors.New(e.Message()))
+		} else {
+			err = xerr.ToXErr(err)
 		}
 	}
 	return err

@@ -67,7 +67,7 @@ func local_request_UserExt_GetUser_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.Marshaler, client UserExtClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq svc.GatewayReq
+	var protoReq svc.ForwardReq
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -84,7 +84,7 @@ func request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 func local_request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.Marshaler, server UserExtServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq svc.GatewayReq
+	var protoReq svc.ForwardReq
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -139,7 +139,7 @@ func RegisterUserExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserExt/GatewayCall", runtime.WithHTTPPathPattern("/svc.user/v1/GatewayForward"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserExt/GatewayCall", runtime.WithHTTPPathPattern("/svc.user/v1/GatewayCall"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -225,7 +225,7 @@ func RegisterUserExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserExt/GatewayCall", runtime.WithHTTPPathPattern("/svc.user/v1/GatewayForward"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserExt/GatewayCall", runtime.WithHTTPPathPattern("/svc.user/v1/GatewayCall"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -247,7 +247,7 @@ func RegisterUserExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 var (
 	pattern_UserExt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"svc.user", "v1", "GetUser"}, ""))
 
-	pattern_UserExt_GatewayCall_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"svc.user", "v1", "GatewayForward"}, ""))
+	pattern_UserExt_GatewayCall_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"svc.user", "v1", "GatewayCall"}, ""))
 )
 
 var (

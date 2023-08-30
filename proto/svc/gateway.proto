@@ -3,11 +3,17 @@ package svc;
 option go_package = "microsvc/protocol/svc";
 
 
-message GatewayReq {
-  string api_name = 1;
+message ForwardReq {
+  string method = 1;
   bytes body = 2;
 }
 
-message GatewayRsp {
+message ForwardRes {
   bytes body = 1;
+}
+
+message GatewayHttpRsp{
+  int32 code = 1;
+  string msg = 2;
+  bool from_gateway = 3;
 }
