@@ -3,6 +3,7 @@ package main
 import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
+	"microsvc/enums"
 	"microsvc/infra"
 	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
@@ -19,7 +20,7 @@ func main() {
 	graceful.SetupSignal()
 	defer graceful.OnExit()
 
-	deploy.Init("admin", deploy2.AdminConf)
+	deploy.Init(enums.SvcAdmin, deploy2.AdminConf)
 
 	pkg.Init(
 		xlog.Init,

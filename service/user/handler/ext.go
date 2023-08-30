@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"google.golang.org/protobuf/proto"
 	"microsvc/pkg/xerr"
+	"microsvc/proto/api"
 	"microsvc/protocol/svc"
 	"microsvc/protocol/svc/user"
 	"microsvc/util"
-	"reflect"
 )
 
 type UserExtCtrl struct {
@@ -16,40 +16,35 @@ type UserExtCtrl struct {
 
 var _ user.UserExtServer = new(UserExtCtrl)
 
-func (u UserExtCtrl) GatewayCall(ctx context.Context, req *svc.GatewayReq) (*svc.GatewayRsp, error) {
-	op, ok := apiRegistration[req.ApiName]
-	if !ok {
+func (u UserExtCtrl) GatewayCall(ctx context.Context, req *svc.GatewayReq) (grsp *svc.GatewayRsp, err error) {
+	op := api.LoadUserApi(req.ApiName)
+	if op == nil {
 		return nil, xerr.ErrApiNotFound.AppendMsg(req.ApiName)
 	}
 	freq := op.Req()
-	err := json.Unmarshal(req.Body, freq)
+	err = json.Unmarshal(req.Body, freq)
 	if err != nil {
 		return nil, xerr.ErrParams.AppendMsg("parse json failed: %v", err)
 	}
+	var res proto.Message
+	defer func() {
+		if err != nil {
+			return
+		}
+		if res == nil {
+			err = xerr.ErrInternal.NewMsg("[%s] rpc reply is empty", req.ApiName)
+		}
+		grsp = &svc.GatewayRsp{Body: util.ToJson(res)}
+	}()
 
 	// hardcode has better performance than reflect
-	var res proto.Message
 	switch req.ApiName {
 	case "GetUser":
 		res, err = u.GetUser(ctx, freq.(*user.GetUserReq))
+	default:
+		err = xerr.ErrInternal.NewMsg("add api(%s) firstly", req.ApiName)
 	}
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		return nil, xerr.ErrInternal.NewMsg("[%s] rpc reply is empty", req.ApiName)
-	}
-	grsp := &svc.GatewayRsp{Body: util.ToJson(res)}
-	return grsp, nil
-}
-
-type operation struct {
-	Handler reflect.Method
-	Req     func() interface{}
-}
-
-var apiRegistration = map[string]operation{
-	"GetUser": {Req: func() interface{} { return new(user.GetUserReq) }},
+	return
 }
 
 func (u UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {

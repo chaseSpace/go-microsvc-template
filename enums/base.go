@@ -22,6 +22,7 @@ func (s Svc) Name() string {
 }
 
 const (
-	SvcUser  Svc = "user"
-	SvcAdmin Svc = "admin"
+	SvcGateway Svc = "gateway"
+	SvcUser    Svc = "user"
+	SvcAdmin   Svc = "admin"
 )

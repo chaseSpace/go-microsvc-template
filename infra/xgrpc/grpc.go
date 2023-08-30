@@ -66,7 +66,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 	lisFetcher := util.NewTcpListenerFetcher(grpcPortMin, grpcPortMax)
 	lis, port, err := lisFetcher.Get()
 	if err != nil {
-		log.Fatalf("failed to get grpc listener: %v", err)
+		log.Panicf("failed to get grpc listener: %v", err)
 	}
 	portSetter.SetGRPC(port)
 	grpcAddr := fmt.Sprintf(":%d", port)
@@ -79,12 +79,12 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		xlog.Info("xgrpc: gRPC server shutdown completed")
 	})
 
-	go func() {
+	graceful.Schedule(func() {
 		err = x.svr.Serve(lis)
 		if err != nil {
-			xlog.Panic("xgrpc: failed to serve GRPC", zap.String("grpcAddr", grpcAddr), zap.Error(err))
+			xlog.Error("xgrpc: failed to serve GRPC", zap.String("grpcAddr", grpcAddr), zap.Error(err))
 		}
-	}()
+	})
 
 	if x.extHttpRegister != nil || x.intHttpRegister != nil {
 		lisFetcher = util.NewTcpListenerFetcher(httpPortMin, httpPortMax)
@@ -95,10 +95,11 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		portSetter.SetHTTP(port)
 		httpAddr := fmt.Sprintf(":%d", port)
 		fmt.Printf("serving HTTP on http://localhost%s\n", httpAddr)
-		go func() {
+
+		graceful.Schedule(func() {
 			time.Sleep(time.Second)
 			serveHTTP(grpcAddr, lis, x.extHttpRegister, x.intHttpRegister)
-		}()
+		})
 	}
 	fmt.Println()
 }

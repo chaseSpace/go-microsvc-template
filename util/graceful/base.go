@@ -31,10 +31,21 @@ func OnExit() {
 	xlog.Stop()
 }
 
+func Stop() {
+	sigChan <- syscall.SIGUSR1
+}
+
 func stopAll() {
 	for _, stopF := range stopFuncSlice {
 		stopF()
 	}
+}
+
+func Schedule(f func()) {
+	go func() {
+		f()
+		Stop()
+	}()
 }
 
 func Run() {
