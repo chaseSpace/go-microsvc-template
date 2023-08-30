@@ -1,10 +1,13 @@
 syntax = "proto3";
 package svc;
 option go_package = "microsvc/protocol/svc";
-import "svc/common.proto";
-import "include/google/protobuf/any.proto";
+
 
 message GatewayReq {
-  BaseExtReq base = 1;
-  string body = 3;
+  string api_name = 1;
+  bytes body = 2;
+}
+
+message GatewayRsp {
+  bytes body = 1;
 }
