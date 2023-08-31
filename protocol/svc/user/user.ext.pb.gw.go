@@ -66,7 +66,7 @@ func local_request_UserExt_GetUser_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.Marshaler, client UserExtClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_UserExt_Forward_0(ctx context.Context, marshaler runtime.Marshaler, client UserExtClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq svc.ForwardReq
 	var metadata runtime.ServerMetadata
 
@@ -78,12 +78,12 @@ func request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.GatewayCall(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.Forward(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.Marshaler, server UserExtServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_UserExt_Forward_0(ctx context.Context, marshaler runtime.Marshaler, server UserExtServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq svc.ForwardReq
 	var metadata runtime.ServerMetadata
 
@@ -95,7 +95,7 @@ func local_request_UserExt_GatewayCall_0(ctx context.Context, marshaler runtime.
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.GatewayCall(ctx, &protoReq)
+	msg, err := server.Forward(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -131,7 +131,7 @@ func RegisterUserExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 
 	})
 
-	mux.Handle("POST", pattern_UserExt_GatewayCall_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_UserExt_Forward_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -139,12 +139,12 @@ func RegisterUserExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserExt/GatewayCall", runtime.WithHTTPPathPattern("/svc.user/v1/GatewayCall"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserExt/Forward", runtime.WithHTTPPathPattern("/svc.user/v1/Forward"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_UserExt_GatewayCall_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_UserExt_Forward_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -152,7 +152,7 @@ func RegisterUserExtHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 			return
 		}
 
-		forward_UserExt_GatewayCall_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserExt_Forward_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -219,25 +219,25 @@ func RegisterUserExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 
 	})
 
-	mux.Handle("POST", pattern_UserExt_GatewayCall_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_UserExt_Forward_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserExt/GatewayCall", runtime.WithHTTPPathPattern("/svc.user/v1/GatewayCall"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserExt/Forward", runtime.WithHTTPPathPattern("/svc.user/v1/Forward"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_UserExt_GatewayCall_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_UserExt_Forward_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_UserExt_GatewayCall_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserExt_Forward_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -247,11 +247,11 @@ func RegisterUserExtHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 var (
 	pattern_UserExt_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"svc.user", "v1", "GetUser"}, ""))
 
-	pattern_UserExt_GatewayCall_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"svc.user", "v1", "GatewayCall"}, ""))
+	pattern_UserExt_Forward_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"svc.user", "v1", "Forward"}, ""))
 )
 
 var (
 	forward_UserExt_GetUser_0 = runtime.ForwardResponseMessage
 
-	forward_UserExt_GatewayCall_0 = runtime.ForwardResponseMessage
+	forward_UserExt_Forward_0 = runtime.ForwardResponseMessage
 )

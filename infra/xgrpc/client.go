@@ -41,6 +41,10 @@ func withClientInterceptorOpt(svc string) grpc.DialOption {
 	return grpc.WithChainUnaryInterceptor(inter.GRPCCallLog, inter.ExtractGRPCErr, inter.WithFailedClient) // 逆序执行
 }
 
+type forwardReply interface {
+	GetBody() []byte
+}
+
 func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	start := time.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
@@ -50,11 +54,15 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 		if e, ok := xerr.FromErrStr(errmsg); ok {
 			errmsg = e.FlatMsg()
 		}
-		xlog.Debug("grpcClient call err log", zap.String("method", method), zap.String("dur", elapsed.String()),
+		xlog.Error("GRPCCallLog_ERR", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.String("err", errmsg),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	} else {
-		xlog.Debug("grpcClient call log", zap.String("method", method), zap.String("dur", elapsed.String()),
+		res, _ := reply.(forwardReply)
+		if res != nil {
+			reply = string(res.GetBody()) // better logging effect
+		}
+		xlog.Info("GRPCCallLog_OK", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	}
 	return err

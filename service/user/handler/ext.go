@@ -16,7 +16,7 @@ type UserExtCtrl struct {
 
 var _ user.UserExtServer = new(UserExtCtrl)
 
-func (u UserExtCtrl) GatewayCall(ctx context.Context, req *svc.ForwardReq) (grsp *svc.ForwardRes, err error) {
+func (u UserExtCtrl) Forward(ctx context.Context, req *svc.ForwardReq) (grsp *svc.ForwardRes, err error) {
 	op := api.LoadUserApi(req.Method)
 	if op == nil {
 		return nil, xerr.ErrApiNotFound.AppendMsg(req.Method)

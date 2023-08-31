@@ -2,7 +2,7 @@ POST http://localhost:8000/svc.user.UserExt/GetUser
 Content-Type: application/json
 
 {
-  "uids": [1]
+  "uids": []
 }
 
 
