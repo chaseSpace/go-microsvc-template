@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"microsvc/enums"
 	"microsvc/infra/svccli"
+	"microsvc/infra/xgrpc/proto"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/util"
 	"strings"
+	"time"
 )
 
 type GatewayCtrl struct {
@@ -19,26 +23,26 @@ type GatewayCtrl struct {
 
 const applicationJson = "application/json"
 
-func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
+func (GatewayCtrl) Handler(fctx *fasthttp.RequestCtx) {
 	errtyp := xerr.ErrOK
 	var (
 		req         *svc.ForwardReq
 		res         = &svc.ForwardRes{}
 		fromGateWay = true
 	)
-	path := string(ctx.Path())
+	path := string(fctx.Path())
 
 	defer func() {
-		ctx.SetContentType(applicationJson)
-		ctx.SetStatusCode(200)
+		fctx.SetContentType(applicationJson)
+		fctx.SetStatusCode(200)
 
 		if errtyp.IsOK() {
 			xlog.Info("Handler_OK", zap.String("path", path))
-			ctx.SetBody(res.Body) // transparent forwarding body
+			fctx.SetBody(res.Body) // transparent forwarding body
 		} else {
 			xlog.Info("Handler_FAIL", zap.String("path", path), zap.Error(errtyp))
 			httpRes := &svc.GatewayHttpRsp{Code: errtyp.Code, Msg: errtyp.Msg, FromGateway: fromGateWay}
-			ctx.SetBody(util.ToJson(httpRes))
+			fctx.SetBody(util.ToJson(httpRes))
 		}
 	}()
 
@@ -56,11 +60,15 @@ func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
 
 	// below is grpc calling, we set fromGateWay to false whether the call returns an error or not
 	fromGateWay = false
-	req = &svc.ForwardReq{Method: route.Method, Body: ctx.PostBody()}
-	err := conn.Invoke(context.TODO(), route.ForwardMethod(), req, res)
-	if err != nil {
-		errtyp = err.(xerr.XErr) // err is converted to XErr in grpc client interceptor
-	}
+	req = &svc.ForwardReq{Method: route.ForwardMethod(), Body: fctx.PostBody()}
+
+	util.RunTaskWithCtxTimeout(time.Second*5, func(ctx context.Context) {
+		md := metadata.Pairs("content-type", "json")
+		err := conn.Invoke(newRpcCtx(ctx), path, req, res, grpc.Header(&md))
+		if err != nil {
+			errtyp = err.(xerr.XErr) // err is converted to XErr in grpc client interceptor
+		}
+	})
 }
 
 type SvcApiRoute struct {
@@ -86,4 +94,9 @@ func parseRoute(path string) *SvcApiRoute {
 		}
 	}
 	return nil
+}
+
+func newRpcCtx(ctx context.Context) context.Context {
+	rpcCtx := metadata.NewOutgoingContext(ctx, metadata.Pairs("content-type", proto.Json))
+	return rpcCtx
 }

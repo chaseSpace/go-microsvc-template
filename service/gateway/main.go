@@ -5,6 +5,7 @@ import (
 	"microsvc/enums"
 	"microsvc/infra"
 	"microsvc/infra/svccli"
+	_ "microsvc/infra/xgrpc/proto"
 	"microsvc/infra/xhttp"
 	"microsvc/pkg"
 	"microsvc/pkg/xkafka"
@@ -27,6 +28,7 @@ func main() {
 	infra.Setup(
 		svccli.Init(true),
 	)
+
 	ctrl := new(handler.GatewayCtrl)
 	server := xhttp.New(deploy2.GatewayConf.HttpPort, ctrl.Handler)
 

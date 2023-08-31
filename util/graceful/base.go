@@ -32,7 +32,7 @@ func OnExit() {
 }
 
 func Stop() {
-	sigChan <- syscall.SIGUSR1
+	sigChan <- syscall.SIGTERM
 }
 
 func stopAll() {

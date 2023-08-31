@@ -45,6 +45,11 @@ type forwardReply interface {
 	GetBody() []byte
 }
 
+type forwardReq interface {
+	GetMethod() string
+	GetBody() []byte
+}
+
 func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	start := time.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
@@ -54,13 +59,18 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 		if e, ok := xerr.FromErrStr(errmsg); ok {
 			errmsg = e.FlatMsg()
 		}
+		_req, _ := req.(forwardReq)
+		if _req != nil {
+			method = _req.GetMethod() // for better logging effect
+			req = string(_req.GetBody())
+		}
 		xlog.Error("GRPCCallLog_ERR", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.String("err", errmsg),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	} else {
 		res, _ := reply.(forwardReply)
 		if res != nil {
-			reply = string(res.GetBody()) // better logging effect
+			reply = string(res.GetBody()) // for better logging effect
 		}
 		xlog.Info("GRPCCallLog_OK", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.Any("req", req), zap.Any("rsp", reply))
