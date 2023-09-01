@@ -8,17 +8,17 @@
 
 - ✅ 使用单仓库多服务模式
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
-- ✅ 使用grpc-gateway插件生成grpc服务的http反向代理
-- 统一API Gateway管理南北流量
+- ✅ 统一API Gateway管理南北流量
+  - ✅ 透明转发HTTP流量到后端服务，无编码转换
+  - ✅ 能够动态转发流量至新增服务，无需重启
 - ✅ 使用consul作为注册中心组件，支持扩展
     - ✅ 包含健康检查
-    - 包含服务之间通信流量的负载均衡
+    - ✅ 包含服务之间通信流量的负载均衡
     - 包含服务之间通信的认证与授权
 - RPC超时重试与熔断功能
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
-- ✅ 支持本地启动**多个**微服务
-    - 支持本地无注册中心启动多个微服务
+- 支持本地无注册中心启动**多个**微服务
 
 其他有用的特性：
 
@@ -263,7 +263,6 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 #### 使用的外部组件
 
-- github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
 - github.com/hashicorp/consul/api v1.24.0
 - github.com/k0kubun/pp v2.4.0+incompatible
 - github.com/pkg/errors v0.9.1
