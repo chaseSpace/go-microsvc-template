@@ -1,7 +1,7 @@
 package deploy
 
 import (
-	"microsvc/enums/svc"
+	"microsvc/enums"
 )
 
 type SvcListenPortSetter interface {
@@ -17,15 +17,15 @@ type RegisterSvc interface {
 type SvcConfImpl interface {
 	GetLogLevel() string
 	OverrideLogLevel(string)
-	GetSvc() svc.Svc
+	GetSvc() enums.Svc
 }
 
 type CommConfig struct {
-	Svc      svc.Svc `mapstructure:"svc"`
-	LogLevel string  `mapstructure:"log_level"`
+	Svc      enums.Svc `mapstructure:"svc"`
+	LogLevel string    `mapstructure:"log_level"`
 }
 
-func (s *CommConfig) GetSvc() svc.Svc {
+func (s *CommConfig) GetSvc() enums.Svc {
 	return s.Svc
 }
 

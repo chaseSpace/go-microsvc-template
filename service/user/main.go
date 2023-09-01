@@ -3,7 +3,7 @@ package main
 import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
-	"microsvc/enums/svc"
+	"microsvc/enums"
 	"microsvc/infra"
 	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
@@ -23,7 +23,7 @@ func main() {
 	defer graceful.OnExit()
 
 	// 初始化config
-	deploy.Init(svc.SvcUser, deploy2.UserConf)
+	deploy.Init(enums.SvcUser, deploy2.UserConf)
 	// 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
 	pkg.Setup(
 		xlog.Init,

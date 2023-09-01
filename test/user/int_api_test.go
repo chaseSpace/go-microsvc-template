@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"microsvc/enums/svc"
+	"microsvc/enums"
 	"microsvc/infra/svccli/rpc"
 	"microsvc/protocol/svc/user"
 	deploy2 "microsvc/service/user/deploy"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetUserInt(t *testing.T) {
-	tbase.TearUp(svc.SvcUser, deploy2.UserConf)
+	tbase.TearUp(enums.SvcUser, deploy2.UserConf)
 	defer tbase.TearDown()
 
 	rsp, err := rpc.User().GetUser(context.TODO(), &user.GetUserIntReq{Uids: []int64{1}})

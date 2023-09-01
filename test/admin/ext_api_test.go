@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"microsvc/enums/svc"
+	"microsvc/enums"
 	"microsvc/infra/svccli/rpcext"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/admin"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	tbase.TearUp(svc.SvcAdmin, deploy.AdminConf)
+	tbase.TearUp(enums.SvcAdmin, deploy.AdminConf)
 }
 
 func TestGetUser(t *testing.T) {

@@ -2,13 +2,13 @@ package svccli
 
 import (
 	"google.golang.org/grpc"
-	"microsvc/enums/svc"
+	"microsvc/enums"
 	"microsvc/infra/sd/abstract"
 	"sync"
 )
 
 type ConnMgr struct {
-	cmap map[svc.Svc]*InstanceImplT
+	cmap map[enums.Svc]*InstanceImplT
 	mu   sync.RWMutex
 }
 
@@ -18,12 +18,12 @@ type InstanceImplT struct {
 }
 
 var defaultConnMgr = &ConnMgr{
-	cmap: map[svc.Svc]*InstanceImplT{},
+	cmap: map[enums.Svc]*InstanceImplT{},
 }
 
 const cleanSvcInstanceErrCntThreshold = 50
 
-func GetConn(svc svc.Svc) *grpc.ClientConn {
+func GetConn(svc enums.Svc) *grpc.ClientConn {
 	defaultConnMgr.mu.RLock()
 	inst := defaultConnMgr.cmap[svc]
 	defaultConnMgr.mu.RUnlock()

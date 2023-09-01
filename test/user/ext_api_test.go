@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"microsvc/enums/svc"
+	"microsvc/enums"
 	"microsvc/infra/svccli/rpcext"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/user"
@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetUser(t *testing.T) {
-	tbase.TearUp(svc.SvcUser, deploy2.UserConf)
+	tbase.TearUp(enums.SvcUser, deploy2.UserConf)
 	defer tbase.TearDown()
 
 	rsp, err := rpcext.User().GetUser(context.TODO(), &user.GetUserReq{

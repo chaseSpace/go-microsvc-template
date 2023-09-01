@@ -7,7 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	svc2 "microsvc/enums/svc"
+	svc2 "microsvc/enums"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
 	"microsvc/infra/xgrpc/proto"

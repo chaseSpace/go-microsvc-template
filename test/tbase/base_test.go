@@ -2,7 +2,7 @@ package tbase
 
 import (
 	"context"
-	"microsvc/enums/svc"
+	"microsvc/enums"
 	"microsvc/infra/svccli/rpcext"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/admin"
@@ -12,7 +12,7 @@ import (
 )
 
 func TestNoRPCClient(t *testing.T) {
-	TearUpWithEmptySD(svc.SvcUser, deploy2.UserConf)
+	TearUpWithEmptySD(enums.SvcUser, deploy2.UserConf)
 	defer TearDown()
 
 	_, err := rpcext.Admin().GetUser(context.TODO(), &admin.GetUserReq{
@@ -26,7 +26,7 @@ func TestNoRPCClient(t *testing.T) {
 
 // Run user svc first.
 func TestHaveRPCClient(t *testing.T) {
-	TearUp(svc.SvcUser, deploy2.UserConf)
+	TearUp(enums.SvcUser, deploy2.UserConf)
 	defer TearDown()
 
 	rsp, err := rpcext.User().GetUser(context.TODO(), &user.GetUserReq{

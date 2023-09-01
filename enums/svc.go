@@ -1,4 +1,4 @@
-package svc
+package enums
 
 type Svc string
 
