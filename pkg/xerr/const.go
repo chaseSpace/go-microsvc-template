@@ -1,17 +1,25 @@
 package xerr
 
-// Common error
+// Most common errors are defined referenced by HTTP status codes.
+
+// 200-400 series
 var (
-	_              = 0
 	ErrOK          = XErr{Code: 200, Msg: "OK"}
 	ErrParams      = XErr{Code: 400, Msg: "ErrParams"}
 	ErrApiNotFound = XErr{Code: 404, Msg: "ErrApiNotFound"}
-	ErrInternal    = XErr{Code: 500, Msg: "ErrInternal"}
-	ErrTimeout     = XErr{Code: 1000, Msg: "ErrTimeout"}
+
+	ErrBadRequest = ErrParams.NewMsg("ErrBadRequest")
 )
 
-// Internal error
+// 500 series
 var (
-	_              = 0
-	ErrNoRPCClient = ErrInternal.NewMsg("no available rpc client")
+	ErrInternal       = XErr{Code: 500, Msg: "ErrInternal"}
+	ErrGatewayTimeout = XErr{Code: 504, Msg: "ErrGatewayTimeout"}
+	ErrNoRPCClient    = ErrInternal.NewMsg("no available rpc client")
+)
+
+// Customized errors
+var (
+	_          = 0
+	ErrTimeout = XErr{Code: 1000, Msg: "ErrTimeout"}
 )

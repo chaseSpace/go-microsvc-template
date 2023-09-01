@@ -83,6 +83,9 @@ func (i ClientInterceptor) ExtractGRPCErr(ctx context.Context, method string, re
 	if err != nil {
 		e, ok := status.FromError(err)
 		if ok {
+			if e.Message() == context.DeadlineExceeded.Error() {
+				return xerr.ErrGatewayTimeout
+			}
 			err = xerr.ToXErr(errors.New(e.Message()))
 		} else {
 			err = xerr.ToXErr(err)

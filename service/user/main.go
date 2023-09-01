@@ -8,6 +8,7 @@ import (
 	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
+	_ "microsvc/infra/xgrpc/proto"
 	"microsvc/pkg"
 	"microsvc/pkg/xkafka"
 	"microsvc/pkg/xlog"

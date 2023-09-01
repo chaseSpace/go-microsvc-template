@@ -2,19 +2,21 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/valyala/fasthttp"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"microsvc/enums"
 	"microsvc/infra/svccli"
+	"microsvc/infra/xgrpc"
 	"microsvc/infra/xgrpc/proto"
 	"microsvc/pkg/xerr"
-	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc"
 	"microsvc/util"
+	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -23,24 +25,30 @@ type GatewayCtrl struct {
 
 const applicationJson = "application/json"
 
-func (GatewayCtrl) Handler(fctx *fasthttp.RequestCtx) {
+func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
+	addInterceptor(forwardHandler, logInterceptor, traceInterceptor)(ctx)
+}
+
+func forwardHandler(fctx *fasthttp.RequestCtx) error {
+	println(1111)
 	errtyp := xerr.ErrOK
+
 	var (
-		req         *svc.ForwardReq
-		res         = &svc.ForwardRes{}
-		fromGateWay = true
+		v           = bodyPool.Get().(*reqAndRes)
+		req, res    = v.Req, v.Res
+		fromGateWay = true // response from gateway directly, this indicates forward failure
 	)
 	path := string(fctx.Path())
 
 	defer func() {
+		bodyPool.Put(v) // return to pool
+
 		fctx.SetContentType(applicationJson)
-		fctx.SetStatusCode(200)
+		fctx.SetStatusCode(http.StatusOK)
 
 		if errtyp.IsOK() {
-			xlog.Info("Handler_OK", zap.String("path", path))
-			fctx.SetBody(res.Body) // transparent forwarding body
+			fctx.SetBody(util.ToJson(&res)) // transparent forwarding body
 		} else {
-			xlog.Info("Handler_FAIL", zap.String("path", path), zap.Error(errtyp))
 			httpRes := &svc.GatewayHttpRsp{Code: errtyp.Code, Msg: errtyp.Msg, FromGateway: fromGateWay}
 			fctx.SetBody(util.ToJson(httpRes))
 		}
@@ -49,26 +57,34 @@ func (GatewayCtrl) Handler(fctx *fasthttp.RequestCtx) {
 	route := parseRoute(strings.TrimLeft(path, "/"))
 	if route == nil {
 		errtyp = xerr.ErrApiNotFound
-		return
+		return errtyp
 	}
 
 	conn := svccli.GetConn(route.Svc)
 	if conn == nil {
 		errtyp = xerr.ErrNoRPCClient.AppendMsg(route.Svc.Name())
-		return
+		return errtyp
 	}
 
-	// below is grpc calling, we set fromGateWay to false whether the call returns an error or not
+	// below is grpc calling, we set `fromGateWay` to false whether the call returns an error or not
 	fromGateWay = false
-	req = &svc.ForwardReq{Method: route.ForwardMethod(), Body: fctx.PostBody()}
+	err := json.Unmarshal(fctx.PostBody(), &req)
+	if err != nil {
+		errtyp = xerr.ErrBadRequest.AppendMsg(err.Error())
+		return errtyp
+	}
 
-	util.RunTaskWithCtxTimeout(time.Second*5, func(ctx context.Context) {
-		md := metadata.Pairs("content-type", "json")
-		err := conn.Invoke(newRpcCtx(ctx), path, req, res, grpc.Header(&md))
-		if err != nil {
-			errtyp = err.(xerr.XErr) // err is converted to XErr in grpc client interceptor
-		}
-	})
+	var (
+		traceId, _  = fctx.Value(xgrpc.MetaKeyTraceId).(string)
+		ctx, cancel = context.WithTimeout(context.TODO(), 5*time.Second)
+	)
+	defer cancel()
+
+	err = conn.Invoke(newRpcCtx(ctx, traceId), path, &req, &res, grpc.CallContentSubtype(proto.Json))
+	if err != nil {
+		errtyp = err.(xerr.XErr) // err is converted to XErr in grpc client addInterceptor
+	}
+	return errtyp
 }
 
 type SvcApiRoute struct {
@@ -77,11 +93,11 @@ type SvcApiRoute struct {
 	Method string
 }
 
-func (r SvcApiRoute) ForwardMethod() string {
+func (r SvcApiRoute) UnionMethod() string {
 	return fmt.Sprintf("%s/Forward", r.Prefix)
 }
 
-// e.g. path is "svc.user/v1/GetUser"
+// e.g. path is "svc.user.UserExt/GetUser"
 func parseRoute(path string) *SvcApiRoute {
 	if !strings.HasPrefix(path, "svc.") {
 		return nil
@@ -96,7 +112,22 @@ func parseRoute(path string) *SvcApiRoute {
 	return nil
 }
 
-func newRpcCtx(ctx context.Context) context.Context {
-	rpcCtx := metadata.NewOutgoingContext(ctx, metadata.Pairs("content-type", proto.Json))
+type reqAndRes struct {
+	Req, Res proto.ArbitraryBody
+}
+
+var bodyPool = sync.Pool{
+	New: func() interface{} {
+		return &reqAndRes{}
+	},
+}
+
+func newRpcCtx(ctx context.Context, traceId string) context.Context {
+	md := metadata.Pairs(
+		xgrpc.MetaKeyFromGateway, "true",
+		xgrpc.MetaKeyAuth, "Bearer 123",
+		xgrpc.MetaKeyTraceId, traceId,
+	)
+	rpcCtx := metadata.NewOutgoingContext(ctx, md)
 	return rpcCtx
 }
