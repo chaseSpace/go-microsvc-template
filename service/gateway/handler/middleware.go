@@ -27,7 +27,7 @@ func getChainUnaryHandler(interceptors []UnaryInterceptor, curr int, finalInvoke
 	}
 }
 
-// ------------
+// ------------ Interceptor ----------------
 
 func logInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (err error) {
 	var (

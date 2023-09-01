@@ -257,10 +257,10 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 			errmsg = e.FlatMsg()
 		}
 		zapFields = append(zapFields, zap.String("err", errmsg))
-		xlog.Error("xgrpc: rsp_err log", zapFields...)
+		xlog.Error("grpcrsp_err log", zapFields...)
 	} else {
 		zapFields = append(zapFields, zap.Any("resp", resp))
-		xlog.Debug("xgrpc: rsp_ok log", zapFields...)
+		xlog.Debug("grpcrsp_ok log", zapFields...)
 	}
 	return
 }

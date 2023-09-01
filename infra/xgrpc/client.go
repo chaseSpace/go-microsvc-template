@@ -74,12 +74,12 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 		if _req != nil {
 			req = _req.String()
 		}
-		xlog.Error("GRPCCallLog_ERR", zap.String("method", method), zap.String("dur", elapsed.String()),
+		xlog.Error("grpccall_err", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.String("err", errmsg),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	} else {
 
-		xlog.Info("GRPCCallLog_OK", zap.String("method", method), zap.String("dur", elapsed.String()),
+		xlog.Info("grpccall_ok", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	}
 	return err

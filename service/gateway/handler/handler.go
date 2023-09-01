@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -28,7 +27,8 @@ const applicationJson = "application/json"
 const gatewayForwardTimeout = time.Second * 5
 
 func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
-	addInterceptor(forwardHandler, logInterceptor, traceInterceptor)(ctx)
+	interceptors := []UnaryInterceptor{logInterceptor, traceInterceptor}
+	addInterceptor(forwardHandler, interceptors...)(ctx)
 }
 
 func forwardHandler(fctx *fasthttp.RequestCtx) error {
@@ -36,12 +36,12 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 
 	var (
 		v = bodyPool.Get().(*reqAndRes)
-		// TODO: optimize within pool
+		// TODO: optimize with pool
 		res = bytes.NewBuffer(make([]byte, 0, 512))
 		// if true,that indicates respond from gateway directly, not forwarding yet.
 		fromGateWay = true
 	)
-	path := string(fctx.Path())
+	fullPath := string(fctx.Path())
 	defer func() {
 		bodyPool.Put(v) // return to pool
 
@@ -56,7 +56,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 		}
 	}()
 
-	route := parseRoute(strings.TrimLeft(path, "/"))
+	route := parseRoute(strings.TrimLeft(fullPath, "/"))
 	if route == nil {
 		errtyp = xerr.ErrApiNotFound
 		return errtyp
@@ -75,7 +75,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 		ctx, cancel = context.WithTimeout(context.TODO(), gatewayForwardTimeout)
 	)
 	defer cancel()
-	err := conn.Invoke(newRpcCtx(ctx, traceId), path, fctx.PostBody(), res, grpc.CallContentSubtype(proto.Bytes))
+	err := conn.Invoke(newRpcCtx(ctx, traceId), fullPath, fctx.PostBody(), res, grpc.CallContentSubtype(proto.Bytes))
 	if err != nil {
 		// err is converted to XErr in grpc client interceptor
 		errtyp = err.(xerr.XErr)
@@ -89,16 +89,12 @@ type SvcApiRoute struct {
 	Method string
 }
 
-func (r SvcApiRoute) UnionMethod() string {
-	return fmt.Sprintf("%s/Forward", r.Prefix)
-}
-
 // e.g. path is "svc.user.UserExt/GetUser"
-func parseRoute(path string) *SvcApiRoute {
-	if !strings.HasPrefix(path, "svc.") {
+func parseRoute(fullPath string) *SvcApiRoute {
+	if !strings.HasPrefix(fullPath, "svc.") {
 		return nil
 	}
-	ss := strings.Split(path, "/")
+	ss := strings.Split(fullPath, "/")
 	if len(ss) == 2 && strings.HasSuffix(ss[0], "Ext") {
 		ss2 := strings.Split(ss[0], ".")
 		if len(ss2) == 3 && len(ss2[1]) <= 20 {
