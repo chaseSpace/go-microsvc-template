@@ -7,7 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	svc2 "microsvc/enums"
+	"microsvc/enums"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
 	"microsvc/infra/xgrpc/proto"
@@ -84,7 +84,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 }
 
 type SvcApiRoute struct {
-	Svc    svc2.Svc
+	Svc    enums.Svc
 	Prefix string
 	Method string
 }
@@ -102,7 +102,7 @@ func parseRoute(path string) *SvcApiRoute {
 	if len(ss) == 2 && strings.HasSuffix(ss[0], "Ext") {
 		ss2 := strings.Split(ss[0], ".")
 		if len(ss2) == 3 && len(ss2[1]) <= 20 {
-			return &SvcApiRoute{Svc: svc2.Svc(ss2[1]), Prefix: ss[0], Method: ss[1]}
+			return &SvcApiRoute{Svc: enums.Svc(ss2[1]), Prefix: ss[0], Method: ss[1]}
 		}
 	}
 	return nil
