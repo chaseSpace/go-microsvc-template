@@ -2,7 +2,7 @@ package main
 
 import (
 	"microsvc/deploy"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra"
 	"microsvc/infra/svccli"
 	_ "microsvc/infra/xgrpc/proto"
@@ -19,7 +19,7 @@ func main() {
 	graceful.SetupSignal()
 	defer graceful.OnExit()
 
-	deploy.Init(enums.SvcGateway, deploy2.GatewayConf)
+	deploy.Init(svc.SvcGateway, deploy2.GatewayConf)
 
 	pkg.Setup(
 		xlog.Init,

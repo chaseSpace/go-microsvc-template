@@ -11,15 +11,14 @@ import (
 const Json = "json"
 
 func init() {
-	encoding.RegisterCodec(codec{})
+	encoding.RegisterCodec(codecJson{})
 }
 
 type ArbitraryBody map[string]interface{}
 
-// codec is a Codec implementation with protobuf. It is the default codec for gRPC.
-type codec struct{}
+type codecJson struct{}
 
-func (codec) Marshal(v interface{}) ([]byte, error) {
+func (codecJson) Marshal(v interface{}) ([]byte, error) {
 	_, ok := v.(proto.Message)
 	if !ok {
 		_, ok = v.(*ArbitraryBody) // from gateway
@@ -30,7 +29,7 @@ func (codec) Marshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (codec) Unmarshal(data []byte, v interface{}) error {
+func (codecJson) Unmarshal(data []byte, v interface{}) error {
 	_, ok := v.(proto.Message)
 	if !ok {
 		_, ok = v.(*ArbitraryBody) // from gateway
@@ -41,6 +40,6 @@ func (codec) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
-func (codec) Name() string {
+func (codecJson) Name() string {
 	return Json
 }

@@ -3,7 +3,7 @@ package tbase
 import (
 	"microsvc/consts"
 	"microsvc/deploy"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra"
 	"microsvc/infra/sd"
 	"microsvc/infra/sd/abstract"
@@ -18,7 +18,7 @@ import (
 
 var oncemap sync.Map
 
-func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
+func TearUp(svc svc.Svc, svcConf deploy.SvcConfImpl) {
 	var o = new(sync.Once)
 	v, ok := oncemap.Load(svc.Name())
 	if !ok {
@@ -49,7 +49,7 @@ func TearUp(svc enums.Svc, svcConf deploy.SvcConfImpl) {
 
 var oncemapEmptySD sync.Map
 
-func TearUpWithEmptySD(svc enums.Svc, svcConf deploy.SvcConfImpl) {
+func TearUpWithEmptySD(svc svc.Svc, svcConf deploy.SvcConfImpl) {
 	var o = new(sync.Once)
 	v, ok := oncemapEmptySD.Load(svc.Name())
 	if !ok {

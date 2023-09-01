@@ -5,13 +5,14 @@ import (
 	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
 	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/util"
 	"os"
 )
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc   enums.Svc         `mapstructure:"svc"` // set by this.svcConf
+	Svc   svc.Svc           `mapstructure:"svc"` // set by this.svcConf
 	Env   enums.Environment `mapstructure:"env"`
 	Mysql map[string]*Mysql `mapstructure:"mysql"`
 	Redis map[string]*Redis `mapstructure:"redis"`
@@ -52,7 +53,7 @@ type Initializer func(cc *XConfig)
 var XConf = &XConfig{}
 var _ SvcListenPortSetter = new(XConfig)
 
-func Init(svc enums.Svc, svcConfVar SvcConfImpl) {
+func Init(svc svc.Svc, svcConfVar SvcConfImpl) {
 	XConf.Svc = svc
 	XConf.Env = readEnv()
 

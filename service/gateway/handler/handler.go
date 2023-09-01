@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"microsvc/enums"
+	svc2 "microsvc/enums/svc"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
 	"microsvc/infra/xgrpc/proto"
@@ -25,21 +25,23 @@ type GatewayCtrl struct {
 
 const applicationJson = "application/json"
 
+const gatewayForwardTimeout = time.Second * 5
+
 func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
 	addInterceptor(forwardHandler, logInterceptor, traceInterceptor)(ctx)
 }
 
 func forwardHandler(fctx *fasthttp.RequestCtx) error {
-	println(1111)
 	errtyp := xerr.ErrOK
 
 	var (
-		v           = bodyPool.Get().(*reqAndRes)
-		req, res    = v.Req, v.Res
-		fromGateWay = true // response from gateway directly, this indicates forward failure
+		v = bodyPool.Get().(*reqAndRes)
+		// TODO: optimize within pool
+		res = bytes.NewBuffer(make([]byte, 0, 512))
+		// if true,that indicates respond from gateway directly, not forwarding yet.
+		fromGateWay = true
 	)
 	path := string(fctx.Path())
-
 	defer func() {
 		bodyPool.Put(v) // return to pool
 
@@ -47,7 +49,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 		fctx.SetStatusCode(http.StatusOK)
 
 		if errtyp.IsOK() {
-			fctx.SetBody(util.ToJson(&res)) // transparent forwarding body
+			fctx.SetBody(res.Bytes()) // transparent forwarding body
 		} else {
 			httpRes := &svc.GatewayHttpRsp{Code: errtyp.Code, Msg: errtyp.Msg, FromGateway: fromGateWay}
 			fctx.SetBody(util.ToJson(httpRes))
@@ -68,27 +70,21 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 
 	// below is grpc calling, we set `fromGateWay` to false whether the call returns an error or not
 	fromGateWay = false
-	err := json.Unmarshal(fctx.PostBody(), &req)
-	if err != nil {
-		errtyp = xerr.ErrBadRequest.AppendMsg(err.Error())
-		return errtyp
-	}
-
 	var (
 		traceId, _  = fctx.Value(xgrpc.MetaKeyTraceId).(string)
-		ctx, cancel = context.WithTimeout(context.TODO(), 5*time.Second)
+		ctx, cancel = context.WithTimeout(context.TODO(), gatewayForwardTimeout)
 	)
 	defer cancel()
-
-	err = conn.Invoke(newRpcCtx(ctx, traceId), path, &req, &res, grpc.CallContentSubtype(proto.Json))
+	err := conn.Invoke(newRpcCtx(ctx, traceId), path, fctx.PostBody(), res, grpc.CallContentSubtype(proto.Bytes))
 	if err != nil {
-		errtyp = err.(xerr.XErr) // err is converted to XErr in grpc client addInterceptor
+		// err is converted to XErr in grpc client interceptor
+		errtyp = err.(xerr.XErr)
 	}
 	return errtyp
 }
 
 type SvcApiRoute struct {
-	Svc    enums.Svc
+	Svc    svc2.Svc
 	Prefix string
 	Method string
 }
@@ -106,7 +102,7 @@ func parseRoute(path string) *SvcApiRoute {
 	if len(ss) == 2 && strings.HasSuffix(ss[0], "Ext") {
 		ss2 := strings.Split(ss[0], ".")
 		if len(ss2) == 3 && len(ss2[1]) <= 20 {
-			return &SvcApiRoute{Svc: enums.Svc(ss2[1]), Prefix: ss[0], Method: ss[1]}
+			return &SvcApiRoute{Svc: svc2.Svc(ss2[1]), Prefix: ss[0], Method: ss[1]}
 		}
 	}
 	return nil

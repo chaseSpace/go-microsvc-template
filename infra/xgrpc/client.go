@@ -1,6 +1,7 @@
 package xgrpc
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"go.uber.org/zap"
@@ -54,24 +55,30 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 	start := time.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
 	elapsed := time.Now().Sub(start)
+
+	// When grpc call is from gateway,the request is []byte, and the reply is *bytes.Buffer
+	_req, _ := req.([]byte)
+	if _req != nil {
+		req = string(_req)
+	}
+	res, _ := reply.(*bytes.Buffer)
+	if res != nil {
+		reply = string(res.String())
+	}
 	if err != nil {
 		errmsg := err.Error()
 		if e, ok := xerr.FromErrStr(errmsg); ok {
 			errmsg = e.FlatMsg()
 		}
-		_req, _ := req.(forwardReq)
+		_req, _ := req.(*bytes.Buffer)
 		if _req != nil {
-			method = _req.GetMethod() // for better logging effect
-			req = string(_req.GetBody())
+			req = _req.String()
 		}
 		xlog.Error("GRPCCallLog_ERR", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.String("err", errmsg),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	} else {
-		res, _ := reply.(forwardReply)
-		if res != nil {
-			reply = string(res.GetBody()) // for better logging effect
-		}
+
 		xlog.Info("GRPCCallLog_OK", zap.String("method", method), zap.String("dur", elapsed.String()),
 			zap.Any("req", req), zap.Any("rsp", reply))
 	}
