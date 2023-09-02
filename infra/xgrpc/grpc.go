@@ -28,6 +28,7 @@ import (
 
 type grpcHTTPRegister func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
 
+// server动态使用grpc端口范围
 const grpcPortMin = 60000
 const grpcPortMax = 60999
 
@@ -40,13 +41,9 @@ type XgRPC struct {
 }
 
 func New(interceptors ...grpc.UnaryServerInterceptor) *XgRPC {
-	// 创建一个grpc svr，并配置适当的中间件
-	base := []grpc.UnaryServerInterceptor{RecoverGRPCRequest, LogGRPCRequest, StandardizationGRPCErr}
-	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		append(base, interceptors...)...,
-	))
+	svr := newGRPCServer(deploy.XConf.Svc.Name(), interceptors...)
 	return &XgRPC{
-		svr:             server,
+		svr:             svr,
 		extHttpRegister: nil,
 	}
 }
@@ -87,6 +84,8 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		}
 	})
 
+	// 可能需要为grpc服务添加HTTP代理网关
+	// NOTE：如果是gateway架构，则不需要
 	if x.extHttpRegister != nil || x.intHttpRegister != nil {
 		lisFetcher = util.NewTcpListenerFetcher(httpPortMin, httpPortMax)
 		lis, port, err := lisFetcher.Get()

@@ -2,20 +2,20 @@
 
 一个简洁、清爽的微服务项目架构，从变量命名到不同职责的（多层）目录结构定义。
 
-> **完成进度：80%**
+> **完成进度：90%**
 
 计划支持以下模式或特性：
 
 - ✅ 使用单仓库多服务模式
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
 - ✅ 统一API Gateway管理南北流量
-  - ✅ 透明转发HTTP流量到后端服务，无编码转换
-  - ✅ 能够动态转发流量至新增服务，无需重启
+    - ✅ 透明转发HTTP流量到后端服务，无编码转换
+    - ✅ 能够动态转发流量至新增服务，无需重启
+- RPC超时重试与熔断功能
 - ✅ 使用consul作为注册中心组件，支持扩展
     - ✅ 包含健康检查
     - ✅ 包含服务之间通信流量的负载均衡
-    - 包含服务之间通信的认证与授权
-- RPC超时重试与熔断功能
+    - ✅ 包含服务之间通信的加密、授权
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
 - 支持本地无注册中心启动**多个**微服务
@@ -30,6 +30,10 @@
 - ✅ 单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
 - ✅ 跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
 - ✅ HTTP代理GRPC接口调用测试用例（[admin-apitest.http](./test/admin/apitest.http)）
+
+
+本项目文档指引：
+- [使用证书加密以及指定授权gRPC通信](./generate_cert_for_svc.md)
 
 ### Preview
 
@@ -241,19 +245,19 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 若要更改版本，建议同时修改`tool/proto_v24/`目录名称，并同步修改`build_pb.sh`脚本中对该目录的引用部分，以便更新版本后脚本能够正常运行。
 
-### 5. 本地启动微服务的原理
+### 5. 本地（dev）环境启动微服务的原理
 
 理论上来说，调用微服务是走注册中心的，要想在本地启动多个微服务且能正常互相调用，又不想在本地部署一个类似etcd/consul/zookeeper
 的注册中心，最简单的办法是：
 
 ```
-实现一个简单的单进程注册中心，当启动一个微服务且env=dev时，内部组件会检测本地是否有注册中心服务运行，若有则直接调用其接口进行注册；
-若没有则会启动一个注册中心服务，供其他服务使用。
-
-> 本地的注册中心使用一个可配置的固定端口。
+实现一个基于mDNS的局域网通信环境，每个服务启动时将自己的内网addr&port信息绑定到一个自定义域名并在局域网内通过mDNS进行广播，
+这样其他服务就可以通过mDNS发现自己。
 ```
 
-注意：本地启动的微服务仍然连接的是**beta环境的数据库**。
+- [网络协议之mDNS](https://www.cnblogs.com/Alanf/p/8653223.html)
+
+注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
 
 ### 其他
 
@@ -261,8 +265,9 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 - `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
 
-#### 使用的外部组件
+#### 使用的外部库
 
+- github.com/valyala/fasthttp v1.49.0
 - github.com/hashicorp/consul/api v1.24.0
 - github.com/k0kubun/pp v2.4.0+incompatible
 - github.com/pkg/errors v0.9.1

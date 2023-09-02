@@ -7,6 +7,7 @@ import (
 	"microsvc/enums"
 	"microsvc/util"
 	"os"
+	"path/filepath"
 )
 
 // XConfig 是主配置结构体
@@ -43,6 +44,10 @@ func (s *XConfig) GetSvcConf() SvcConfImpl {
 	return s.svcConf
 }
 
+func (s *XConfig) GetConfDir(subPath ...string) string {
+	return filepath.Join(append([]string{"deploy", s.Env.S()}, subPath...)...)
+}
+
 func (s *XConfig) IsDevEnv() bool {
 	return s.Env == enums.EnvDev
 }
@@ -50,7 +55,9 @@ func (s *XConfig) IsDevEnv() bool {
 type Initializer func(cc *XConfig)
 
 var XConf = &XConfig{}
+
 var _ SvcListenPortSetter = new(XConfig)
+var _ RegisterSvc = new(XConfig)
 
 func Init(svc enums.Svc, svcConfVar SvcConfImpl) {
 	XConf.Svc = svc
@@ -59,7 +66,7 @@ func Init(svc enums.Svc, svcConfVar SvcConfImpl) {
 	// 设置配置文件名（不包含扩展名）
 	viper.SetConfigName("config")
 	// 设置配置文件所在的路径（可选，默认为当前目录）
-	viper.AddConfigPath("deploy/" + string(XConf.Env))
+	viper.AddConfigPath(XConf.GetConfDir())
 	viper.SetConfigType("yaml")
 
 	if err := viper.ReadInConfig(); err != nil {

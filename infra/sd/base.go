@@ -41,19 +41,24 @@ func NewSD() (abstract.ServiceDiscovery, error) {
 }
 
 func Register(reg ...deploy.RegisterSvc) {
-	localIps, err := ip.GetLocalPrivateIPs(true, "")
-	if err != nil || len(localIps) == 0 {
-		xlog.Panic(logPrefix+"GetLocalPrivateIPs failed", zap.Error(err))
+	selfIp := "127.0.0.1"
+	if !deploy.XConf.IsDevEnv() {
+		localIps, err := ip.GetLocalPrivateIPs(true, "")
+		if err != nil || len(localIps) == 0 {
+			xlog.Panic(logPrefix+"GetLocalPrivateIPs failed", zap.Error(err))
+		}
+		selfIp = localIps[0].String()
 	}
+
 	for _, r := range reg {
 		name, addr, port := r.RegGRPCBase()
 		if name == "" {
 			panic(fmt.Sprintf(logPrefix + "svc'name cannot be empty"))
 		}
 		if addr == "" {
-			addr = localIps[0].String()
+			addr = selfIp
 		}
-		err = rootSD.Register(name, addr, port, r.RegGRPCMeta())
+		err := rootSD.Register(name, addr, port, r.RegGRPCMeta())
 		if err != nil {
 			xlog.Error(logPrefix+"register svc failed", zap.String("Svc", name), zap.Error(err))
 			break
