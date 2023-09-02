@@ -15,6 +15,7 @@ func init() {
 	tbase.TearUp(enums.SvcAdmin, deploy.AdminConf)
 }
 
+// 这是一个跨服务调用接口，需要同时启动admin和user服务
 func TestGetUser(t *testing.T) {
 	rsp, err := rpcext.Admin().GetUser(context.TODO(), &admin.GetUserReq{
 		Base: nil,

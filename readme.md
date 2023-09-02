@@ -27,8 +27,8 @@
 
 运行通过的示例：
 
-- ✅ 单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
-- ✅ 跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
+- ✅ **本地**单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
+- ✅ **本地**跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
 
 
 本项目文档指引：

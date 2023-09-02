@@ -17,7 +17,7 @@ func FromErr(err error) (t XErr, ok bool) {
 	if t, ok = err.(XErr); ok {
 		return
 	}
-	// cross service transform
+	// cross service transfer
 	return FromErrStr(err.Error())
 }
 
