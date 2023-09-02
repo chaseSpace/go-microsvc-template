@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	"log"
 	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
@@ -64,7 +63,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 	lisFetcher := util.NewTcpListenerFetcher(grpcPortMin, grpcPortMax)
 	lis, port, err := lisFetcher.Get()
 	if err != nil {
-		log.Panicf("failed to get grpc listener: %v", err)
+		xlog.Panic("failed to get grpc listener", zap.Error(err))
 	}
 	portSetter.SetGRPC(port)
 	grpcAddr := fmt.Sprintf(":%d", port)
@@ -90,7 +89,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		lisFetcher = util.NewTcpListenerFetcher(httpPortMin, httpPortMax)
 		lis, port, err := lisFetcher.Get()
 		if err != nil {
-			log.Fatalf("failed to get http listener: %v", err)
+			xlog.Panic("failed to get http listener", zap.Error(err))
 		}
 		portSetter.SetHTTP(port)
 		httpAddr := fmt.Sprintf(":%d", port)

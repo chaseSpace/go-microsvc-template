@@ -72,7 +72,6 @@ func TestNewConsulSD(t *testing.T) {
 	//			continue
 	//		}
 	//	}
-	//	log.Printf("Discover %+v, err:%v  dur:%vs\n", list, err, dur)
 	//	now = time.Now()
 	//}
 

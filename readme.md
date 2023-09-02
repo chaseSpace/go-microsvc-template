@@ -132,7 +132,6 @@ func main() {
 
 Congratulations! ^_^
 serving gRPC on grpc://localhost:60797
-serving HTTP on http://localhost:61064
 
 {"LEVEL":"x-info","TS":"2023-08-29 15:44:41.625","CALLER":"sd/base.go:61","MSG":"sd: register svc success","reg_svc":"go-admin","addr":"192.168.10.9:60797","SERVICE":"go-admin"}
 
@@ -144,7 +143,6 @@ serving HTTP on http://localhost:61064
 {"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.165","CALLER":"cache/redis.go:77","MSG":"cache-redis: resource released...","SERVICE":"go-admin"}
 {"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.165","CALLER":"orm/mysql.go:85","MSG":"orm-mysql: resource released...","SERVICE":"go-admin"}
 {"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"xgrpc/grpc.go:79","MSG":"xgrpc: gRPC server shutdown completed","SERVICE":"go-admin"}
-{"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"xgrpc/grpc.go:132","MSG":"xgrpc: HTTP server shutdown completed","SERVICE":"go-admin"}
 {"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"graceful/base.go:30","MSG":"****** graceful ****** server exited","SERVICE":"go-admin"}
 ```
 
