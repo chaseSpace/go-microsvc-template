@@ -153,22 +153,28 @@ serving HTTP on http://localhost:61064
 ### 2. 目录结构释义
 
 ```
+├── bizcomm # 业务公共代码
 ├── consts  # 公共常量（不含单个svc独享的常量）
-├── enums   # 所有枚举（含svc独享的枚举，enums数量一般小于consts，且大部分需要跨服务使用）
+├── enums   # 公共枚举（含svc独享的枚举，enums数量一般小于consts，且大部分需要跨服务使用）
 ├── deploy  # 部署需要的公共配置文件，如db配置
 │   ├── beta
 │   ├── dev
+│       └── cert  # 证书目录，仅供模板演示，实际项目中不应和代码一起托管
 │   └── prod
+├── docs    # 项目各类文档，建议再划分子目录
+│   └── sql   
 ├── infra   # 基础设施（的初始化或内部逻辑），不含业务代码
-│   ├── cache
-│   ├── orm
-│   ├── svccli
-│   ├── svcregistar
-│   ├── util
-│   └── xgrpc
+│   ├── cache   # 缓存基础代码
+│   ├── orm     # ORM基础代码
+│   ├── sd      # 服务注册发现基础代码
+│   ├── svccli  # 服务client基础代码
+│   └── xgrpc   # grpc基础代码
 ├── pkg     # 项目封装的常用包，比如err,time等，不含业务代码
 │   └── xerr
-├── proto   # proto文件
+│   └── xkafka
+│   └── xlog
+│   └── xtime
+├── proto   # protobuf文件
 │   ├── include    # 可能引用的第三方proto文件，比如Google发布的proto类型
 │   │   └── google
 │   ├── model      # 项目内的表结构对应的struct定义，以服务划分目录
@@ -180,24 +186,30 @@ serving HTTP on http://localhost:61064
 │       └── user
 │           ├── user.ext.proto    # user服务的外部接口组，仅允许外部调用，需要鉴权
 │           └── user.int.proto    # ...内部接口组，仅允许内部调用，可不鉴权
-├── protocol  # 生成的go文件
+├── protocol  # 生成的pb文件
 │   └── svc
 │       ├── admin
 │       ├── assets
 │       └── user
 ├── service   # 微服务目录，存放业务代码
+│   ├── admin  # 示例服务：管理后台
+│   ├── gateway  # 统一网关，转发所有流量到后端服务
+│   └── user
+│       └── deploy   # 每个微服务都有的目录，存放各自使用的专属配置目录（不含公共db配置，所以代码很少）
+│       ├── cache    
+│       ├── dao
+│       ├── deploy
+│       │   └── dev
+│       └── handler
+├── test
 │   ├── admin
 │   ├── gateway
+│   ├── tbase
 │   └── user
-│       └── deploy   # 每个微服务都有的目录，存放各自使用的专属配置目录（不含公共db配置，所以内容更少）
-│           ├── beta
-│           ├── dev
-│           └── prod
 ├── tool   # 项目使用的外部工具，主要是二进制文件，如protoc等
 │   └── protoc_v24   # 更改工具时，建议目录名包含版本
 ├── tool_mac # mac环境使用的外部工具
 │   └── protoc_v24
-└── bizcomm  # 存放可共用的业务逻辑
 │  
 └── util  # 存放可共用的其他逻辑
 ```

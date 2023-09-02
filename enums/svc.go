@@ -4,7 +4,7 @@ type Svc string
 
 func (s Svc) Name() string {
 	if s == "" {
-		return "○"
+		return "unknown-svc"
 	}
 	return "go-" + string(s)
 }
