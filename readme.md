@@ -11,13 +11,13 @@
 - ✅ 统一API Gateway管理南北流量
     - ✅ 透明转发HTTP流量到后端服务，无编码转换
     - ✅ 能够动态转发流量至新增服务，无需重启
-- RPC超时重试与熔断功能
 - ✅ 使用consul作为注册中心组件，支持扩展
     - ✅ 包含健康检查
     - ✅ 包含服务之间通信流量的负载均衡
     - ✅ 包含服务之间通信的加密、授权
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
+- RPC超时重试与熔断功能
 - 支持本地无注册中心启动**多个**微服务
 
 其他有用的特性：
@@ -29,7 +29,6 @@
 
 - ✅ 单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
 - ✅ 跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
-- ✅ HTTP代理GRPC接口调用测试用例（[admin-apitest.http](./test/admin/apitest.http)）
 
 
 本项目文档指引：
@@ -270,6 +269,9 @@ cp $GOPATH/bin/* tool/protoc_v24
 注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
 
 ### 其他
+
+#### 计划
+- 支持K8s部署
 
 #### 建议
 
