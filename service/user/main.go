@@ -24,6 +24,7 @@ func main() {
 
 	// 初始化config
 	deploy.Init(enums.SvcUser, deploy2.UserConf)
+
 	// 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
 	pkg.Setup(
 		xlog.Init,
@@ -44,10 +45,6 @@ func main() {
 		user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
 		user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
 	})
-	// 仅开发环境需要启动HTTP端口来代理gRPC服务
-	if deploy.XConf.IsDevEnv() {
-		x.SetHTTPExtRegister(user.RegisterUserExtHandler)
-	}
 
 	x.Start(deploy.XConf)
 	// GRPC服务启动后 再注册服务
