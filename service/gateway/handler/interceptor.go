@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"github.com/hashicorp/go-uuid"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
+	"microsvc/util"
 	"time"
 )
 
@@ -31,11 +31,12 @@ func getChainUnaryHandler(interceptors []UnaryInterceptor, curr int, finalInvoke
 // ------------ Interceptor ----------------
 
 func logInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (err error) {
-	var (
-		tid string
-	)
+	tid := util.NewKsuid()
+	ctx.SetUserValue(xgrpc.MetaKeyTraceId, tid)
 	start := time.Now()
+	xlog.Info("logInterceptor_start", zap.ByteString("path", ctx.Path()), zap.String("trace-id", tid))
 	defer func() {
+
 		elapsed := time.Since(start).String()
 		if xerr.IsNil(err) {
 			xlog.Info("handle_ok", zap.ByteString("path", ctx.Path()), zap.String("dur", elapsed), zap.String("trace-id", tid))
@@ -44,14 +45,13 @@ func logInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (err error) {
 		}
 	}()
 	err = handler(ctx)
-	tid = ctx.UserValue(xgrpc.MetaKeyTraceId).(string)
 	return err
 }
 
 func traceInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (err error) {
 	// TODO add trace logic
-	tid, _ := uuid.GenerateUUID()
-	ctx.SetUserValue(xgrpc.MetaKeyTraceId, tid)
+	//tid := ctx.UserValue(xgrpc.MetaKeyTraceId).(string)
+	//println(111, tid)
 	err = handler(ctx)
 	return err
 }

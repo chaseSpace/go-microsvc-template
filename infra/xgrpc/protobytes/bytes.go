@@ -2,8 +2,8 @@ package protobytes
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
 )
@@ -25,7 +25,7 @@ func (codecBytes) Marshal(v interface{}) ([]byte, error) {
 		}
 		return vb, nil
 	}
-	return json.Marshal(vv)
+	return jsoniter.Marshal(vv)
 }
 
 func (codecBytes) Unmarshal(data []byte, v interface{}) error {
@@ -38,7 +38,7 @@ func (codecBytes) Unmarshal(data []byte, v interface{}) error {
 		_, err := vb.Write(data)
 		return err
 	}
-	return json.Unmarshal(data, vv)
+	return jsoniter.Unmarshal(data, vv)
 }
 
 func (codecBytes) Name() string {

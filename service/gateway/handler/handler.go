@@ -13,7 +13,6 @@ import (
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc"
 	"microsvc/util"
-	"net/http"
 	"regexp"
 	"time"
 )
@@ -31,20 +30,21 @@ func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
 }
 
 var (
-	routerRegexToSvc = regexp.MustCompile(`svc.(\w+).(\w+)Ext`)
+	routerRegexToSvc = regexp.MustCompile(`forward/(svc.(\w+).(\w+)Ext/\w+)`)
 )
 
 func forwardHandler(fctx *fasthttp.RequestCtx) error {
 
 	fullPath := string(fctx.Path())
 	items := routerRegexToSvc.FindStringSubmatch(fullPath)
-	if len(items) != 3 {
+	if len(items) != 4 {
 		return xerr.ErrApiNotFound
 	}
 
 	var (
-		service = enums.Svc(items[1])
-		errcode = xerr.ErrNil
+		service     = enums.Svc(items[2])
+		forwardPath = items[1]
+		errcode     = xerr.ErrNil
 	)
 
 	var (
@@ -56,7 +56,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 
 	defer func() {
 		fctx.SetContentType(applicationJson)
-		fctx.SetStatusCode(http.StatusOK)
+		fctx.SetStatusCode(200)
 
 		if errcode.IsNil() {
 			fctx.SetBody(res.Bytes()) // transparent forwarding body
@@ -71,14 +71,13 @@ func forwardHandler(fctx *fasthttp.RequestCtx) error {
 		errcode = xerr.ErrNoRPCClient.AppendMsg(service.Name())
 		return errcode
 	}
-
 	// below is grpc calling, we set `fromGateWay` to false whether the call returns an error or not
 	fromGateWay = false
 
 	ctx, cancel := newRpcCtx(fctx)
 	defer cancel()
 
-	err := conn.Invoke(ctx, fullPath, fctx.PostBody(), res, grpc.CallContentSubtype(protobytes.Bytes))
+	err := conn.Invoke(ctx, forwardPath, fctx.PostBody(), res, grpc.CallContentSubtype(protobytes.Bytes))
 	if err != nil {
 		errcode = err.(xerr.XErr) // err is converted to XErr in grpc client interceptor
 	}

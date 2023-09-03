@@ -2,6 +2,8 @@ package tbase
 
 import (
 	"context"
+	"github.com/hashicorp/go-uuid"
+	"github.com/segmentio/ksuid"
 	"microsvc/enums"
 	"microsvc/infra/svccli/rpcext"
 	"microsvc/pkg/xerr"
@@ -39,5 +41,38 @@ func TestHaveRPCClient(t *testing.T) {
 		if len(rsp.Umap) != 1 {
 			t.Errorf("case 1: err rsp: %+v", rsp.Umap)
 		}
+	}
+}
+
+func TestUUID(t *testing.T) {
+	imap := make(map[string]interface{})
+	for i := 0; i < 10000000; i++ {
+		s, err := uuid.GenerateUUID()
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+		if imap[s] != nil {
+			t.Fatal("exists", i)
+		}
+		imap[s] = 1
+		println(i, s)
+	}
+}
+
+func TestKsuid(t *testing.T) {
+	imap := make(map[string]interface{})
+	// https://github.com/segmentio/ksuid
+	// 生成  一种可按生成时间排序、固定20 bytes的 唯一id；无碰撞、无协调、无依赖
+	// - 按时间戳按字典顺序排序
+	// - base62 编码的文本表示，url友好，复制友好
+
+	s := ksuid.New()
+	for i := 0; i < 5000000; i++ {
+		s = s.Next()
+		if imap[s.String()] != nil {
+			t.Fatal("exists", i)
+		}
+		imap[s.String()] = 1
+		println(i, s.String())
 	}
 }

@@ -1,13 +1,15 @@
 package util
 
-import "encoding/json"
+import (
+	jsoniter "github.com/json-iterator/go"
+)
 
 func ToJson(v interface{}) []byte {
-	b, _ := json.Marshal(v)
+	b, _ := jsoniter.Marshal(v)
 	return b
 }
 
 func ToJsonStr(v interface{}) string {
-	b, _ := json.Marshal(v)
+	b, _ := jsoniter.Marshal(v)
 	return string(b)
 }

@@ -3,8 +3,10 @@ package util
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/segmentio/ksuid"
 	"net"
 	"strings"
+	"sync"
 )
 
 type TcpListenerFetcher struct {
@@ -35,4 +37,18 @@ func (t *TcpListenerFetcher) Get() (lis net.Listener, port int, err error) {
 		return
 	}
 	return nil, 0, fmt.Errorf("failed, tried %d times", loops)
+}
+
+var (
+	// unique-id, copy-friendly, sortable by gen time
+	// see https://github.com/segmentio/ksuid
+	__ksuid      = ksuid.New()
+	__ksuidMutex = sync.Mutex{}
+)
+
+func NewKsuid() string {
+	__ksuidMutex.Lock()
+	__ksuid = __ksuid.Next()
+	__ksuidMutex.Unlock()
+	return __ksuid.String()
 }
