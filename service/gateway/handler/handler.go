@@ -29,6 +29,8 @@ func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
 	addInterceptor(forwardHandler, interceptors...)(ctx)
 }
 
+// ----------------------------------------------------------------
+
 var (
 	routerRegexToSvc = regexp.MustCompile(`forward/(svc.(\w+).(\w+)Ext/\w+)`)
 )
