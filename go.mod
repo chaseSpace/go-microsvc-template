@@ -36,6 +36,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/mdns v1.0.5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -62,6 +63,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
+	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.13.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
