@@ -43,7 +43,7 @@
 其他有用的特性：
 
 - ✅ shell脚本支持mac环境（默认linux）
-- ✅ 定义微服务ERROR类型，以便跨服务传递error（已实现对应GRPC拦截器）
+- ✅ 定义微服务Error类型，以便跨服务传递error（在GRPC拦截器中解析），[查看代码](./pkg/xerr/err.go)
 - ✅ 跨多个服务传递metadata示例（通过Context），搜索函数`TraceGRPC`
 - ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `WithFailedClient`
 - ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
