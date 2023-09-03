@@ -4,7 +4,7 @@ package xerr
 
 // 200-400 series
 var (
-	ErrOK          = XErr{Code: 200, Msg: "OK"}
+	ErrNil         = XErr{Code: 200, Msg: "OK"}
 	ErrParams      = XErr{Code: 400, Msg: "ErrParams"}
 	ErrApiNotFound = XErr{Code: 404, Msg: "ErrApiNotFound"}
 
@@ -13,13 +13,13 @@ var (
 
 // 500 series
 var (
-	ErrInternal       = XErr{Code: 500, Msg: "ErrInternal"}
-	ErrGatewayTimeout = XErr{Code: 504, Msg: "ErrGatewayTimeout"}
-	ErrNoRPCClient    = ErrInternal.NewMsg("no available rpc client")
+	ErrInternal    = XErr{Code: 500, Msg: "ErrInternal"}
+	ErrGRPCTimeout = XErr{Code: 504, Msg: "ErrGRPCTimeout"}
+	ErrNoRPCClient = ErrInternal.NewMsg("no available rpc client")
 )
 
 // Customized errors
 var (
-	_          = 0
-	ErrTimeout = XErr{Code: 1000, Msg: "ErrTimeout"}
+	_             = 0
+	ErrBizTimeout = XErr{Code: 1000, Msg: "ErrBizTimeout"}
 )

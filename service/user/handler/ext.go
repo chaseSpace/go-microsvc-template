@@ -23,13 +23,20 @@ func (u UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.G
 	//for _, i := range umap {
 	//	rsp.Umap[i.Uid] = i.ToPb()
 	//}
-	rsp := &user.GetUserRes{Umap: map[int64]*user.User{
-		1: &user.User{
-			Uid:  1,
-			Nick: "nic",
-			Age:  3,
-			Sex:  4,
-		},
-	}}
+	rsp := &user.GetUserRes{
+		Umap: map[int64]*user.User{
+			1: &user.User{
+				Uid:  1,
+				Nick: "niko",
+				Age:  3,
+				Sex:  4,
+			},
+			2: &user.User{
+				Uid:  2,
+				Nick: "lucy",
+				Age:  3,
+				Sex:  4,
+			},
+		}}
 	return rsp, nil
 }

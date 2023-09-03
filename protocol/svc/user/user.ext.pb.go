@@ -26,7 +26,7 @@ type GetUserReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Base *svc.BaseExtReq `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
+	Base *svc.BaseExtReq `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"` // 每个外部接口Req都必须添加这个成员类型，grpc拦截器会做验证
 	Uids []int64         `protobuf:"varint,2,rep,packed,name=uids,proto3" json:"uids,omitempty"`
 }
 

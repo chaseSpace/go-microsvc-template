@@ -7,7 +7,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -15,6 +14,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
+	proto2 "microsvc/proto"
 	"microsvc/protocol/svc"
 	"microsvc/util"
 	"microsvc/util/graceful"
@@ -145,8 +145,8 @@ type proxyRespMarshaler struct {
 
 func (c *proxyRespMarshaler) Marshal(grpcRsp interface{}) (b []byte, err error) {
 	lastResp := &svc.HttpCommonRsp{
-		Code: xerr.ErrOK.Code,
-		Msg:  xerr.ErrOK.Msg,
+		Code: xerr.ErrNil.Code,
+		Msg:  xerr.ErrNil.Msg,
 		Data: nil,
 	}
 	defer func() {
@@ -216,15 +216,36 @@ func newHTTPMuxOpts() []runtime.ServeMuxOption {
 
 // -------- 下面是grpc中间件 -----------
 
+type IsExtApiReq interface {
+	GetBase() *svc.BaseExtReq
+}
+
+type IsAdminApiReq interface {
+	GetBase() *svc.AdminBaseReq
+}
+
 func RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = xerr.ErrInternal.NewMsg(fmt.Sprintf("panic recovered: %v", r))
-			xlog.DPanic("RecoverGRPCRequest", zap.String("method", info.FullMethod), zap.Any("err", r))
+			xlog.DPanic("RecoverGRPCRequest", zap.String("method", info.FullMethod), zap.Any("err", r),
+				zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)))
 			fmt.Printf("PANIC %v\n%s", r, string(debug.Stack()))
 		}
 	}()
 	return handler(ctx, req)
+}
+
+func ToCommonResponse(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	resp, err = handler(ctx, req)
+	if err == nil {
+		_, ok := req.(IsExtApiReq)
+		_, ok2 := req.(IsAdminApiReq)
+		if ok || ok2 {
+			return proto2.RespondOK(resp), nil
+		}
+	}
+	return resp, err
 }
 
 func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -232,22 +253,9 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 	resp, err = handler(ctx, req)
 	elapsed := time.Now().Sub(start)
 
-	var (
-		traceId string
-	)
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		md = make(metadata.MD)
-	} else {
-		if len(md[MetaKeyTraceId]) > 0 {
-			traceId = md[MetaKeyTraceId][0]
-		}
-		// load other metadata...
-	}
-
 	zapFields := []zap.Field{
 		zap.String("method", info.FullMethod), zap.String("dur", elapsed.String()),
-		zap.Any("req", req), zap.String("trace-id", traceId),
+		zap.Any("req", req), zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)),
 	}
 	if err != nil {
 		errmsg := err.Error()
@@ -255,16 +263,17 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 			errmsg = e.FlatMsg()
 		}
 		zapFields = append(zapFields, zap.String("err", errmsg))
-		xlog.Error("grpcrsp_err log", zapFields...)
+		xlog.Error("grpc reply_err log", zapFields...)
 	} else {
 		zapFields = append(zapFields, zap.Any("resp", resp))
-		xlog.Debug("grpcrsp_ok log", zapFields...)
+		xlog.Debug("grpc reply_ok log", zapFields...)
 	}
 	return
 }
 
 func TraceGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	// TODO do tracing
+	// 有选择性的传递metadata到下次grpc调用
+	ctx = TransferMetadataWithinCtx(ctx, MetaKeyTraceId)
 	return handler(ctx, req)
 }
 

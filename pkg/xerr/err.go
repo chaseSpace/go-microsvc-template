@@ -14,6 +14,9 @@ type XErr struct {
 
 // FromErr from error type to XErr, that might be fail then nil returned
 func FromErr(err error) (t XErr, ok bool) {
+	if err == nil {
+		return t, true
+	}
 	if t, ok = err.(XErr); ok {
 		return
 	}
@@ -81,6 +84,11 @@ func (t XErr) Is(err error) bool {
 	return false
 }
 
-func (t XErr) IsOK() bool {
-	return t.Code == ErrOK.Code
+func (t XErr) IsNil() bool {
+	return t.Code == ErrNil.Code
+}
+
+// IsNil helper function to XErr.IsNil()
+func IsNil(err error) bool {
+	return ToXErr(err).IsNil()
 }

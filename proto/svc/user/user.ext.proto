@@ -5,7 +5,7 @@ option go_package = "microsvc/protocol/svc/user";
 import "svc/common.proto";
 
 message GetUserReq{
-  BaseExtReq base = 1;
+  BaseExtReq base = 1; // 每个外部接口Req都必须添加这个成员类型，grpc拦截器会做验证
   repeated int64 uids = 2;
 }
 message GetUserRes{

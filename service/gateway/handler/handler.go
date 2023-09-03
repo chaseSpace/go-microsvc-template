@@ -9,13 +9,12 @@ import (
 	"microsvc/enums"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
-	"microsvc/infra/xgrpc/proto"
+	"microsvc/infra/xgrpc/protobytes"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc"
 	"microsvc/util"
 	"net/http"
-	"strings"
-	"sync"
+	"regexp"
 	"time"
 )
 
@@ -31,95 +30,72 @@ func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
 	addInterceptor(forwardHandler, interceptors...)(ctx)
 }
 
+var (
+	routerRegexToSvc = regexp.MustCompile(`svc.(\w+).(\w+)Ext`)
+)
+
 func forwardHandler(fctx *fasthttp.RequestCtx) error {
-	errtyp := xerr.ErrOK
+
+	fullPath := string(fctx.Path())
+	items := routerRegexToSvc.FindStringSubmatch(fullPath)
+	if len(items) != 3 {
+		return xerr.ErrApiNotFound
+	}
 
 	var (
-		v = bodyPool.Get().(*reqAndRes)
+		service = enums.Svc(items[1])
+		errcode = xerr.ErrNil
+	)
+
+	var (
 		// TODO: optimize with pool
 		res = bytes.NewBuffer(make([]byte, 0, 512))
-		// if true,that indicates respond from gateway directly, not forwarding yet.
+		// fromGateway 表示是否直接从网关响应，而不进行进一步的转发
 		fromGateWay = true
 	)
-	fullPath := string(fctx.Path())
-	defer func() {
-		bodyPool.Put(v) // return to pool
 
+	defer func() {
 		fctx.SetContentType(applicationJson)
 		fctx.SetStatusCode(http.StatusOK)
 
-		if errtyp.IsOK() {
+		if errcode.IsNil() {
 			fctx.SetBody(res.Bytes()) // transparent forwarding body
 		} else {
-			httpRes := &svc.GatewayHttpRsp{Code: errtyp.Code, Msg: errtyp.Msg, FromGateway: fromGateWay}
+			httpRes := &svc.GatewayHttpRsp{Code: errcode.Code, Msg: errcode.Msg, FromGateway: fromGateWay}
 			fctx.SetBody(util.ToJson(httpRes))
 		}
 	}()
 
-	route := parseRoute(strings.TrimLeft(fullPath, "/"))
-	if route == nil {
-		errtyp = xerr.ErrApiNotFound
-		return errtyp
-	}
-
-	conn := svccli.GetConn(route.Svc)
+	conn := svccli.GetConn(service)
 	if conn == nil {
-		errtyp = xerr.ErrNoRPCClient.AppendMsg(route.Svc.Name())
-		return errtyp
+		errcode = xerr.ErrNoRPCClient.AppendMsg(service.Name())
+		return errcode
 	}
 
 	// below is grpc calling, we set `fromGateWay` to false whether the call returns an error or not
 	fromGateWay = false
-	var (
-		traceId, _  = fctx.Value(xgrpc.MetaKeyTraceId).(string)
-		ctx, cancel = context.WithTimeout(context.TODO(), gatewayForwardTimeout)
-	)
+
+	ctx, cancel := newRpcCtx(fctx)
 	defer cancel()
-	err := conn.Invoke(newRpcCtx(ctx, traceId), fullPath, fctx.PostBody(), res, grpc.CallContentSubtype(proto.Bytes))
+
+	err := conn.Invoke(ctx, fullPath, fctx.PostBody(), res, grpc.CallContentSubtype(protobytes.Bytes))
 	if err != nil {
-		// err is converted to XErr in grpc client interceptor
-		errtyp = err.(xerr.XErr)
+		errcode = err.(xerr.XErr) // err is converted to XErr in grpc client interceptor
 	}
-	return errtyp
+	return errcode
 }
 
-type SvcApiRoute struct {
-	Svc    enums.Svc
-	Prefix string
-	Method string
-}
+func newRpcCtx(fctx *fasthttp.RequestCtx) (context.Context, context.CancelFunc) {
 
-// e.g. path is "svc.user.UserExt/GetUser"
-func parseRoute(fullPath string) *SvcApiRoute {
-	if !strings.HasPrefix(fullPath, "svc.") {
-		return nil
-	}
-	ss := strings.Split(fullPath, "/")
-	if len(ss) == 2 && strings.HasSuffix(ss[0], "Ext") {
-		ss2 := strings.Split(ss[0], ".")
-		if len(ss2) == 3 && len(ss2[1]) <= 20 {
-			return &SvcApiRoute{Svc: enums.Svc(ss2[1]), Prefix: ss[0], Method: ss[1]}
-		}
-	}
-	return nil
-}
+	traceId, _ := fctx.Value(xgrpc.MetaKeyTraceId).(string)
 
-type reqAndRes struct {
-	Req, Res proto.ArbitraryBody
-}
-
-var bodyPool = sync.Pool{
-	New: func() interface{} {
-		return &reqAndRes{}
-	},
-}
-
-func newRpcCtx(ctx context.Context, traceId string) context.Context {
 	md := metadata.Pairs(
 		xgrpc.MetaKeyFromGateway, "true",
 		xgrpc.MetaKeyAuth, "Bearer 123",
 		xgrpc.MetaKeyTraceId, traceId,
 	)
-	rpcCtx := metadata.NewOutgoingContext(ctx, md)
-	return rpcCtx
+
+	ctx, cancel := context.WithTimeout(context.TODO(), gatewayForwardTimeout)
+
+	return metadata.NewOutgoingContext(ctx, md), cancel
 }

@@ -2,16 +2,6 @@ syntax = "proto3";
 package svc;
 option go_package = "microsvc/protocol/svc";
 
-
-message ForwardReq {
-  string method = 1;
-  bytes body = 2;
-}
-
-message ForwardRes {
-  bytes body = 1;
-}
-
 message GatewayHttpRsp{
   int32 code = 1;
   string msg = 2;

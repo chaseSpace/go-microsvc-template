@@ -5,7 +5,7 @@ import (
 	"microsvc/enums"
 	"microsvc/infra"
 	"microsvc/infra/svccli"
-	_ "microsvc/infra/xgrpc/proto"
+	_ "microsvc/infra/xgrpc/protobytes"
 	"microsvc/infra/xhttp"
 	"microsvc/pkg"
 	"microsvc/pkg/xkafka"

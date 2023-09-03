@@ -23,7 +23,7 @@ func (u UserIntCtrl) GetUser(ctx context.Context, req *user.GetUserIntReq) (*use
 	umap := make(map[int64]*user.IntUser)
 	umap[1] = &user.IntUser{
 		Uid:  1,
-		Nick: "Luyi",
+		Nick: "admin",
 		Age:  18,
 		Sex:  svc.Sex_Male,
 	}

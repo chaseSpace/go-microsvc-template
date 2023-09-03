@@ -1,7 +1,6 @@
 package xgrpc
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -17,6 +16,7 @@ import (
 	"microsvc/pkg/xlog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -66,6 +66,7 @@ func NewGRPCClient(target, svc string) (cc *grpc.ClientConn, err error) {
 		// 在自定义验证逻辑里面，添加证书过期时告警的逻辑，而不是返回error
 		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			fmt.Printf("\n")
+			defer fmt.Printf("\n")
 
 			// 验证证书链中的每个证书（一般是 服务端证书、根证书的顺序）
 			for _, chain := range verifiedChains {
@@ -124,35 +125,30 @@ func withClientInterceptorOpt(svc string) grpc.DialOption {
 
 func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	start := time.Now()
-	err := invoker(ctx, method, req, reply, cc, opts...)
-	elapsed := time.Now().Sub(start)
 
-	// When grpc call is from gateway,the request is []byte, and the reply is *bytes.Buffer
-	_req, _ := req.([]byte)
-	if _req != nil {
-		req = string(_req)
-	}
-	res, _ := reply.(*bytes.Buffer)
-	if res != nil {
-		reply = string(res.String())
-	}
-	if err != nil {
-		errmsg := err.Error()
-		if e, ok := xerr.FromErrStr(errmsg); ok {
-			errmsg = e.FlatMsg()
-		}
-		_req, _ := req.(*bytes.Buffer)
-		if _req != nil {
-			req = _req.String()
-		}
-		xlog.Error("grpccall_err", zap.String("method", method), zap.String("dur", elapsed.String()),
-			zap.String("err", errmsg),
-			zap.Any("req", req), zap.Any("rsp", reply))
-	} else {
+	var err error
 
-		xlog.Info("grpccall_ok", zap.String("method", method), zap.String("dur", elapsed.String()),
-			zap.Any("req", req), zap.Any("rsp", reply))
-	}
+	defer func() {
+		elapsed := time.Now().Sub(start)
+		zapFields := []zap.Field{
+			zap.String("method", method), zap.String("dur", elapsed.String()),
+			zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)),
+			zap.Any("req", req), zap.Any("rsp", reply),
+		}
+
+		req, reply = beautifyReqAndResInClient(req, reply)
+		if err != nil {
+			errmsg := err.Error()
+			if e, ok := xerr.FromErrStr(errmsg); ok {
+				errmsg = e.FlatMsg()
+			}
+			xlog.Error("grpc call_err", append(zapFields, zap.String("err", errmsg))...)
+		} else {
+			xlog.Info("grpc call_ok", zapFields...)
+		}
+	}()
+
+	err = invoker(ctx, method, req, reply, cc, opts...)
 	return err
 }
 
@@ -162,7 +158,10 @@ func (i ClientInterceptor) ExtractGRPCErr(ctx context.Context, method string, re
 		e, ok := status.FromError(err)
 		if ok {
 			if e.Message() == context.DeadlineExceeded.Error() {
-				return xerr.ErrGatewayTimeout
+				return xerr.ErrGRPCTimeout
+			}
+			if strings.HasPrefix(e.Message(), unmarshalReqErrPrefix) {
+				return xerr.ErrBadRequest.AppendMsg(method).AppendMsg(e.Message()[len(unmarshalReqErrPrefix):])
 			}
 			err = xerr.ToXErr(errors.New(e.Message()))
 		} else {

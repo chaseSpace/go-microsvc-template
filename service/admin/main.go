@@ -8,7 +8,7 @@ import (
 	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
-	_ "microsvc/infra/xgrpc/proto"
+	_ "microsvc/infra/xgrpc/protobytes"
 	"microsvc/pkg"
 	"microsvc/pkg/xlog"
 	"microsvc/protocol/svc/admin"
@@ -38,11 +38,6 @@ func main() {
 	x.Apply(func(s *grpc.Server) {
 		admin.RegisterAdminExtServer(s, new(handler.AdminCtrl))
 	})
-
-	// 仅开发环境需要启动HTTP端口来代理gRPC服务
-	if deploy.XConf.IsDevEnv() {
-		x.SetHTTPExtRegister(admin.RegisterAdminExtHandler)
-	}
 
 	x.Start(deploy.XConf)
 	sd.Register(deploy.XConf)

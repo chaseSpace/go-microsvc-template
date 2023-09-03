@@ -1,4 +1,4 @@
-package proto
+package protobytes
 
 import (
 	"bytes"
@@ -21,7 +21,7 @@ func (codecBytes) Marshal(v interface{}) ([]byte, error) {
 	if !ok {
 		vb, ok := v.([]byte) // from gateway
 		if !ok {
-			return nil, fmt.Errorf("failed to marshal, message is %T, want proto.Message or []byte", v)
+			return nil, fmt.Errorf("failed to marshal, message is %T, want protobytes.Message or []byte", v)
 		}
 		return vb, nil
 	}
@@ -33,7 +33,7 @@ func (codecBytes) Unmarshal(data []byte, v interface{}) error {
 	if !ok {
 		vb, ok := v.(*bytes.Buffer) // from gateway
 		if !ok {
-			return fmt.Errorf("failed to marshal, message is %T, want proto.Message or []byte", v)
+			return fmt.Errorf("failed to marshal, message is %T, want protobytes.Message or []byte", v)
 		}
 		_, err := vb.Write(data)
 		return err
