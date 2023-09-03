@@ -9,8 +9,8 @@
 - ✅ 使用单仓库多服务模式
 - ✅ 使用grpc+protobuf作为内部rpc通讯协议
 - ✅ 统一API Gateway管理南北流量
-    - ✅ 透明转发HTTP流量到后端服务，无编码转换
-    - ✅ 能够动态转发流量至新增服务，无需重启
+    - ✅ 透明转发HTTP流量到后端服务，无编码开销
+    - ✅ 能够动态转发流量至新增服务，无需重启（通过服务发现以及自定义gRPC编解码方式）
 - ✅ 使用consul作为注册中心组件，支持扩展
     - ✅ 包含健康检查
     - ✅ 包含服务之间通信流量的负载均衡
@@ -24,6 +24,11 @@
 
 - ✅ shell脚本支持mac环境（默认linux）
 - ✅ 定义微服务ERROR类型，以便跨服务传递error（已实现对应GRPC拦截器）
+- ✅ 跨多个服务传递metadata示例（通过Context），搜索函数`TraceGRPC`
+- ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `WithFailedClient`
+- ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
+- ✅ 美化proto解析错误response，[查看示例](#41-美化proto-unmarshal-error-response)
+
 
 运行通过的示例：
 
@@ -50,7 +55,7 @@ import (
   "microsvc/infra/sd"
   "microsvc/infra/svccli"
   "microsvc/infra/xgrpc"
-  _ "microsvc/infra/xgrpc/proto"
+  _ "microsvc/infra/xgrpc/protobytes"
   "microsvc/pkg"
   "microsvc/pkg/xkafka"
   "microsvc/pkg/xlog"
@@ -219,7 +224,43 @@ cd go-microsvc-template/
 go mod tidy
 ```
 
-### 4. 工具下载（更新）
+### 4. 示例集合
+
+#### 4.1 美化proto unmarshal error response
+
+**美化前**
+```shell
+POST http://localhost:8000/svc.admin.AdminExt/GetUser
+
+HTTP/1.1 200 OK
+Server: fasthttp
+Date: Sun, 03 Sep 2023 02:55:58 GMT
+Content-Type: application/json
+Content-Length: 138
+
+{
+  "code": 500,
+  "msg": "grpc: error unmarshalling request: json: cannot unmarshal number into Go struct field GetUserReq.uids of type []int64"
+}
+```
+
+**美化后**
+```shell
+POST http://localhost:8000/svc.admin.AdminExt/GetUser
+
+HTTP/1.1 200 OK
+Server: fasthttp
+Date: Sun, 03 Sep 2023 02:56:37 GMT
+Content-Type: application/json
+Content-Length: 153
+
+{
+  "code": 400,
+  "msg": "ErrBadRequest ➜ /svc.admin.AdminExt/GetUser ➜ json: cannot unmarshal number into Go struct field GetUserReq.uids of type []int64"
+}
+```
+
+### 5. 工具下载（更新）
 
 #### 下载protoc
 
@@ -232,6 +273,21 @@ https://github.com/protocolbuffers/protobuf/releases
 
 > windows环境暂未支持，请自行配置环境。  
 > 本模板配套的是shell脚本，在windows环境运行可能有问题，（但仍然建议使用类unix环境进行开发，以减少不必要的工作和麻烦）。
+
+### 6. 本地（dev）环境启动微服务的原理
+
+理论上来说，调用微服务是走注册中心的，要想在本地启动多个微服务且能正常互相调用，又不想在本地部署一个类似etcd/consul/zookeeper
+的注册中心，最简单的办法是：
+
+```
+实现一个基于mDNS的局域网通信环境，每个服务启动时将自己的内网addr&port信息绑定到一个自定义域名并在局域网内通过mDNS进行广播，
+这样其他服务就可以通过mDNS发现自己。
+```
+
+- [网络协议之mDNS](https://www.cnblogs.com/Alanf/p/8653223.html)
+
+注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
+
 
 #### 下载protoc插件
 
@@ -253,20 +309,6 @@ cp $GOPATH/bin/* tool/protoc_v24
 ```
 
 若要更改版本，建议同时修改`tool/proto_v24/`目录名称，并同步修改`build_pb.sh`脚本中对该目录的引用部分，以便更新版本后脚本能够正常运行。
-
-### 5. 本地（dev）环境启动微服务的原理
-
-理论上来说，调用微服务是走注册中心的，要想在本地启动多个微服务且能正常互相调用，又不想在本地部署一个类似etcd/consul/zookeeper
-的注册中心，最简单的办法是：
-
-```
-实现一个基于mDNS的局域网通信环境，每个服务启动时将自己的内网addr&port信息绑定到一个自定义域名并在局域网内通过mDNS进行广播，
-这样其他服务就可以通过mDNS发现自己。
-```
-
-- [网络协议之mDNS](https://www.cnblogs.com/Alanf/p/8653223.html)
-
-注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
 
 ### 其他
 
