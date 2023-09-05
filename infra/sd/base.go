@@ -64,8 +64,7 @@ func Register(reg ...deploy.RegisterSvc) {
 		}
 		err := rootSD.Register(name, addr, port, r.RegGRPCMeta())
 		if err != nil {
-			xlog.Error(logPrefix+"register svc failed", zap.String("Svc", name), zap.Error(err))
-			break
+			xlog.Panic(logPrefix+"register svc failed", zap.String("Svc", name), zap.Error(err))
 		}
 		xlog.Info(logPrefix+"register svc success", zap.String("reg_svc", name), zap.String("addr", fmt.Sprintf("%s:%d", addr, port)))
 		registeredSvc = append(registeredSvc, name)

@@ -18,7 +18,7 @@ func (e EmptySD) Deregister(serviceName string) error {
 	return nil
 }
 
-func (e EmptySD) Discover(ctx context.Context, serviceName string) ([]ServiceInstance, error) {
+func (e EmptySD) Discovery(ctx context.Context, serviceName string) ([]ServiceInstance, error) {
 	time.Sleep(time.Millisecond * 100) // mock block
 	return nil, nil
 }

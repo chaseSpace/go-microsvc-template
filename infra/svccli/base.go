@@ -35,20 +35,20 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	}
 }
 
-type rpcClient struct {
+type RpcClient struct {
 	once      sync.Once
 	svc       enums.Svc
 	inst      *sd.InstanceImpl
 	genClient sd.GenClient
 }
 
-func NewCli(svc enums.Svc, gc sd.GenClient) *rpcClient {
-	cli := &rpcClient{svc: svc, genClient: gc}
+func NewCli(svc enums.Svc, gc sd.GenClient) *RpcClient {
+	cli := &RpcClient{svc: svc, genClient: gc}
 	return cli
 }
 
 // Getter returns gRPC Server Client
-func (c *rpcClient) Getter() any {
+func (c *RpcClient) Getter() any {
 	c.once.Do(func() {
 		c.inst = sd.NewInstance(c.svc.Name(), c.genClient, defaultSD)
 		initializedSvcCli = append(initializedSvcCli, c)
@@ -60,13 +60,13 @@ func (c *rpcClient) Getter() any {
 	return c.genClient(xgrpc.NewInvalidGRPCConn(c.svc.Name()))
 }
 
-func (c *rpcClient) Stop() {
+func (c *RpcClient) Stop() {
 	if c.inst != nil {
 		c.inst.Stop()
 	}
 }
 
-var initializedSvcCli []*rpcClient
+var initializedSvcCli []*RpcClient
 
 func Stop() {
 	for _, svcCli := range initializedSvcCli {

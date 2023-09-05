@@ -1,6 +1,8 @@
 package util
 
-import "golang.org/x/exp/rand"
+import (
+	"golang.org/x/exp/rand"
+)
 
 func RandIntRange(left, right int, duplicate map[int]int) int {
 	if left >= right {
@@ -17,4 +19,14 @@ func RandIntRange(left, right int, duplicate map[int]int) int {
 			return i
 		}
 	}
+}
+
+const asciiChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func RandomString(length int) string {
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = asciiChars[rand.Intn(len(asciiChars))]
+	}
+	return string(result)
 }

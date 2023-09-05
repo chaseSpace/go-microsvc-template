@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	routerRegexToSvc = regexp.MustCompile(`svc.(\w+).(\w+)Ext/\w+`)
+	routerRegexToSvc = regexp.MustCompile(`svc.(\w+).\w+Ext/\w+`)
 )
 
 func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
@@ -51,20 +51,19 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 
 	dstPath := fullPath[len(apiUnionPathPrefix):]
 	items := routerRegexToSvc.FindStringSubmatch(dstPath)
-	if len(items) != 3 {
+	if len(items) != 2 {
 		return nil, xerr.ErrApiNotFound
 	}
 
 	fctx.SetUserValue(ctxKeyFromGateway, false)
 	var (
-		service     = enums.Svc(items[2])
+		service     = enums.Svc(items[1])
 		forwardPath = items[0]
 	)
 	conn := svccli.GetConn(service)
 	if conn == nil {
 		return nil, xerr.ErrNoRPCClient.AppendMsg(service.Name())
 	}
-
 	ctx, cancel := newRpcCtx(fctx)
 	defer cancel()
 

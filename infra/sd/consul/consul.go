@@ -47,7 +47,7 @@ func (c *ConsulSD) Deregister(serviceName string) error {
 	return c.client.Agent().ServiceDeregister(serviceName)
 }
 
-func (c *ConsulSD) Discover(ctx context.Context, serviceName string) (list []abstract.ServiceInstance, err error) {
+func (c *ConsulSD) Discovery(ctx context.Context, serviceName string) (list []abstract.ServiceInstance, err error) {
 	err = context.DeadlineExceeded // default
 	dur := time.Minute
 	if val := ctx.Value(abstract.CtxDurKey{}); val != nil {

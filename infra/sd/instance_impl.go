@@ -39,7 +39,7 @@ func NewInstance(svc string, genClient GenClient, discovery abstract.ServiceDisc
 		quit:       make(chan struct{}),
 		sd:         discovery,
 	}
-	_ = ins.blockRefresh() // activate
+	//_ = ins.blockRefresh() // activate
 	go ins.backgroundRefresh()
 	return ins
 }
@@ -85,7 +85,7 @@ func (i *InstanceImpl) blockRefresh() error {
 	)
 	discovery := func() ([]abstract.ServiceInstance, error) {
 		ctx = context.WithValue(context.Background(), abstract.CtxDurKey{}, time.Minute*2)
-		return i.sd.Discover(ctx, i.svc)
+		return i.sd.Discovery(ctx, i.svc)
 	}
 	entries, err = discovery()
 	if err != nil {

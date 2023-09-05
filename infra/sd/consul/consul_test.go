@@ -22,7 +22,7 @@ func TestNewConsulSD(t *testing.T) {
 	//return
 	// 首次查询 不阻塞 所以不会超时
 	ctx, _ := context.WithTimeout(context.TODO(), time.Second*3)
-	list, err := sd.Discover(ctx, svc)
+	list, err := sd.Discovery(ctx, svc)
 	if err != nil {
 		t.Fatalf("discover %v", err)
 	}
@@ -38,7 +38,7 @@ func TestNewConsulSD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Deregister %v", err)
 	}
-	list, err = sd.Discover(ctx, svc)
+	list, err = sd.Discovery(ctx, svc)
 	if err != nil {
 		t.Fatalf("discover %v", err)
 	}
@@ -57,17 +57,17 @@ func TestNewConsulSD(t *testing.T) {
 	//	} else {
 	//		ctx = context.TODO()
 	//	}
-	//	list, err = abstract.Discover(ctx, svc)
+	//	list, err = abstract.Discovery(ctx, svc)
 	//	dur := int(time.Now().Sub(now).Seconds())
 	//	if i == 0 {
 	//		if err != context.DeadlineExceeded || dur != firstDur || len(list) != 0 {
-	//			t.Errorf("no.%v Discover in for loop， unexpected result, err:%v dur:%ds", i, err, dur)
+	//			t.Errorf("no.%v Discovery in for loop， unexpected result, err:%v dur:%ds", i, err, dur)
 	//			now = time.Now()
 	//			continue
 	//		}
 	//	} else {
 	//		if err != nil || dur != subsequentDur || len(list) != 1 {
-	//			t.Errorf("no.%v Discover in for loop， unexpected result, err:%v dur:%ds, list:%+v", i, err, dur, list)
+	//			t.Errorf("no.%v Discovery in for loop， unexpected result, err:%v dur:%ds, list:%+v", i, err, dur, list)
 	//			now = time.Now()
 	//			continue
 	//		}

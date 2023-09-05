@@ -15,43 +15,56 @@ type ConnMgr struct {
 type InstanceImplT struct {
 	impl   *sd.InstanceImpl
 	errCnt int32
+	mu     sync.RWMutex
 }
 
 var defaultConnMgr = &ConnMgr{
 	cmap: map[enums.Svc]*InstanceImplT{},
 }
 
-const cleanSvcInstanceErrCntThreshold = 50
+const cleanSvcInstanceErrCntThreshold = 10
 
+// GetConn TODO: optimize, dont use global lock here
 func GetConn(svc enums.Svc) *grpc.ClientConn {
 	defaultConnMgr.mu.RLock()
 	inst := defaultConnMgr.cmap[svc]
 	defaultConnMgr.mu.RUnlock()
 
-	if inst == nil {
-		impl := sd.NewInstance(svc.Name(), func(conn *grpc.ClientConn) interface{} {
-			return nil
-		}, defaultSD)
+	if inst != nil {
+		obj, err := inst.impl.GetInstance()
 
-		obj, err := impl.GetInstance()
-		if err != nil {
-			return nil
+		// segment lock
+		inst.mu.Lock()
+		defer inst.mu.Unlock()
+
+		if err == nil {
+			inst.errCnt = 0
+			return obj.Conn
+		} else if inst.errCnt > cleanSvcInstanceErrCntThreshold {
+			defaultConnMgr.mu.Lock()
+			delete(defaultConnMgr.cmap, svc)
+			defaultConnMgr.mu.Unlock()
+		} else {
+			inst.errCnt++
 		}
-		defaultConnMgr.mu.Lock()
-		defaultConnMgr.cmap[svc] = &InstanceImplT{impl: impl}
-		defaultConnMgr.mu.Unlock()
-		return obj.Conn
+		return nil
 	}
 
-	obj, err := inst.impl.GetInstance()
-	if err == nil {
-		return obj.Conn
-	} else if inst.errCnt > cleanSvcInstanceErrCntThreshold {
-		defaultConnMgr.mu.Lock()
-		delete(defaultConnMgr.cmap, svc)
-		defaultConnMgr.mu.Unlock()
-	} else {
-		inst.errCnt++
+	// Add conn instance
+	defaultConnMgr.mu.Lock()
+	impl := sd.NewInstance(svc.Name(), func(conn *grpc.ClientConn) interface{} {
+		return nil
+	}, defaultSD)
+
+	defaultConnMgr.cmap[svc] = &InstanceImplT{
+		impl: impl,
+		mu:   sync.RWMutex{},
 	}
-	return nil
+	defaultConnMgr.mu.Unlock()
+
+	obj, err := impl.GetInstance()
+	if err != nil {
+		return nil
+	}
+	return obj.Conn
 }
