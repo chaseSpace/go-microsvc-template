@@ -6,9 +6,12 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
 	github.com/hashicorp/consul/api v1.24.0
 	github.com/hashicorp/go-uuid v1.0.3
+	github.com/hashicorp/mdns v1.0.5
+	github.com/json-iterator/go v1.1.12
 	github.com/k0kubun/pp v2.4.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.1.0
+	github.com/segmentio/ksuid v1.0.4
 	github.com/spf13/viper v1.16.0
 	github.com/valyala/fasthttp v1.49.0
 	go.uber.org/zap v1.21.0
@@ -36,11 +39,9 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/mdns v1.0.5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -53,7 +54,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
-	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
