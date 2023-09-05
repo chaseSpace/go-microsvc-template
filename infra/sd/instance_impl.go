@@ -1,17 +1,16 @@
-package abstract
+package sd
 
 import (
 	"container/list"
 	"context"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"microsvc/infra/sd/abstract"
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"time"
 )
-
-const logPrefix = "sd: "
 
 type InstanceImpl struct {
 	svc        string
@@ -20,7 +19,7 @@ type InstanceImpl struct {
 	curr       *list.Element // 当前元素
 	quit       chan struct{}
 	genClient  GenClient
-	sd         ServiceDiscovery
+	sd         abstract.ServiceDiscovery
 }
 
 type GrpcConnObj struct {
@@ -31,7 +30,7 @@ type GrpcConnObj struct {
 
 type GenClient func(conn *grpc.ClientConn) interface{}
 
-func NewInstance(svc string, genClient GenClient, discovery ServiceDiscovery) *InstanceImpl {
+func NewInstance(svc string, genClient GenClient, discovery abstract.ServiceDiscovery) *InstanceImpl {
 	ins := &InstanceImpl{
 		svc:        svc,
 		entryCache: make(map[string]*GrpcConnObj),
@@ -79,13 +78,13 @@ func (i *InstanceImpl) backgroundRefresh() {
 // 阻塞刷新（首次请求不阻塞）
 func (i *InstanceImpl) blockRefresh() error {
 	var (
-		entries []ServiceInstance
+		entries []abstract.ServiceInstance
 		cc      *grpc.ClientConn
 		err     error
 		ctx     context.Context
 	)
-	discovery := func() ([]ServiceInstance, error) {
-		ctx = context.WithValue(context.Background(), CtxDurKey{}, time.Minute*2)
+	discovery := func() ([]abstract.ServiceInstance, error) {
+		ctx = context.WithValue(context.Background(), abstract.CtxDurKey{}, time.Minute*2)
 		return i.sd.Discover(ctx, i.svc)
 	}
 	entries, err = discovery()

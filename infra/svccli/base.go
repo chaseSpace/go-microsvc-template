@@ -33,11 +33,11 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 type rpcClient struct {
 	once      sync.Once
 	svc       enums.Svc
-	inst      *abstract.InstanceImpl
-	genClient abstract.GenClient
+	inst      *sd.InstanceImpl
+	genClient sd.GenClient
 }
 
-func NewCli(svc enums.Svc, gc abstract.GenClient) *rpcClient {
+func NewCli(svc enums.Svc, gc sd.GenClient) *rpcClient {
 	cli := &rpcClient{svc: svc, genClient: gc}
 	return cli
 }
@@ -45,7 +45,7 @@ func NewCli(svc enums.Svc, gc abstract.GenClient) *rpcClient {
 // Getter returns gRPC Server Client
 func (c *rpcClient) Getter() any {
 	c.once.Do(func() {
-		c.inst = abstract.NewInstance(c.svc.Name(), c.genClient, defaultSD)
+		c.inst = sd.NewInstance(c.svc.Name(), c.genClient, defaultSD)
 		initializedSvcCli = append(initializedSvcCli, c)
 	})
 	v, err := c.inst.GetInstance()

@@ -3,7 +3,7 @@ package svccli
 import (
 	"google.golang.org/grpc"
 	"microsvc/enums"
-	"microsvc/infra/sd/abstract"
+	"microsvc/infra/sd"
 	"sync"
 )
 
@@ -13,7 +13,7 @@ type ConnMgr struct {
 }
 
 type InstanceImplT struct {
-	impl   *abstract.InstanceImpl
+	impl   *sd.InstanceImpl
 	errCnt int32
 }
 
@@ -29,7 +29,7 @@ func GetConn(svc enums.Svc) *grpc.ClientConn {
 	defaultConnMgr.mu.RUnlock()
 
 	if inst == nil {
-		impl := abstract.NewInstance(svc.Name(), func(conn *grpc.ClientConn) interface{} {
+		impl := sd.NewInstance(svc.Name(), func(conn *grpc.ClientConn) interface{} {
 			return nil
 		}, defaultSD)
 
