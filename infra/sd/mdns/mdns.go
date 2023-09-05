@@ -57,5 +57,6 @@ func (m Mdns) Discover(ctx context.Context, serviceName string) (insts []abstrac
 	}()
 	_ = mdns.Lookup(serviceName, entries)
 	close(entries)
+	fmt.Printf("2222  %+v", entries)
 	return
 }

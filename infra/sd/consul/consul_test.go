@@ -8,9 +8,9 @@ import (
 
 func TestNewConsulSD(t *testing.T) {
 	// 前提：在本机启动consul进程
-	sd, err := NewConsulSD()
+	sd, err := New()
 	if err != nil {
-		t.Fatalf("NewConsulSD %v", err)
+		t.Fatalf("New %v", err)
 	}
 	svc := "user"
 	addr := "127.0.0.1"

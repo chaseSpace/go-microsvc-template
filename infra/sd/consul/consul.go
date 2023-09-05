@@ -16,7 +16,7 @@ type ConsulSD struct {
 
 var _ abstract.ServiceDiscovery = (*ConsulSD)(nil)
 
-func NewConsulSD() (*ConsulSD, error) {
+func New() (*ConsulSD, error) {
 	// 默认连接 Consul HTTP API Addr> 127.0.0.1:8500
 	cfg := capi.DefaultConfig()
 	//cfg.Address 可修改

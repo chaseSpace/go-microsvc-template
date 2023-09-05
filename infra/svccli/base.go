@@ -6,6 +6,7 @@ import (
 	"microsvc/enums"
 	"microsvc/infra/sd"
 	"microsvc/infra/sd/abstract"
+	"microsvc/infra/sd/mdns"
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg/xlog"
 	"sync"
@@ -21,9 +22,13 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		var err error
 		if defaultSD == nil {
-			defaultSD, err = sd.NewSD()
-			if err != nil {
-				xlog.Error("svccli: NewSD failed", zap.Error(err))
+			if cc.IsDevEnv() {
+				defaultSD = mdns.New()
+			} else {
+				defaultSD, err = sd.NewConsulSD()
+				if err != nil {
+					xlog.Error("svccli: NewConsulSD failed", zap.Error(err))
+				}
 			}
 		}
 		onEnd(must, err)

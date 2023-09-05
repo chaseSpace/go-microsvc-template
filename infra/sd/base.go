@@ -6,6 +6,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/infra/sd/abstract"
 	"microsvc/infra/sd/consul"
+	"microsvc/infra/sd/mdns"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/util/ip"
@@ -19,19 +20,22 @@ var rootSD abstract.ServiceDiscovery
 
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
-		// 在这里 决定使用 etcd/consul
-		cli, err := NewSD()
-		if err != nil {
-			xlog.Error(logPrefix+"NewSD failed", zap.Error(err))
+		var err error
+		if cc.IsDevEnv() {
+			rootSD = mdns.New()
 		} else {
-			rootSD = cli
+			// 在这里 决定使用 etcd/consul
+			rootSD, err = NewConsulSD()
+			if err != nil {
+				xlog.Error(logPrefix+"New failed", zap.Error(err))
+			}
 		}
 		onEnd(must, err)
 	}
 }
 
-func NewSD() (abstract.ServiceDiscovery, error) {
-	cli, err := consul.NewConsulSD()
+func NewConsulSD() (abstract.ServiceDiscovery, error) {
+	cli, err := consul.New()
 	if err == nil {
 		rootSD = cli
 	} else {
