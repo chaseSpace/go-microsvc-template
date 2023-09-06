@@ -5,20 +5,26 @@ import (
 	"time"
 )
 
-type EmptySD struct {
+type Empty struct {
 }
 
-var _ ServiceDiscovery = new(EmptySD)
+var _ ServiceDiscovery = new(Empty)
 
-func (e EmptySD) Register(serviceName string, address string, port int, metadata map[string]string) error {
+func (e Empty) Name() string {
+	return "empty"
+}
+
+func (e Empty) Register(serviceName string, address string, port int, metadata map[string]string) error {
 	return nil
 }
 
-func (e EmptySD) Deregister(serviceName string) error {
+func (e Empty) Deregister(serviceName string) error {
 	return nil
 }
 
-func (e EmptySD) Discovery(ctx context.Context, serviceName string) ([]ServiceInstance, error) {
-	time.Sleep(time.Millisecond * 100) // mock block
+func (e Empty) Discovery(ctx context.Context, serviceName string, block bool) ([]ServiceInstance, error) {
+	if block {
+		time.Sleep(time.Millisecond * 100) // mock block
+	}
 	return nil, nil
 }

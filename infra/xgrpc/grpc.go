@@ -272,7 +272,7 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 }
 
 func TraceGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	// 有选择性的传递metadata到下次grpc调用
+	// We just need transfer some necessary metadata to next rpc call
 	// see: https://golang2.eddycjy.com/posts/ch3/09-grpc-metadata-creds/
 	ctx = TransferMetadataWithinCtx(ctx, MetaKeyTraceId)
 	return handler(ctx, req)

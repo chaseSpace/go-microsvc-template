@@ -44,7 +44,7 @@ func NewConsulSD() (abstract.ServiceDiscovery, error) {
 	return cli, nil
 }
 
-func Register(reg ...deploy.RegisterSvc) {
+func MustRegister(reg ...deploy.RegisterSvc) {
 	selfIp := "127.0.0.1"
 	if !deploy.XConf.IsDevEnv() {
 		localIps, err := ip.GetLocalPrivateIPs(true, "")
@@ -64,9 +64,13 @@ func Register(reg ...deploy.RegisterSvc) {
 		}
 		err := rootSD.Register(name, addr, port, r.RegGRPCMeta())
 		if err != nil {
-			xlog.Panic(logPrefix+"register svc failed", zap.String("Svc", name), zap.Error(err))
+			xlog.Panic(logPrefix+"register svc failed", zap.String("sd-name", rootSD.Name()),
+				zap.String("reg_svc", name), zap.Error(err))
 		}
-		xlog.Info(logPrefix+"register svc success", zap.String("reg_svc", name), zap.String("addr", fmt.Sprintf("%s:%d", addr, port)))
+		xlog.Info(logPrefix+"register svc success", zap.String("sd-name", rootSD.Name()),
+			zap.String("reg_svc", name),
+			zap.String("addr", fmt.Sprintf("%s:%d", addr, port)))
+
 		registeredSvc = append(registeredSvc, name)
 	}
 }
@@ -75,9 +79,9 @@ func Stop() {
 	for _, s := range registeredSvc {
 		err := rootSD.Deregister(s)
 		if err != nil {
-			xlog.Error(logPrefix+"deregister fail", zap.Error(err))
+			xlog.Error(logPrefix+"deregister fail", zap.String("sd-name", rootSD.Name()), zap.Error(err), zap.String("svc", s))
 		} else {
-			xlog.Debug(logPrefix+"deregister success", zap.String("svc", s))
+			xlog.Info(logPrefix+"deregister success", zap.String("sd-name", rootSD.Name()), zap.String("svc", s))
 		}
 	}
 }

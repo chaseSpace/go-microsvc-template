@@ -11,6 +11,7 @@ require (
 	github.com/k0kubun/pp v2.4.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.1.0
+	github.com/samber/lo v1.38.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/spf13/viper v1.16.0
 	github.com/valyala/fasthttp v1.49.0
@@ -54,7 +55,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
-	github.com/samber/lo v1.38.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

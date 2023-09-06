@@ -71,7 +71,7 @@ func TearUpWithEmptySD(svc enums.Svc, svcConf deploy.SvcConfImpl) {
 		pkg.Setup(
 			xlog.Init,
 		)
-		svccli.SetDefaultSD(abstract.EmptySD{})
+		svccli.SetDefaultSD(abstract.Empty{})
 		infra.Setup(
 			//sd.Setup(true),
 			svccli.Init(true),

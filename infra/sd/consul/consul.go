@@ -9,14 +9,16 @@ import (
 	"time"
 )
 
-type ConsulSD struct {
+type Consul struct {
 	client    *capi.Client
 	lastIndex uint64
 }
 
-var _ abstract.ServiceDiscovery = (*ConsulSD)(nil)
+var _ abstract.ServiceDiscovery = (*Consul)(nil)
 
-func New() (*ConsulSD, error) {
+const Name = "Consul"
+
+func New() (*Consul, error) {
 	// 默认连接 Consul HTTP API Addr> 127.0.0.1:8500
 	cfg := capi.DefaultConfig()
 	//cfg.Address 可修改
@@ -24,10 +26,14 @@ func New() (*ConsulSD, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ConsulSD{client: client}, nil
+	return &Consul{client: client}, nil
 }
 
-func (c *ConsulSD) Register(serviceName string, address string, port int, metadata map[string]string) error {
+func (c *Consul) Name() string {
+	return Name
+}
+
+func (c *Consul) Register(serviceName string, address string, port int, metadata map[string]string) error {
 	tcpAddr := fmt.Sprintf("%s:%d", address, port)
 	params := &capi.AgentServiceRegistration{
 		//addr:  默认等于Name
@@ -43,24 +49,27 @@ func (c *ConsulSD) Register(serviceName string, address string, port int, metada
 	return err
 }
 
-func (c *ConsulSD) Deregister(serviceName string) error {
+func (c *Consul) Deregister(serviceName string) error {
 	return c.client.Agent().ServiceDeregister(serviceName)
 }
 
-func (c *ConsulSD) Discovery(ctx context.Context, serviceName string) (list []abstract.ServiceInstance, err error) {
+func (c *Consul) Discovery(ctx context.Context, serviceName string, block bool) (list []abstract.ServiceInstance, err error) {
 	err = context.DeadlineExceeded // default
 	dur := time.Minute
 	if val := ctx.Value(abstract.CtxDurKey{}); val != nil {
-		dur = val.(time.Duration)
+		dur = val.(time.Duration) // use duration here, because Consul do not support block by context
 	}
 	util.RunTask(ctx, func() {
-		list, err = c.getInstances(serviceName, dur)
+		list, err = c.getInstances(serviceName, dur, block)
 	})
 	return
 }
 
-func (c *ConsulSD) getInstances(serviceName string, waitTime time.Duration) (list []abstract.ServiceInstance, err error) {
+func (c *Consul) getInstances(serviceName string, waitTime time.Duration, block bool) (list []abstract.ServiceInstance, err error) {
 	opt := &capi.QueryOptions{WaitIndex: c.lastIndex, WaitTime: waitTime}
+	if !block {
+		opt.WaitIndex = 0 // set to 0 to disable blocking query
+	}
 	entries, meta, err := c.client.Health().Service(serviceName, "", true, opt)
 	if err != nil {
 		return nil, err

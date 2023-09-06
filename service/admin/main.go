@@ -40,7 +40,7 @@ func main() {
 	})
 
 	x.Start(deploy.XConf)
-	sd.Register(deploy.XConf)
+	sd.MustRegister(deploy.XConf)
 
 	graceful.Run()
 }

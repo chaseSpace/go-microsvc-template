@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type ConnMgr struct {
+type InstanceMgr struct {
 	cmap map[enums.Svc]*InstanceImplT
 	mu   sync.RWMutex
 }
@@ -18,14 +18,14 @@ type InstanceImplT struct {
 	mu     sync.RWMutex
 }
 
-var defaultConnMgr = &ConnMgr{
+var defaultConnMgr = &InstanceMgr{
 	cmap: map[enums.Svc]*InstanceImplT{},
 }
 
 const cleanSvcInstanceErrCntThreshold = 10
 
 // GetConn TODO: optimize, dont use global lock here
-func GetConn(svc enums.Svc) *grpc.ClientConn {
+func GetConn(svc enums.Svc) (conn *grpc.ClientConn) {
 	defaultConnMgr.mu.RLock()
 	inst := defaultConnMgr.cmap[svc]
 	defaultConnMgr.mu.RUnlock()
@@ -36,7 +36,6 @@ func GetConn(svc enums.Svc) *grpc.ClientConn {
 		// segment lock
 		inst.mu.Lock()
 		defer inst.mu.Unlock()
-
 		if err == nil {
 			inst.errCnt = 0
 			return obj.Conn

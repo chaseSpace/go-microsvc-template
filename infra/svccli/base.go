@@ -55,7 +55,7 @@ func (c *RpcClient) Getter() any {
 	})
 	v, err := c.inst.GetInstance()
 	if err == nil {
-		return v.Client
+		return v.RpcClient
 	}
 	return c.genClient(xgrpc.NewInvalidGRPCConn(c.svc.Name()))
 }

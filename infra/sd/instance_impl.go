@@ -5,6 +5,7 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"microsvc/infra/sd/abstract"
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg/xerr"
@@ -14,18 +15,18 @@ import (
 
 type InstanceImpl struct {
 	svc        string
-	entryCache map[string]*GrpcConnObj
-	grpcConns  *list.List    // 链表
-	curr       *list.Element // 当前元素
+	entryCache map[string]*GrpcInstance
+	grpcConns  *list.List    // linked list
+	curr       *list.Element // current element
 	quit       chan struct{}
 	genClient  GenClient
 	sd         abstract.ServiceDiscovery
 }
 
-type GrpcConnObj struct {
-	addr   string
-	Conn   *grpc.ClientConn
-	Client interface{}
+type GrpcInstance struct {
+	addr      string
+	Conn      *grpc.ClientConn
+	RpcClient interface{}
 }
 
 type GenClient func(conn *grpc.ClientConn) interface{}
@@ -33,42 +34,71 @@ type GenClient func(conn *grpc.ClientConn) interface{}
 func NewInstance(svc string, genClient GenClient, discovery abstract.ServiceDiscovery) *InstanceImpl {
 	ins := &InstanceImpl{
 		svc:        svc,
-		entryCache: make(map[string]*GrpcConnObj),
+		entryCache: make(map[string]*GrpcInstance),
 		grpcConns:  list.New(),
 		genClient:  genClient,
 		quit:       make(chan struct{}),
 		sd:         discovery,
 	}
-	//_ = ins.blockRefresh() // activate
+	//_ = ins.query() // activate
 	go ins.backgroundRefresh()
 	return ins
 }
 
-// GetInstance 每次返回链表的下一个元素，实现负载均衡（conn）
-func (i *InstanceImpl) GetInstance() (obj *GrpcConnObj, err error) {
-	if i.curr != nil {
-		obj := i.curr.Value.(*GrpcConnObj)
-		i.curr = i.curr.Next()
-		return obj, nil
+// GetInstance get next conn, here implement load balancing（svc node）
+func (i *InstanceImpl) GetInstance() (instance *GrpcInstance, err error) {
+	instance, err = i.getCurr()
+	if err != nil || instance != nil {
+		return
 	}
-	if elem := i.grpcConns.Front(); elem != nil { // 第一个
-		obj := elem.Value.(*GrpcConnObj)
-		i.curr = elem.Next()
-		return obj, nil
+	// linked list is empty, try to refresh without blocking
+	_ = i.query(false)
+	return i.getCurr()
+}
+
+func (i *InstanceImpl) getCurr() (instance *GrpcInstance, err error) {
+	for i.curr != nil {
+		instance = i.curr.Value.(*GrpcInstance)
+		// then we move to next or first element
+		if next := i.curr.Next(); next != nil {
+			i.curr = next
+		} else {
+			i.curr = i.grpcConns.Front()
+		}
+		if i.isConnReady(instance) {
+			return
+		}
+		instance = nil
 	}
-	return nil, xerr.ErrInternal.NewMsg(logPrefix+"%s no instance available", i.svc)
+	err = xerr.ErrInternal.NewMsg(logPrefix+"%s no instance available", i.svc)
+	return
+}
+
+func (i *InstanceImpl) isConnReady(instance *GrpcInstance) bool {
+	// if conn is idle, connect it
+	if instance.Conn.GetState() == connectivity.Idle {
+		instance.Conn.Connect()
+		return true
+	}
+	// if conn is shutdown(contains closing), remove it then try next one in outside.
+	if instance.Conn.GetState() == connectivity.Shutdown {
+		delete(i.entryCache, instance.addr)
+		i.removeInstance(instance.addr)
+		return false
+	}
+	return true
 }
 
 func (i *InstanceImpl) backgroundRefresh() {
 	for {
-		err := i.blockRefresh()
+		err := i.query(true)
 		select {
 		case <-i.quit:
 			xlog.Debug(logPrefix+"quited", zap.String("Svc", i.svc))
 			return
 		default:
 			if err != nil {
-				xlog.Error(logPrefix+"blockRefresh err, hold on...", zap.Error(err))
+				xlog.Error(logPrefix+"query err, hold on...", zap.Error(err))
 				time.Sleep(time.Second * 3)
 			}
 		}
@@ -76,7 +106,7 @@ func (i *InstanceImpl) backgroundRefresh() {
 }
 
 // 阻塞刷新（首次请求不阻塞）
-func (i *InstanceImpl) blockRefresh() error {
+func (i *InstanceImpl) query(block bool) error {
 	var (
 		entries []abstract.ServiceInstance
 		cc      *grpc.ClientConn
@@ -85,7 +115,7 @@ func (i *InstanceImpl) blockRefresh() error {
 	)
 	discovery := func() ([]abstract.ServiceInstance, error) {
 		ctx = context.WithValue(context.Background(), abstract.CtxDurKey{}, time.Minute*2)
-		return i.sd.Discovery(ctx, i.svc)
+		return i.sd.Discovery(ctx, i.svc, block)
 	}
 	entries, err = discovery()
 	if err != nil {
@@ -108,10 +138,12 @@ func (i *InstanceImpl) blockRefresh() error {
 		cc, err = xgrpc.NewGRPCClient(addr, i.svc)
 		if err == nil {
 			xlog.Debug(logPrefix+"newGRPCClient OK", zap.String("addr", addr))
-			//println(2222, Conn, addr)
-			obj := &GrpcConnObj{addr: addr, Client: i.genClient(cc), Conn: cc}
+			obj := &GrpcInstance{addr: addr, RpcClient: i.genClient(cc), Conn: cc}
 			i.entryCache[addr] = obj
 			i.grpcConns.PushBack(obj)
+			if i.curr == nil {
+				i.curr = i.grpcConns.Front()
+			}
 		} else {
 			xlog.Error(logPrefix+"newGRPCClient failed", zap.Error(err))
 		}
@@ -122,8 +154,8 @@ func (i *InstanceImpl) blockRefresh() error {
 		if availableEntries[addr] == 0 {
 			_ = conn.Conn.Close()
 			delete(i.entryCache, addr)
-			i.removeGRPCConn(addr)
-			xlog.Debug(logPrefix+"removeGRPCConn", zap.String("addr", addr))
+			i.removeInstance(addr)
+			xlog.Debug(logPrefix+"removeInstance", zap.String("addr", addr))
 		}
 	}
 	return nil
@@ -133,10 +165,10 @@ func (i *InstanceImpl) Stop() {
 	close(i.quit)
 }
 
-func (i *InstanceImpl) removeGRPCConn(addr string) {
+func (i *InstanceImpl) removeInstance(addr string) {
 	curr := i.grpcConns.Front()
 	for curr != nil {
-		if curr.Value.(*GrpcConnObj).addr == addr {
+		if curr.Value.(*GrpcInstance).addr == addr {
 			i.grpcConns.Remove(curr)
 			return
 		}

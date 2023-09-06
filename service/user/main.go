@@ -48,7 +48,7 @@ func main() {
 
 	x.Start(deploy.XConf)
 	// GRPC服务启动后 再注册服务
-	sd.Register(deploy.XConf)
+	sd.MustRegister(deploy.XConf)
 
 	graceful.Run()
 }
