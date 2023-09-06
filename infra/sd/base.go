@@ -22,9 +22,10 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		var err error
 		if cc.IsDevEnv() {
+			// mDNS is a light-weight service register/discovery resolution for dev env
 			rootSD = mdns.New()
 		} else {
-			// 在这里 决定使用 etcd/consul
+			// use etcd/consul by your like
 			rootSD, err = NewConsulSD()
 			if err != nil {
 				xlog.Error(logPrefix+"New failed", zap.Error(err))

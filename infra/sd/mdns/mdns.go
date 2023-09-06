@@ -61,9 +61,6 @@ func (m *Mdns) Deregister(serviceName string) error {
 
 func (m *Mdns) Discovery(ctx context.Context, serviceName string, block bool) (instances []abstract.ServiceInstance, err error) {
 	asyncRecv := func(entries chan *mdns.ServiceEntry) {
-		defer func() {
-			fmt.Printf("2222  %+v %s \n", instances, serviceName)
-		}()
 		for {
 			select {
 			case <-ctx.Done():
