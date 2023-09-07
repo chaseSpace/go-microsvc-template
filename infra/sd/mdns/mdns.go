@@ -3,13 +3,27 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/mdns"
 	"github.com/samber/lo"
 	"microsvc/infra/sd/abstract"
 	"microsvc/util"
+	"microsvc/xvendor/mdns"
+	"net"
 	"os"
 	"time"
 )
+
+/*
+INTRODUCTION:
+ 	mDNS is a multicast protocol that was developed by Apple Inc, and
+	the domain name is used to filter the packets.
+
+WARNING:
+	mDNS is not suitable for production environments. It is designed
+	for local networks only.
+	And, In Windows, mDNS support may not be stable by default. To
+	completely support mDNS functionality, it is recommended to install
+	Bonjour Print Services for Windows.
+*/
 
 // Mdns implements the abstract.ServiceDiscovery with mDNS (Multicast DNS)
 // protocol using UDP.
@@ -40,7 +54,8 @@ func (m *Mdns) Register(serviceName string, address string, port int, metadata m
 		return fmt.Errorf("already registered")
 	}
 	host, _ := os.Hostname()
-	s, err := mdns.NewMDNSService(host+util.RandomString(3), serviceName, mDnsDomain, "", port, nil, nil)
+	s, err := mdns.NewMDNSService(host+util.RandomString(3), serviceName, mDnsDomain, "", port,
+		[]net.IP{[]byte{127, 0, 0, 1}}, nil)
 	if err != nil {
 		return err
 	}
@@ -59,8 +74,11 @@ func (m *Mdns) Deregister(serviceName string) error {
 	return nil
 }
 
-func (m *Mdns) Discovery(ctx context.Context, serviceName string, block bool) (instances []abstract.ServiceInstance, err error) {
+func (m *Mdns) Discovery(ctx context.Context, svc string, block bool) (instances []abstract.ServiceInstance, err error) {
 	asyncRecv := func(entries chan *mdns.ServiceEntry) {
+		defer func() {
+			//fmt.Printf("2222 %+v  %s\n", instances, svc)
+		}()
 		for {
 			select {
 			case <-ctx.Done():
@@ -70,8 +88,8 @@ func (m *Mdns) Discovery(ctx context.Context, serviceName string, block bool) (i
 					return
 				}
 				instances = append(instances, abstract.ServiceInstance{
-					Name:     entry.Name, // hostname.service.mDnsDomain by mDNS
-					Address:  "127.0.0.1",
+					Name:     entry.Name, // hostname.service.domain by mDNS
+					Address:  entry.AddrV4.String(),
 					Port:     entry.Port,
 					Metadata: nil,
 				})
@@ -83,28 +101,24 @@ func (m *Mdns) Discovery(ctx context.Context, serviceName string, block bool) (i
 		entries := make(chan *mdns.ServiceEntry, 4)
 		go asyncRecv(entries)
 
-		p := mdns.DefaultParams(serviceName)
-		p.DisableIPv6 = true
-		p.Entries = entries
-		p.Domain = mDnsDomain
-		err = mdns.Query(p)
+		err = mdns.Lookup(svc, mDnsDomain, entries)
 		close(entries)
 		if err != nil {
 			return
 		}
 
-		_, updated := m.updateCache(serviceName, instances)
-		if updated || !block {
+		_, changed := m.updateCache(svc, instances)
+		if changed || !block {
 			return
 		}
 
 		instances = nil
-		time.Sleep(time.Second * 2) // could tune-up
+		time.Sleep(time.Second * 5) // could tune-up, 5~30s is a good choice
 	}
 }
 
 func (m *Mdns) updateCache(serviceName string, instances []abstract.ServiceInstance) (map[string]int8, bool) {
-	updated := false
+	changed := false
 
 	var newCache map[string]int8
 	cache := m.instCache[serviceName]
@@ -112,19 +126,19 @@ func (m *Mdns) updateCache(serviceName string, instances []abstract.ServiceInsta
 		cache = make(map[string]int8)
 		newCache = cache
 		m.instCache[serviceName] = cache
-		updated = true
+		changed = true
 	} else {
 		newCache = make(map[string]int8)
 	}
 
 	lo.ForEach(instances, func(item abstract.ServiceInstance, index int) {
 		if cache[item.Addr()] == 0 {
-			updated = true
+			changed = true
 		}
 		newCache[item.Addr()] = 1
 	})
 
 	m.instCache[serviceName] = newCache
 
-	return cache, updated || len(instances) != len(cache)
+	return cache, changed || len(instances) != len(cache)
 }

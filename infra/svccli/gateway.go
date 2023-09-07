@@ -25,7 +25,7 @@ var defaultConnMgr = &InstanceMgr{
 const cleanSvcInstanceErrCntThreshold = 10
 
 // GetConn TODO: optimize, dont use global lock here
-func GetConn(svc enums.Svc) (conn *grpc.ClientConn) {
+func GetConn(svc enums.Svc) *grpc.ClientConn {
 	defaultConnMgr.mu.RLock()
 	inst := defaultConnMgr.cmap[svc]
 	defaultConnMgr.mu.RUnlock()
