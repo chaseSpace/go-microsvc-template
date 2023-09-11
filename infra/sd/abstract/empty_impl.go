@@ -22,7 +22,7 @@ func (e Empty) Deregister(serviceName string) error {
 	return nil
 }
 
-func (e Empty) Discovery(ctx context.Context, serviceName string, block bool) ([]ServiceInstance, error) {
+func (e Empty) Discover(ctx context.Context, serviceName string, block bool) ([]ServiceInstance, error) {
 	if block {
 		time.Sleep(time.Millisecond * 100) // mock block
 	}

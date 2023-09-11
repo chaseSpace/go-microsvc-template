@@ -115,7 +115,7 @@ func (i *InstanceImpl) query(block bool) error {
 	)
 	discovery := func() ([]abstract.ServiceInstance, error) {
 		ctx = context.WithValue(context.Background(), abstract.CtxDurKey{}, time.Minute*2)
-		return i.sd.Discovery(ctx, i.svc, block)
+		return i.sd.Discover(ctx, i.svc, block)
 	}
 	entries, err = discovery()
 	if err != nil {

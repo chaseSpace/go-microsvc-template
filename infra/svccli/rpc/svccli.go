@@ -7,7 +7,7 @@ import (
 	"microsvc/protocol/svc/user"
 )
 
-// Service Discovery is now in Multi addresses method.
+// Service Discover is now in Multi addresses method.
 // TODO: upgrade to DNS method.
 
 var (

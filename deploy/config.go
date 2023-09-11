@@ -12,14 +12,16 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc   enums.Svc         `mapstructure:"svc"` // set by this.svcConf
-	Env   enums.Environment `mapstructure:"env"`
-	Mysql map[string]*Mysql `mapstructure:"mysql"`
-	Redis map[string]*Redis `mapstructure:"redis"`
+	Svc              enums.Svc         `mapstructure:"svc"` // set by this.svcConf
+	Env              enums.Environment `mapstructure:"env"`
+	Mysql            map[string]*Mysql `mapstructure:"mysql"`
+	Redis            map[string]*Redis `mapstructure:"redis"`
+	SimpleSdHttpPort int               `mapstructure:"simplesd_http_port"`
 
 	// 私有字段
 	gRPCPort int
 	httpPort int
+
 	// 接管svc的配置
 	svcConf SvcConfImpl
 }
