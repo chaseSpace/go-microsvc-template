@@ -73,11 +73,11 @@ func NewGRPCClient(target, svc string) (cc *grpc.ClientConn, err error) {
 				for _, cert := range chain {
 					switch cert.Subject.CommonName {
 					case certServerCN:
-						pp.Printf("验证Server证书信息: CN:%s before:%s  after:%s \n",
-							cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
+						//pp.Printf("验证Server证书信息: CN:%s before:%s  after:%s \n",
+						//	cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
 					case certRootCN:
-						pp.Printf("验证根证书信息: CN:%s before:%s  after:%s \n",
-							cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
+						//pp.Printf("验证根证书信息: CN:%s before:%s  after:%s \n",
+						//	cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
 					default:
 						return fmt.Errorf("grpc: handshake faield, server certificate has invalid CN(%s)", cert.Subject.CommonName)
 					}

@@ -55,15 +55,15 @@ func newGRPCServer(svc string, interceptors ...grpc.UnaryServerInterceptor) *grp
 				for _, cert := range chain {
 					switch cert.Subject.CommonName {
 					case certClientCN:
-						pp.Printf("验证通过--Client证书信息: CN:%s before:%s  after:%s \n",
-							cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
+						//pp.Printf("验证通过--Client证书信息: CN:%s before:%s  after:%s \n",
+						//	cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
 					case certRootCN:
-						pp.Printf("验证通过--根证书信息: CN:%s before:%s  after:%s \n",
-							cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
+						//pp.Printf("验证通过--根证书信息: CN:%s before:%s  after:%s \n",
+						//	cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
 					default:
 						// 授权特定client
 						if specialClientAuth(svc, cert.DNSNames) {
-							pp.Printf("验证通过--特定client CN：%s  DNSNames: %+v\n", cert.Subject.CommonName, cert.DNSNames)
+							//pp.Printf("验证通过--特定client CN：%s  DNSNames: %+v\n", cert.Subject.CommonName, cert.DNSNames)
 						} else {
 							return fmt.Errorf("grpc: handshake faield, invalid client certificate with CN(%s)", cert.Subject.CommonName)
 						}
