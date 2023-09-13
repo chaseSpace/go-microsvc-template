@@ -10,5 +10,5 @@ POST http://localhost:8000/forward/svc.admin.AdminExt/GetUser
 Content-Type: application/json
 
 {
-  "uids": 1
+  "uids": [1]
 }

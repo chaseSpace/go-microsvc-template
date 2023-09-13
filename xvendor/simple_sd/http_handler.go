@@ -37,6 +37,48 @@ func newRes(data interface{}, code int, err error) *HttpRes {
 	}
 }
 
+type pingReq struct {
+	Ping bool
+}
+type pingRspBody struct {
+	Pong bool
+}
+
+func handlePing(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		_, _ = w.Write(ToJson(newRes(nil, 400, ErrMethod)))
+		return
+	}
+
+	req := new(pingReq)
+
+	var err error
+	var code = 200
+
+	var response *pingRspBody
+
+	defer func() {
+		rsp := ToJson(newRes(response, code, err))
+		_, _ = w.Write(rsp)
+		if err != nil {
+			Sdlogger.Error("handlePing: req:%+v error: %v", req, err)
+			return
+		}
+		Sdlogger.Debug("handlePing OK, req:%+v", req)
+	}()
+
+	err = json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		code = 400
+		err = errors.Wrap(ErrParams, err.Error())
+		return
+	}
+	_ = r.Body.Close()
+	if req.Ping {
+		response = &pingRspBody{Pong: true}
+	}
+}
+
 type registerReq struct {
 	ServiceInstance
 }
@@ -48,6 +90,8 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	req := new(registerReq)
 
+	st := time.Now()
+
 	var data []ServiceInstance
 	var err error
 	var code = 200
@@ -55,10 +99,10 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		rsp := ToJson(newRes(data, code, err))
 		_, _ = w.Write(rsp)
 		if err != nil {
-			Sdlogger.Error("handleRegister: service:%s req:%s error: %v", req.Service, req.Addr(), err)
+			Sdlogger.Error("handleRegister: service:%s req:%s error: %v", req.Name, req.Addr(), err)
 			return
 		}
-		Sdlogger.Info("handleRegister OK, service:%s req:%s", req.Service, req.Addr())
+		Sdlogger.Debug("handleRegister OK, dur:%s service:%s req:%s", time.Since(st), req.Name, req.Addr())
 	}()
 
 	err = json.NewDecoder(r.Body).Decode(req)
@@ -76,7 +120,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	err = Sd.Register(req.ServiceInstance)
 	if err == nil {
-		data, _, err = Sd.Discovery(context.TODO(), req.Service, "")
+		data, _, err = Sd.Discovery(context.TODO(), req.Name, "")
 	}
 }
 
@@ -101,7 +145,7 @@ func handleDeregister(w http.ResponseWriter, r *http.Request) {
 			Sdlogger.Error("handleDeregister: req:%+v error: %v", req, err)
 			return
 		}
-		Sdlogger.Info("handleDeregister OK, req:%+v", req)
+		Sdlogger.Debug("handleDeregister OK, req:%+v", req)
 	}()
 
 	err = json.NewDecoder(r.Body).Decode(req)
@@ -149,6 +193,7 @@ func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 
 	var response *discoveryRsp
 
+	st := time.Now()
 	defer func() {
 		rsp := ToJson(newRes(response, code, err))
 		_, _ = w.Write(rsp)
@@ -156,7 +201,7 @@ func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 			Sdlogger.Error("handleDiscovery: body:%+v error: %v", body, err)
 			return
 		}
-		Sdlogger.Info("handleDiscovery OK, body:%+v", body)
+		Sdlogger.Debug("handleDiscovery OK, dur:%dms  body:%+v  --rsp:%s", time.Since(st).Milliseconds(), body, rsp)
 	}()
 
 	err = json.NewDecoder(r.Body).Decode(body)
@@ -168,12 +213,12 @@ func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 	_ = r.Body.Close()
 	if body.Service == "" {
 		code = 400
-		err = errors.Wrap(ErrParams, "need service")
+		err = errors.Wrap(ErrParams, "params without service")
 		return
 	}
 	if body.WaitMaxMs > MaxDiscoveryTimeout.Milliseconds() {
 		code = 400
-		err = errors.Wrapf(ErrParams, "max wait ms is %s", MaxDiscoveryTimeout)
+		err = errors.Wrapf(ErrParams, "max wait-time ms is %d", MaxDiscoveryTimeout.Milliseconds())
 		return
 	}
 

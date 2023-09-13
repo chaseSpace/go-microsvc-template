@@ -16,7 +16,11 @@ type SimpleSd struct {
 	newServiceNotify sync.Cond
 }
 
-var Sd ServiceDiscovery = &SimpleSd{registry: map[string]*Service{}}
+var Sd ServiceDiscovery
+
+func Init() {
+	Sd = &SimpleSd{registry: map[string]*Service{}}
+}
 
 func (s *SimpleSd) Name() string {
 	return "SimpleSd"
@@ -31,13 +35,16 @@ const DiscoveryInterval = time.Millisecond * 200
 func (s *SimpleSd) Register(instance ServiceInstance) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	serv := s.registry[instance.Service]
+	serv := s.registry[instance.Name]
 	if serv == nil {
-		serv = newService(instance.Service)
-		s.registry[instance.Service] = serv
+		serv = newService(instance.Name)
+		s.registry[instance.Name] = serv
 	}
 	instance.registerAt = time.Now()
 	err := serv.Add(&instance)
+	if err == nil {
+		serv.eventUpdate.Broadcast()
+	}
 	return err
 }
 
@@ -50,24 +57,43 @@ func (s *SimpleSd) Deregister(service, id string) error {
 	return errors.Wrap(ErrInstanceNotRegistered, fmt.Sprintf("service: %s, id: %s", service, id))
 }
 
-func (s *SimpleSd) Discovery(ctx context.Context, service string, lastHash string) ([]ServiceInstance, string, error) {
-	// when lastHash is empty, here is realtime discovery and returns
+func (s *SimpleSd) Discovery(ctx context.Context, service string, lastHash string) (instances []ServiceInstance, currHash string, err error) {
+	serv := s.getService(service)
+
+	instances, currHash = s.getInstances(service)
+	// when lastHash is empty, here is no wait-time to discovery then returns
 	if lastHash == "" {
-		instances, currHash := s.getInstances(service)
 		return instances, currHash, nil
 	}
-	for {
-		select {
-		case <-ctx.Done():
-			instances, currHash := s.getInstances(service)
-			return instances, currHash, nil
 
-		case <-time.After(DiscoveryInterval): // refresh interval
-			instances, currHash := s.getInstances(service)
-			if currHash != lastHash || lastHash == "" {
-				return instances, currHash, nil
-			}
+	go func() {
+		<-ctx.Done()
+		serv.eventUpdate.Broadcast()
+	}()
+
+	serv.eventUpdate.L.Lock()
+	defer serv.eventUpdate.L.Unlock()
+	for {
+		serv.eventUpdate.Wait()
+		instances, currHash = s.getInstances(service)
+		if currHash != lastHash || lastHash == "" {
+			return
 		}
+		if ctx.Err() != nil { // reach to deadline
+			return
+		}
+	}
+}
+
+func (s *SimpleSd) getService(service string) *Service {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if serv := s.registry[service]; serv != nil {
+		return serv
+	} else {
+		serv = newService(service)
+		s.registry[service] = serv
+		return serv
 	}
 }
 
@@ -76,14 +102,11 @@ func (s *SimpleSd) getInstances(service string) ([]ServiceInstance, string) {
 	serv := s.registry[service]
 	s.mu.RUnlock()
 
-	if serv == nil {
-		return nil, ""
-	} else {
-		list, currHash := serv.InstanceList()
-		return lo.Map(list, func(item *ServiceInstance, index int) ServiceInstance {
-			return *item
-		}), currHash
-	}
+	// service must be existed (created by caller)
+	list, currHash := serv.InstanceList()
+	return lo.Map(list, func(item *ServiceInstance, index int) ServiceInstance {
+		return *item
+	}), currHash
 }
 
 type Service struct {
@@ -91,15 +114,17 @@ type Service struct {
 	mu      sync.RWMutex
 	smap    map[string]*ServiceInstance
 
-	nowHash string
-	quit    chan struct{}
+	currHash    string
+	quit        chan struct{}
+	eventUpdate *sync.Cond
 }
 
 const HealthCheckInterval = time.Second * 5
 const HealthCheckMaxFails = 1
 
 func newService(service string) *Service {
-	s := &Service{service: service, smap: make(map[string]*ServiceInstance)}
+	s := &Service{service: service, smap: make(map[string]*ServiceInstance), eventUpdate: sync.NewCond(&sync.Mutex{})}
+	s.currHash = EmptyInstanceHash
 	go s.healthCheck()
 	return s
 }
@@ -164,7 +189,7 @@ func (s *Service) resetHash() {
 	for _, instance := range s.smap {
 		__inst = append(__inst, *instance)
 	}
-	s.nowHash = CalInstanceHash(__inst)
+	s.currHash = CalInstanceHash(__inst)
 }
 
 func (s *Service) InstanceList() (list []*ServiceInstance, hash string) {
@@ -177,6 +202,6 @@ func (s *Service) InstanceList() (list []*ServiceInstance, hash string) {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].registerAt.Before(list[j].registerAt)
 	})
-	hash = s.nowHash
+	hash = s.currHash
 	return
 }

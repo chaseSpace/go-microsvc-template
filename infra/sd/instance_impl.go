@@ -40,7 +40,7 @@ func NewInstance(svc string, genClient GenClient, discovery abstract.ServiceDisc
 		quit:       make(chan struct{}),
 		sd:         discovery,
 	}
-	//_ = ins.query() // activate
+	_ = ins.query(false) // first time query to respond to first rpc call
 	go ins.backgroundRefresh()
 	return ins
 }
@@ -91,6 +91,7 @@ func (i *InstanceImpl) isConnReady(instance *GrpcInstance) bool {
 
 func (i *InstanceImpl) backgroundRefresh() {
 	for {
+		st := time.Now()
 		err := i.query(true)
 		select {
 		case <-i.quit:
@@ -98,8 +99,13 @@ func (i *InstanceImpl) backgroundRefresh() {
 			return
 		default:
 			if err != nil {
-				xlog.Error(logPrefix+"query err, hold on...", zap.Error(err))
+				xlog.Error(logPrefix+"query err, hold on...", zap.Error(err), zap.String("query-svc", i.svc))
 				time.Sleep(time.Second * 3)
+			} else {
+				if time.Since(st) < time.Second {
+					xlog.Warn(logPrefix + "query too fast, hold on...")
+					time.Sleep(time.Second * 3)
+				}
 			}
 		}
 	}

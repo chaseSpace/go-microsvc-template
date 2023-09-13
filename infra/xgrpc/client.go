@@ -14,6 +14,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
+	"microsvc/pkg/xtime"
 	"os"
 	"path/filepath"
 	"strings"
@@ -129,9 +130,9 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 	var err error
 
 	defer func() {
-		elapsed := time.Now().Sub(start)
+		elapsed := xtime.FormatDur(time.Since(start))
 		zapFields := []zap.Field{
-			zap.String("method", method), zap.String("dur", elapsed.String()),
+			zap.String("method", method), zap.String("dur", elapsed),
 			zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)),
 			zap.Any("req", req), zap.Any("rsp", reply),
 		}

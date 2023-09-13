@@ -155,7 +155,7 @@ func main() {
 }
 
 Congratulations! ^_^
-serving gRPC on grpc://localhost:60797
+serving gRPC on localhost:60797
 
 {"LEVEL":"x-info","TS":"2023-08-29 15:44:41.625","CALLER":"sd/base.go:61","MSG":"sd: register svc success","reg_svc":"go-admin","addr":"192.168.10.9:60797","SERVICE":"go-admin"}
 

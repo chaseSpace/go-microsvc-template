@@ -15,7 +15,7 @@ type XErr struct {
 // FromErr from error type to XErr, that might be fail then nil returned
 func FromErr(err error) (t XErr, ok bool) {
 	if err == nil {
-		return t, true
+		return ErrNil, true
 	}
 	if t, ok = err.(XErr); ok {
 		return

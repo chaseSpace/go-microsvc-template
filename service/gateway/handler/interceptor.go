@@ -6,6 +6,7 @@ import (
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
+	"microsvc/pkg/xtime"
 	"microsvc/protocol/svc"
 	"microsvc/util"
 	"time"
@@ -57,7 +58,7 @@ func logInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (res []byte, err 
 	xlog.Info("logInterceptor_start", zap.ByteString("path", ctx.Path()), zap.String("trace-id", tid))
 	defer func() {
 
-		elapsed := time.Since(start).String()
+		elapsed := xtime.FormatDur(time.Since(start))
 		if xerr.IsNil(err) {
 			xlog.Info("handle_ok", zap.ByteString("path", ctx.Path()), zap.String("dur", elapsed), zap.String("trace-id", tid))
 		} else {

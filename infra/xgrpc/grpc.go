@@ -14,6 +14,7 @@ import (
 	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
+	"microsvc/pkg/xtime"
 	proto2 "microsvc/proto"
 	"microsvc/protocol/svc"
 	"microsvc/util"
@@ -69,7 +70,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 	grpcAddr := fmt.Sprintf(":%d", port)
 
 	fmt.Println("\nCongratulations! ^_^")
-	fmt.Printf("serving gRPC on grpc://localhost%v\n", grpcAddr)
+	fmt.Printf("serving gRPC on localhost%v\n", grpcAddr)
 
 	defer graceful.AddStopFunc(func() { // grpc server should stop before http
 		x.svr.GracefulStop()
@@ -251,10 +252,10 @@ func ToCommonResponse(ctx context.Context, req interface{}, info *grpc.UnaryServ
 func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	start := time.Now()
 	resp, err = handler(ctx, req)
-	elapsed := time.Now().Sub(start)
+	elapsed := xtime.FormatDur(time.Since(start))
 
 	zapFields := []zap.Field{
-		zap.String("method", info.FullMethod), zap.String("dur", elapsed.String()),
+		zap.String("method", info.FullMethod), zap.String("dur", elapsed),
 		zap.Any("req", req), zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)),
 	}
 	if err != nil {

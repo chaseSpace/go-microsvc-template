@@ -17,7 +17,7 @@ type ServiceDiscovery interface {
 // ServiceInstance 表示注册的单个实例
 type ServiceInstance struct {
 	Id       string
-	Service  string
+	Name     string
 	IsUDP    bool // TCP by default
 	Host     string
 	Port     int
@@ -32,8 +32,8 @@ func (s ServiceInstance) Addr() string {
 }
 
 func (s ServiceInstance) Check() error {
-	if s.Service == "" || s.Id == "" {
-		return errors.New("ServiceInstance must have service name and id")
+	if s.Name == "" || s.Id == "" {
+		return errors.New("ServiceInstance must have valid service name and id")
 	}
 	if s.Host == "" || s.Port < 1 {
 		return errors.New("ServiceInstance must have valid address and port")
