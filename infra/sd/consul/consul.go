@@ -12,6 +12,7 @@ import (
 type Consul struct {
 	client    *capi.Client
 	lastIndex uint64
+	registry  map[string]string // svc -> id
 }
 
 var _ abstract.ServiceDiscovery = (*Consul)(nil)
@@ -19,9 +20,7 @@ var _ abstract.ServiceDiscovery = (*Consul)(nil)
 const Name = "Consul"
 
 func New() (*Consul, error) {
-	// 默认连接 Consul HTTP API Addr> 127.0.0.1:8500
 	cfg := capi.DefaultConfig()
-	//cfg.Address 可修改
 	client, err := capi.NewClient(cfg)
 	if err != nil {
 		return nil, err
@@ -33,27 +32,39 @@ func (c *Consul) Name() string {
 	return Name
 }
 
-func (c *Consul) Register(serviceName string, address string, port int, metadata map[string]string) error {
-	tcpAddr := fmt.Sprintf("%s:%d", address, port)
+func (c *Consul) Register(serviceName string, host string, port int, metadata map[string]string) error {
+	if c.registry[serviceName] != "" {
+		return fmt.Errorf("consul: already registered")
+	}
+	id := util.RandomString(4)
+	tcpAddr := fmt.Sprintf("%s:%d", host, port)
 	params := &capi.AgentServiceRegistration{
-		//addr:  默认等于Name
+		ID:      id,
 		Name:    serviceName,
 		Tags:    []string{"microsvc"},
 		Port:    port,
-		Address: address,
+		Address: host,
 		Meta:    metadata,
 		Check:   newHealthCheck("microsvc-"+serviceName+"-health", tcpAddr),
 	}
 
 	err := c.client.Agent().ServiceRegister(params)
-	return err
+	if err != nil {
+		return err
+	}
+	c.registry[serviceName] = id
+	return nil
 }
 
-func (c *Consul) Deregister(serviceName string) error {
-	return c.client.Agent().ServiceDeregister(serviceName)
+func (c *Consul) Deregister(service string) error {
+	if c.registry[service] == "" {
+		return fmt.Errorf("consul: not register")
+	}
+	delete(c.registry, service)
+	return c.client.Agent().ServiceDeregister(service)
 }
 
-func (c *Consul) Discovery(ctx context.Context, serviceName string, block bool) (list []abstract.ServiceInstance, err error) {
+func (c *Consul) Discover(ctx context.Context, serviceName string, block bool) (list []abstract.ServiceInstance, err error) {
 	err = context.DeadlineExceeded // default
 	dur := time.Minute
 	if val := ctx.Value(abstract.CtxDurKey{}); val != nil {
@@ -83,7 +94,7 @@ func (c *Consul) getInstances(serviceName string, waitTime time.Duration, block 
 		inst := abstract.ServiceInstance{
 			ID:       s.Service.ID,
 			Name:     serviceName,
-			Address:  s.Service.Address,
+			Host:     s.Service.Address,
 			Port:     s.Service.Port,
 			Metadata: s.Service.Meta,
 		}

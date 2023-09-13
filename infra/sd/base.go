@@ -6,13 +6,13 @@ import (
 	"microsvc/deploy"
 	"microsvc/infra/sd/abstract"
 	"microsvc/infra/sd/consul"
-	"microsvc/infra/sd/mdns"
+	"microsvc/infra/sd/simple_sd"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/util/ip"
 )
 
-var registeredSvc []string
+var registry []string
 
 const logPrefix = "sd: "
 
@@ -22,8 +22,11 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		var err error
 		if cc.IsDevEnv() {
-			// mDNS is a light-weight service register/discovery resolution for dev env
-			rootSD = mdns.New()
+			if cc.SimpleSdHttpPort > 0 {
+				rootSD = simple_sd.New(cc.SimpleSdHttpPort)
+			} else {
+				err = fmt.Errorf("cc.SimpleSdHttpPort must be greater than zero")
+			}
 		} else {
 			// use etcd/consul by your like
 			rootSD, err = NewConsulSD()
@@ -72,12 +75,12 @@ func MustRegister(reg ...deploy.RegisterSvc) {
 			zap.String("reg_svc", name),
 			zap.String("addr", fmt.Sprintf("%s:%d", addr, port)))
 
-		registeredSvc = append(registeredSvc, name)
+		registry = append(registry, name)
 	}
 }
 
 func Stop() {
-	for _, s := range registeredSvc {
+	for _, s := range registry {
 		err := rootSD.Deregister(s)
 		if err != nil {
 			xlog.Error(logPrefix+"deregister fail", zap.String("sd-name", rootSD.Name()), zap.Error(err), zap.String("svc", s))

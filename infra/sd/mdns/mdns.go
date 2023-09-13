@@ -2,13 +2,13 @@ package mdns
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/samber/lo"
 	"microsvc/infra/sd/abstract"
 	"microsvc/util"
 	"microsvc/xvendor/mdns"
 	"net"
-	"os"
 	"time"
 )
 
@@ -29,8 +29,13 @@ WARNING:
 // protocol using UDP.
 // Note: Mdns should not be used in a production environment.
 type Mdns struct {
-	server    map[string]*mdns.Server
+	registry  map[string]*registry // svc -> id
 	instCache map[string]map[string]int8
+}
+
+type registry struct {
+	s  *mdns.Server
+	id string
 }
 
 var _ abstract.ServiceDiscovery = (*Mdns)(nil)
@@ -42,20 +47,24 @@ const mDnsDomain = "microsvc."
 const Name = "mDNS"
 
 func New() *Mdns {
-	return &Mdns{server: make(map[string]*mdns.Server), instCache: map[string]map[string]int8{}}
+	return &Mdns{registry: make(map[string]*registry), instCache: map[string]map[string]int8{}}
 }
 
 func (m *Mdns) Name() string {
 	return Name
 }
 
-func (m *Mdns) Register(serviceName string, address string, port int, metadata map[string]string) (err error) {
-	if m.server[serviceName] != nil {
-		return fmt.Errorf("already registered")
+func getServerId(svc, host string, port int) string {
+	return fmt.Sprintf("%s:%s:%d", svc, host, port)
+}
+
+func (m *Mdns) Register(serviceName string, host string, port int, metadata map[string]string) (err error) {
+	if m.registry[serviceName] != nil {
+		return fmt.Errorf("mdns: already registered")
 	}
-	host, _ := os.Hostname()
-	s, err := mdns.NewMDNSService(host+util.RandomString(3), serviceName, mDnsDomain, "", port,
-		[]net.IP{[]byte{127, 0, 0, 1}}, nil)
+	id := util.RandomString(4)
+	s, err := mdns.NewMDNSService(id, serviceName, mDnsDomain, "", port,
+		[]net.IP{[]byte{127, 0, 0, 1}}, []string{util.ToJsonStr(metadata)})
 	if err != nil {
 		return err
 	}
@@ -63,18 +72,23 @@ func (m *Mdns) Register(serviceName string, address string, port int, metadata m
 	if err != nil {
 		return err
 	}
-	m.server[serviceName] = server
+	m.registry[serviceName] = &registry{
+		s:  server,
+		id: id,
+	}
 	return
 }
 
-func (m *Mdns) Deregister(serviceName string) error {
-	if ser := m.server[serviceName]; ser != nil {
-		return ser.Shutdown()
+func (m *Mdns) Deregister(service string) error {
+	if rs := m.registry[service]; rs == nil {
+		return fmt.Errorf("mdns: not register")
+	} else {
+		delete(m.registry, service)
+		return rs.s.Shutdown()
 	}
-	return nil
 }
 
-func (m *Mdns) Discovery(ctx context.Context, svc string, block bool) (instances []abstract.ServiceInstance, err error) {
+func (m *Mdns) Discover(ctx context.Context, svc string, block bool) (instances []abstract.ServiceInstance, err error) {
 	asyncRecv := func(entries chan *mdns.ServiceEntry) {
 		defer func() {
 			//fmt.Printf("2222 %+v  %s\n", instances, svc)
@@ -87,11 +101,13 @@ func (m *Mdns) Discovery(ctx context.Context, svc string, block bool) (instances
 				if entry == nil { // channel closed
 					return
 				}
+				md := make(map[string]string)
+				_ = json.Unmarshal([]byte(entry.Info), &md)
 				instances = append(instances, abstract.ServiceInstance{
 					Name:     entry.Name, // hostname.service.domain by mDNS
-					Address:  entry.AddrV4.String(),
+					Host:     entry.AddrV4.String(),
 					Port:     entry.Port,
-					Metadata: nil,
+					Metadata: md,
 				})
 			}
 		}
