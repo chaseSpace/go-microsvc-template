@@ -37,10 +37,10 @@ func newRes(data interface{}, code int, err error) *HttpRes {
 	}
 }
 
-type pingReq struct {
+type PingReq struct {
 	Ping bool
 }
-type pingRspBody struct {
+type PingRspBody struct {
 	Pong bool
 }
 
@@ -50,12 +50,12 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := new(pingReq)
+	req := new(PingReq)
 
 	var err error
 	var code = 200
 
-	var response *pingRspBody
+	var response *PingRspBody
 
 	defer func() {
 		rsp := ToJson(newRes(response, code, err))
@@ -75,11 +75,11 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = r.Body.Close()
 	if req.Ping {
-		response = &pingRspBody{Pong: true}
+		response = &PingRspBody{Pong: true}
 	}
 }
 
-type registerReq struct {
+type RegisterReq struct {
 	ServiceInstance
 }
 
@@ -88,7 +88,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(ToJson(newRes(nil, 400, ErrMethod)))
 		return
 	}
-	req := new(registerReq)
+	req := new(RegisterReq)
 
 	st := time.Now()
 
@@ -124,7 +124,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type deregisterReq struct {
+type DeregisterReq struct {
 	Service string
 	Id      string
 }
@@ -134,7 +134,7 @@ func handleDeregister(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(ToJson(newRes(nil, 400, ErrMethod)))
 		return
 	}
-	req := new(deregisterReq)
+	req := new(DeregisterReq)
 
 	var err error
 	var code = 200
@@ -168,12 +168,12 @@ func handleDeregister(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type discoveryReq struct {
+type DiscoveryReq struct {
 	Service   string
 	LastHash  string
 	WaitMaxMs int64
 }
-type discoveryRsp struct {
+type DiscoveryRspBody struct {
 	Instances []ServiceInstance
 	Hash      string
 }
@@ -186,12 +186,12 @@ func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := new(discoveryReq)
+	body := new(DiscoveryReq)
 
 	var err error
 	var code = 200
 
-	var response *discoveryRsp
+	var response *DiscoveryRspBody
 
 	st := time.Now()
 	defer func() {
@@ -231,9 +231,56 @@ func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 	)
 	instances, hash, err = Sd.Discovery(ctx, body.Service, body.LastHash)
 	if err == nil {
-		response = &discoveryRsp{
+		response = &DiscoveryRspBody{
 			Instances: instances,
 			Hash:      hash,
 		}
 	}
+}
+
+type HealthCheckReq struct {
+	Service string
+	Id      string
+}
+type HealthCheckRspBody struct {
+	Registered bool
+}
+
+func handleHealthCheck(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		_, _ = w.Write(ToJson(newRes(nil, 400, ErrMethod)))
+		return
+	}
+
+	req := new(HealthCheckReq)
+	rspBody := new(HealthCheckRspBody)
+
+	var err error
+	var code = 200
+
+	st := time.Now()
+	defer func() {
+		rsp := ToJson(newRes(rspBody, code, err))
+		_, _ = w.Write(rsp)
+		if err != nil {
+			Sdlogger.Error("handleHealthCheck: req:%+v error: %v", req, err)
+			return
+		}
+		Sdlogger.Debug("handleHealthCheck OK, dur:%dms  req:%+v  --rsp:%s", time.Since(st).Milliseconds(), req, rsp)
+	}()
+
+	err = json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		code = 400
+		err = errors.Wrap(ErrParams, err.Error())
+		return
+	}
+	_ = r.Body.Close()
+	if req.Service == "" || req.Id == "" {
+		code = 400
+		err = errors.Wrap(ErrParams, "provide a valid service and id")
+		return
+	}
+
+	rspBody.Registered = Sd.HealthCheck(req.Service, req.Id)
 }

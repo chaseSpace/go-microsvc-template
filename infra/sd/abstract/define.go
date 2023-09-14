@@ -7,9 +7,10 @@ import (
 
 type ServiceDiscovery interface {
 	Name() string
-	Register(serviceName string, host string, port int, metadata map[string]string) error
+	Register(service string, host string, port int, metadata map[string]string) error
 	Deregister(service string) error
-	Discover(ctx context.Context, serviceName string, block bool) ([]ServiceInstance, error)
+	Discover(ctx context.Context, service string, block bool) ([]ServiceInstance, error)
+	HealthCheck(ctx context.Context, service string) error
 }
 
 // ServiceInstance 表示注册的单个实例

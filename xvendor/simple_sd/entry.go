@@ -15,9 +15,9 @@ func NewSimpleSdHTTPServer(port int) *HTTPServer {
 }
 
 func (h *HTTPServer) IsRunningOnLocal() bool {
-	body := new(pingRspBody)
+	body := new(PingRspBody)
 	rsp := newRes(body, 0, nil)
-	_, _, errs := gorequest.New().Post(fmt.Sprintf("http://localhost:%d/ping", h.port)).SendStruct(&pingReq{Ping: true}).EndStruct(rsp)
+	_, _, errs := gorequest.New().Post(fmt.Sprintf("http://localhost:%d/ping", h.port)).SendStruct(&PingReq{Ping: true}).EndStruct(rsp)
 	if len(errs) == 0 {
 		return body.Pong
 	}
@@ -31,6 +31,7 @@ func (h *HTTPServer) Run() error {
 	http.HandleFunc("/service/register", handleRegister)
 	http.HandleFunc("/service/deregister", handleDeregister)
 	http.HandleFunc("/service/discovery", handleDiscovery)
+	http.HandleFunc("/service/health_check", handleHealthCheck)
 
 	//Sdlogger.Info("SimpleSdHTTPServer is running on http://localhost:%d", h.port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", h.port), nil)

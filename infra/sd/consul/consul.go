@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	capi "github.com/hashicorp/consul/api"
+	"github.com/samber/lo"
 	"microsvc/infra/sd/abstract"
+	"microsvc/pkg/xerr"
+	"microsvc/pkg/xlog"
 	"microsvc/util"
 	"time"
 )
@@ -12,7 +15,7 @@ import (
 type Consul struct {
 	client    *capi.Client
 	lastIndex uint64
-	registry  map[string]string // svc -> id
+	registry  map[string]*capi.AgentServiceRegistration // svc -> id
 }
 
 var _ abstract.ServiceDiscovery = (*Consul)(nil)
@@ -25,7 +28,7 @@ func New() (*Consul, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Consul{client: client}, nil
+	return &Consul{client: client, registry: make(map[string]*capi.AgentServiceRegistration)}, nil
 }
 
 func (c *Consul) Name() string {
@@ -33,7 +36,7 @@ func (c *Consul) Name() string {
 }
 
 func (c *Consul) Register(serviceName string, host string, port int, metadata map[string]string) error {
-	if c.registry[serviceName] != "" {
+	if c.registry[serviceName] != nil {
 		return fmt.Errorf("consul: already registered")
 	}
 	id := util.RandomString(4)
@@ -52,13 +55,13 @@ func (c *Consul) Register(serviceName string, host string, port int, metadata ma
 	if err != nil {
 		return err
 	}
-	c.registry[serviceName] = id
+	c.registry[serviceName] = params // save register params that could be used in next registration
 	return nil
 }
 
 func (c *Consul) Deregister(service string) error {
-	if c.registry[service] == "" {
-		return fmt.Errorf("consul: not register")
+	if c.registry[service] == nil {
+		return fmt.Errorf("never called Register")
 	}
 	delete(c.registry, service)
 	return c.client.Agent().ServiceDeregister(service)
@@ -74,6 +77,40 @@ func (c *Consul) Discover(ctx context.Context, serviceName string, block bool) (
 		list, err = c.getInstances(serviceName, dur, block)
 	})
 	return
+}
+
+func (c *Consul) HealthCheck(ctx context.Context, service string) error {
+	params := c.registry[service]
+	if params == nil {
+		return xerr.ErrInternal.NewMsg("never called Register")
+	}
+	err := context.DeadlineExceeded // default
+	dur := time.Minute
+	if val := ctx.Value(abstract.CtxDurKey{}); val != nil {
+		dur = val.(time.Duration) // use duration here, because Consul do not support block by context
+	}
+
+	offline := true
+	util.RunTask(ctx, func() {
+		var list []abstract.ServiceInstance
+		list, err = c.getInstances(service, dur, false)
+		lo.ForEach(list, func(item abstract.ServiceInstance, index int) {
+			if item.ID == params.ID {
+				offline = false
+			}
+		})
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if offline {
+		xlog.Warn(fmt.Sprintf("consul.HealthCheck: service [%s - id:%s] offline, do re-register now", service, params.ID))
+		err = c.client.Agent().ServiceRegister(params)
+		return err
+	}
+	return nil
 }
 
 func (c *Consul) getInstances(serviceName string, waitTime time.Duration, block bool) (list []abstract.ServiceInstance, err error) {

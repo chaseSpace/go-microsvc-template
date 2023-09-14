@@ -133,6 +133,11 @@ func (m *Mdns) Discover(ctx context.Context, svc string, block bool) (instances 
 	}
 }
 
+func (m *Mdns) HealthCheck(ctx context.Context, service string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m *Mdns) updateCache(serviceName string, instances []abstract.ServiceInstance) (map[string]int8, bool) {
 	changed := false
 

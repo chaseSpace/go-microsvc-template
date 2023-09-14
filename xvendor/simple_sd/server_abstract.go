@@ -12,6 +12,7 @@ type ServiceDiscovery interface {
 	Register(instance ServiceInstance) error
 	Deregister(service, id string) error
 	Discovery(ctx context.Context, service string, lastHash string) ([]ServiceInstance, string, error)
+	HealthCheck(service, id string) bool
 }
 
 // ServiceInstance 表示注册的单个实例

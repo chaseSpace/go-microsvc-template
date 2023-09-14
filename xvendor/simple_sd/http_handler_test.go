@@ -22,17 +22,17 @@ func TestHTTPServer_handlePing(t *testing.T) {
 		{
 			name:    "T-invalid ping body",
 			req:     []int{1},
-			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(pingReq)).Error())),
+			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(PingReq)).Error())),
 		},
 		{
 			name:    "T-ping body:false",
-			req:     pingReq{Ping: false},
+			req:     PingReq{Ping: false},
 			wantRes: newRes(nil, 200, nil),
 		},
 		{
 			name:    "T-ping body:true",
-			req:     pingReq{Ping: true},
-			wantRes: newRes(pingRspBody{Pong: true}, 200, nil),
+			req:     PingReq{Ping: true},
+			wantRes: newRes(PingRspBody{Pong: true}, 200, nil),
 		},
 	}
 
@@ -71,7 +71,7 @@ func TestHTTPServer_handleRegister(t *testing.T) {
 		{
 			name:    "T-无效body",
 			req:     []int{1},
-			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(registerReq)).Error())),
+			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(RegisterReq)).Error())),
 		},
 		{
 			name: "T-空service",
@@ -170,25 +170,25 @@ func TestHTTPServer_handleDeregister(t *testing.T) {
 		{
 			name:    "T-无效body",
 			req:     []int{1},
-			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(deregisterReq)).Error())),
+			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(DeregisterReq)).Error())),
 		},
 		{
 			name: "T-空service",
-			req: deregisterReq{
+			req: DeregisterReq{
 				Service: "",
 			},
 			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, "provide a valid service, id")),
 		},
 		{
 			name: "T-空id",
-			req: deregisterReq{
+			req: DeregisterReq{
 				Service: "go-user",
 			},
 			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, "provide a valid service, id")),
 		},
 		{
 			name: "T-注销未注册的实例",
-			req: deregisterReq{
+			req: DeregisterReq{
 				Service: "go-user",
 				Id:      "any id",
 			},
@@ -197,7 +197,7 @@ func TestHTTPServer_handleDeregister(t *testing.T) {
 		},
 		{
 			name: "T-正常注销实例",
-			req: deregisterReq{
+			req: DeregisterReq{
 				Service: "go-user",
 				Id:      instId,
 			},
@@ -210,7 +210,7 @@ func TestHTTPServer_handleDeregister(t *testing.T) {
 		Init() // 每次重新初始化
 
 		if tt.regFirst {
-			inst := tt.req.(deregisterReq)
+			inst := tt.req.(DeregisterReq)
 			err := Sd.Register(ServiceInstance{
 				Id:       instId,
 				Name:     inst.Service,
@@ -274,56 +274,56 @@ func TestHTTPServer_handleDiscovery(t *testing.T) {
 		{
 			name:    "T-无效body",
 			req:     []int{1},
-			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(discoveryReq)).Error())),
+			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, json.Unmarshal([]byte(`[1]`), new(DiscoveryReq)).Error())),
 		},
 		{
 			name: "T-空service",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service: "",
 			},
 			wantRes: newRes(nil, 400, errors.Wrap(ErrParams, "params without service")),
 		},
 		{
 			name: "T-设置Service、无Hash，有1个实例（应立即返回）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service: "go-user",
 			},
 			regInstances: __inst1,
-			wantRes: newRes(discoveryRsp{
+			wantRes: newRes(DiscoveryRspBody{
 				Instances: __inst1,
 				Hash:      __oneInstHash,
 			}, 200, nil),
 		},
 		{
 			name: "T-设置Service、无Hash、WaitMaxMs=10, 无实例（应立即返回）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service:   "go-user",
 				WaitMaxMs: 10, // 即使设置了也不会等待，因为无Hash
 			},
-			wantRes: newRes(discoveryRsp{Instances: __inst1[:0], Hash: EmptyInstanceHash}, 200, nil),
+			wantRes: newRes(DiscoveryRspBody{Instances: __inst1[:0], Hash: EmptyInstanceHash}, 200, nil),
 		},
 		{
 			name: "T-设置Service、无Hash、WaitMaxMs=10, 有实例（应立即返回）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service:   "go-user",
 				WaitMaxMs: 10, // 即使设置了也不会等待，因为无Hash
 			},
 			regInstances: __inst1,
-			wantRes:      newRes(discoveryRsp{Instances: __inst1, Hash: __oneInstHash}, 200, nil),
+			wantRes:      newRes(DiscoveryRspBody{Instances: __inst1, Hash: __oneInstHash}, 200, nil),
 		},
 		{
 			name: "T-设置Service、无实例对应Hash、WaitMaxMs=10, 无实例（应等待10ms再返回空实例以及相同hash）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service:   "go-user",
 				WaitMaxMs: 10,
 				LastHash:  EmptyInstanceHash,
 			},
 			shouldCostMs: time.Millisecond.Milliseconds() * 10,
-			wantRes:      newRes(discoveryRsp{Instances: __inst1[:0], Hash: EmptyInstanceHash}, 200, nil),
+			wantRes:      newRes(DiscoveryRspBody{Instances: __inst1[:0], Hash: EmptyInstanceHash}, 200, nil),
 		},
 		{
 			name: "T-设置Service、无实例对应Hash、WaitMaxMs=20, 10ms后注册1个实例（应等待10ms再返回1个实例）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service:   "go-user",
 				WaitMaxMs: 20, // 稍微大于 regAfter
 				LastHash:  EmptyInstanceHash,
@@ -331,25 +331,25 @@ func TestHTTPServer_handleDiscovery(t *testing.T) {
 			regAfter:          time.Millisecond * 10,
 			regInstancesAfter: __inst1,
 			shouldCostMs:      time.Millisecond.Milliseconds() * 10,
-			wantRes:           newRes(discoveryRsp{Instances: __inst1, Hash: __oneInstHash}, 200, nil),
+			wantRes:           newRes(DiscoveryRspBody{Instances: __inst1, Hash: __oneInstHash}, 200, nil),
 		},
 		{
 			name: "T-设置Service、单实例的Hash、WaitMaxMs=10, 注册单实例（应等待10ms再返回1个相同实例）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service:   "go-user",
 				WaitMaxMs: 10,
 				LastHash:  __oneInstHash,
 			},
 			shouldCostMs: time.Millisecond.Milliseconds() * 10,
 			regInstances: __inst1,
-			wantRes: newRes(discoveryRsp{
+			wantRes: newRes(DiscoveryRspBody{
 				Instances: __inst1,
 				Hash:      __oneInstHash,
 			}, 200, nil),
 		},
 		{
 			name: "T-设置Service、单实例的Hash、WaitMaxMs=1010, 注册单实例，1000ms后再注册另一实例（应等待1000ms再返回2个实例）",
-			req: &discoveryReq{
+			req: &DiscoveryReq{
 				Service:   "go-user",
 				WaitMaxMs: 1050, // 需要稍微大于 regAfter
 				LastHash:  __oneInstHash,
@@ -358,7 +358,7 @@ func TestHTTPServer_handleDiscovery(t *testing.T) {
 			regInstances:      __inst1,
 			regAfter:          time.Millisecond * 1000,
 			regInstancesAfter: __inst2,
-			wantRes: newRes(discoveryRsp{
+			wantRes: newRes(DiscoveryRspBody{
 				Instances: append(__inst1, __inst2...),
 				Hash:      __twoInstHash,
 			}, 200, nil),
@@ -400,7 +400,7 @@ func TestHTTPServer_handleDiscovery(t *testing.T) {
 			t.Fatalf(tt.name+"--handler unexpected statuscode: got %v, want %v", status, http.StatusOK)
 		}
 
-		//body, ok := tt.req.(*discoveryReq)
+		//body, ok := tt.req.(*DiscoveryReq)
 		//if ok && body.WaitMaxMs > 0 && !isMillsTimeCostEqual(cost, tt.regAfter.Milliseconds()) {
 		//	t.Fatalf(tt.name+"--handler unexpected waitMs: got %v, want %v", cost, tt.regAfter.Milliseconds())
 		//}
@@ -426,7 +426,7 @@ func doRegister(insts []ServiceInstance) []byte {
 	for _, inst := range insts {
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(handleRegister)
-		req, _ := http.NewRequest("POST", "/service/register", bytes.NewReader(ToJson(registerReq{inst})))
+		req, _ := http.NewRequest("POST", "/service/register", bytes.NewReader(ToJson(RegisterReq{inst})))
 		handler.ServeHTTP(rr, req)
 		res = rr.Body.Bytes()
 	}
@@ -436,7 +436,7 @@ func doRegister(insts []ServiceInstance) []byte {
 func doDiscovery(service string) []byte {
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(handleDiscovery)
-	req, _ := http.NewRequest("POST", "/service/discovery", bytes.NewReader(ToJson(&discoveryReq{
+	req, _ := http.NewRequest("POST", "/service/discovery", bytes.NewReader(ToJson(&DiscoveryReq{
 		Service: service,
 	})))
 	handler.ServeHTTP(rr, req)
@@ -444,7 +444,7 @@ func doDiscovery(service string) []byte {
 }
 
 func mustHaveInstance(t *testing.T, insts []ServiceInstance, hash string) {
-	var wantRes = &discoveryRsp{
+	var wantRes = &DiscoveryRspBody{
 		Instances: insts,
 		Hash:      hash,
 	}
@@ -456,7 +456,7 @@ func mustHaveInstance(t *testing.T, insts []ServiceInstance, hash string) {
 }
 
 func mustNoInstance(t *testing.T) {
-	var wantRes = &discoveryRsp{}
+	var wantRes = &DiscoveryRspBody{}
 	resBytes := doDiscovery("go-user")
 
 	if !bytes.Equal(resBytes, ToJson(newRes(wantRes, 200, nil))) {

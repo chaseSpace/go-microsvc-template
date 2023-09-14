@@ -1,14 +1,15 @@
 package sd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
 	"microsvc/deploy"
 	"microsvc/infra/sd/abstract"
-	"microsvc/infra/sd/consul"
 	"microsvc/infra/sd/simple_sd"
 	"microsvc/pkg/xlog"
+	"microsvc/util"
 	"microsvc/util/ip"
 	simple_sd2 "microsvc/xvendor/simple_sd"
 	"net/http"
@@ -28,15 +29,16 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 			if cc.SimpleSdHttpPort > 0 {
 				rootSD = simple_sd.New(cc.SimpleSdHttpPort)
 				tryRunSimpleSdOnDev(cc.SimpleSdHttpPort)
+				go startSdDaemon()
 			} else {
 				err = fmt.Errorf("invalid cc.SimpleSdHttpPort: %d", cc.SimpleSdHttpPort)
 			}
 		} else {
 			// take consul or etcd(not have yet) in your like
-			rootSD, err = consul.New()
-			if err != nil {
-				xlog.Error(logPrefix+"New failed", zap.Error(err))
-			}
+			//rootSD, err = consul.New()
+			//if err != nil {
+			//	xlog.Error(logPrefix+"New failed", zap.Error(err))
+			//}
 		}
 		onEnd(must, err)
 	}
@@ -81,6 +83,23 @@ func Stop() {
 		} else {
 			xlog.Info(logPrefix+"deregister success", zap.String("sd-name", rootSD.Name()), zap.String("svc", s))
 		}
+	}
+}
+
+// startSdDaemon automatically reconnect the service to the registry center in case of service
+// unregister due to registry center abnormalities.
+func startSdDaemon() {
+	var err error
+	for {
+		for _, service := range registeredServices {
+			util.RunTaskWithCtxTimeout(time.Second*3, func(ctx context.Context) {
+				err = rootSD.HealthCheck(ctx, service)
+				if err != nil {
+					xlog.Error("sd-daemon: HealthCheck failed", zap.String("service", service), zap.Error(err))
+				}
+			})
+		}
+		time.Sleep(time.Second * 3)
 	}
 }
 

@@ -83,6 +83,10 @@ func (s *SimpleSd) Discovery(ctx context.Context, service string, lastHash strin
 	}
 }
 
+func (s *SimpleSd) HealthCheck(service, id string) bool {
+	return s.getService(service).containsInstance(id)
+}
+
 func (s *SimpleSd) getService(service string) *Service {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -180,6 +184,12 @@ func (s *Service) Remove(id string) error {
 	delete(s.smap, id)
 	s.resetHash()
 	return nil
+}
+
+func (s *Service) containsInstance(id string) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.smap[id] != nil
 }
 
 func (s *Service) resetHash() {
