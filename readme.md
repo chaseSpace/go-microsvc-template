@@ -371,6 +371,7 @@ cp $GOPATH/bin/* tool/protoc_v24
 - gorm.io/driver/mysql v1.5.1
 - gorm.io/gorm v1.25.3
 - github.com/samber/lo v1.38.1
+- github.com/sony/gobreaker v0.5.0
 
 #### 资源链接
 
