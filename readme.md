@@ -257,7 +257,10 @@ go mod download
 # 启动服务
 go run service/user/main.go
 go run service/admin/main.go
+go run service/gateway/main.go
 ...
+
+# 调用gateway，参考 test/gateway/apitest.http
 ```
 
 ### 4. 示例集合
