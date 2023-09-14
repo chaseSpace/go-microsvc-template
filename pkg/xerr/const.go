@@ -22,4 +22,5 @@ var (
 var (
 	_             = 0
 	ErrBizTimeout = XErr{Code: 1000, Msg: "ErrBizTimeout"}
+	ErrThirdParty = XErr{Code: 1001, Msg: "ErrThirdParty"}
 )

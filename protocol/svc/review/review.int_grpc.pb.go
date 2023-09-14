@@ -18,90 +18,90 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// UserIntClient is the client API for UserInt service.
+// ReviewIntClient is the client API for ReviewInt service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserIntClient interface {
+type ReviewIntClient interface {
 	// 接口名称不要过于笼统，这样不便于搜索
 	// good：ReviewResource
 	// bad: Review
 	ReviewResource(ctx context.Context, in *ReviewResourceReq, opts ...grpc.CallOption) (*ReviewResourceRes, error)
 }
 
-type userIntClient struct {
+type reviewIntClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserIntClient(cc grpc.ClientConnInterface) UserIntClient {
-	return &userIntClient{cc}
+func NewReviewIntClient(cc grpc.ClientConnInterface) ReviewIntClient {
+	return &reviewIntClient{cc}
 }
 
-func (c *userIntClient) ReviewResource(ctx context.Context, in *ReviewResourceReq, opts ...grpc.CallOption) (*ReviewResourceRes, error) {
+func (c *reviewIntClient) ReviewResource(ctx context.Context, in *ReviewResourceReq, opts ...grpc.CallOption) (*ReviewResourceRes, error) {
 	out := new(ReviewResourceRes)
-	err := c.cc.Invoke(ctx, "/svc.user.UserInt/ReviewResource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/svc.user.ReviewInt/ReviewResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserIntServer is the server API for UserInt service.
-// All implementations should embed UnimplementedUserIntServer
+// ReviewIntServer is the server API for ReviewInt service.
+// All implementations should embed UnimplementedReviewIntServer
 // for forward compatibility
-type UserIntServer interface {
+type ReviewIntServer interface {
 	// 接口名称不要过于笼统，这样不便于搜索
 	// good：ReviewResource
 	// bad: Review
 	ReviewResource(context.Context, *ReviewResourceReq) (*ReviewResourceRes, error)
 }
 
-// UnimplementedUserIntServer should be embedded to have forward compatible implementations.
-type UnimplementedUserIntServer struct {
+// UnimplementedReviewIntServer should be embedded to have forward compatible implementations.
+type UnimplementedReviewIntServer struct {
 }
 
-func (UnimplementedUserIntServer) ReviewResource(context.Context, *ReviewResourceReq) (*ReviewResourceRes, error) {
+func (UnimplementedReviewIntServer) ReviewResource(context.Context, *ReviewResourceReq) (*ReviewResourceRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReviewResource not implemented")
 }
 
-// UnsafeUserIntServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserIntServer will
+// UnsafeReviewIntServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ReviewIntServer will
 // result in compilation errors.
-type UnsafeUserIntServer interface {
-	mustEmbedUnimplementedUserIntServer()
+type UnsafeReviewIntServer interface {
+	mustEmbedUnimplementedReviewIntServer()
 }
 
-func RegisterUserIntServer(s grpc.ServiceRegistrar, srv UserIntServer) {
-	s.RegisterService(&UserInt_ServiceDesc, srv)
+func RegisterReviewIntServer(s grpc.ServiceRegistrar, srv ReviewIntServer) {
+	s.RegisterService(&ReviewInt_ServiceDesc, srv)
 }
 
-func _UserInt_ReviewResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ReviewInt_ReviewResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReviewResourceReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserIntServer).ReviewResource(ctx, in)
+		return srv.(ReviewIntServer).ReviewResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/svc.user.UserInt/ReviewResource",
+		FullMethod: "/svc.user.ReviewInt/ReviewResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserIntServer).ReviewResource(ctx, req.(*ReviewResourceReq))
+		return srv.(ReviewIntServer).ReviewResource(ctx, req.(*ReviewResourceReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserInt_ServiceDesc is the grpc.ServiceDesc for UserInt service.
+// ReviewInt_ServiceDesc is the grpc.ServiceDesc for ReviewInt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var UserInt_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "svc.user.UserInt",
-	HandlerType: (*UserIntServer)(nil),
+var ReviewInt_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "svc.user.ReviewInt",
+	HandlerType: (*ReviewIntServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ReviewResource",
-			Handler:    _UserInt_ReviewResource_Handler,
+			Handler:    _ReviewInt_ReviewResource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

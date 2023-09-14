@@ -5,11 +5,13 @@ option go_package = "microsvc/protocol/svc/review";
 message ReviewResourceReq{
   ReviewType type = 1;
   int64 uid = 2;
-  string content = 3;
-  string channel = 4; // review channel
+  int32 sex = 3;
+  string content = 4;
+  string channel = 5; // review channel
 }
 message ReviewResourceRes{
   ResultState state = 1;
+  // Add other fields as needed
 }
 
 enum ReviewType {
@@ -28,7 +30,7 @@ enum ResultState {
 
 // *Ext 是外部服务接口组，要鉴权
 // *Int 是内部服务接口组，可不鉴权
-service UserInt {
+service ReviewInt {
   // 接口名称不要过于笼统，这样不便于搜索
   // good：ReviewResource
   // bad: Review

@@ -31,7 +31,7 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
-func request_UserInt_ReviewResource_0(ctx context.Context, marshaler runtime.Marshaler, client UserIntClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_ReviewInt_ReviewResource_0(ctx context.Context, marshaler runtime.Marshaler, client ReviewIntClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ReviewResourceReq
 	var metadata runtime.ServerMetadata
 
@@ -48,7 +48,7 @@ func request_UserInt_ReviewResource_0(ctx context.Context, marshaler runtime.Mar
 
 }
 
-func local_request_UserInt_ReviewResource_0(ctx context.Context, marshaler runtime.Marshaler, server UserIntServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_ReviewInt_ReviewResource_0(ctx context.Context, marshaler runtime.Marshaler, server ReviewIntServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ReviewResourceReq
 	var metadata runtime.ServerMetadata
 
@@ -65,13 +65,13 @@ func local_request_UserInt_ReviewResource_0(ctx context.Context, marshaler runti
 
 }
 
-// RegisterUserIntHandlerServer registers the http handlers for service UserInt to "mux".
-// UnaryRPC     :call UserIntServer directly.
+// RegisterReviewIntHandlerServer registers the http handlers for service ReviewInt to "mux".
+// UnaryRPC     :call ReviewIntServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserIntHandlerFromEndpoint instead.
-func RegisterUserIntHandlerServer(ctx context.Context, mux *runtime.ServeMux, server UserIntServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterReviewIntHandlerFromEndpoint instead.
+func RegisterReviewIntHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ReviewIntServer) error {
 
-	mux.Handle("POST", pattern_UserInt_ReviewResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_ReviewInt_ReviewResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -79,12 +79,12 @@ func RegisterUserIntHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.UserInt/ReviewResource", runtime.WithHTTPPathPattern("/svc.user.UserInt/ReviewResource"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/svc.user.ReviewInt/ReviewResource", runtime.WithHTTPPathPattern("/svc.user.ReviewInt/ReviewResource"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_UserInt_ReviewResource_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ReviewInt_ReviewResource_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -92,16 +92,16 @@ func RegisterUserIntHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 			return
 		}
 
-		forward_UserInt_ReviewResource_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ReviewInt_ReviewResource_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterUserIntHandlerFromEndpoint is same as RegisterUserIntHandler but
+// RegisterReviewIntHandlerFromEndpoint is same as RegisterReviewIntHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterUserIntHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterReviewIntHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
@@ -121,41 +121,41 @@ func RegisterUserIntHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeM
 		}()
 	}()
 
-	return RegisterUserIntHandler(ctx, mux, conn)
+	return RegisterReviewIntHandler(ctx, mux, conn)
 }
 
-// RegisterUserIntHandler registers the http handlers for service UserInt to "mux".
+// RegisterReviewIntHandler registers the http handlers for service ReviewInt to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterUserIntHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterUserIntHandlerClient(ctx, mux, NewUserIntClient(conn))
+func RegisterReviewIntHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterReviewIntHandlerClient(ctx, mux, NewReviewIntClient(conn))
 }
 
-// RegisterUserIntHandlerClient registers the http handlers for service UserInt
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "UserIntClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "UserIntClient"
+// RegisterReviewIntHandlerClient registers the http handlers for service ReviewInt
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "ReviewIntClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "ReviewIntClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "UserIntClient" to call the correct interceptors.
-func RegisterUserIntHandlerClient(ctx context.Context, mux *runtime.ServeMux, client UserIntClient) error {
+// "ReviewIntClient" to call the correct interceptors.
+func RegisterReviewIntHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ReviewIntClient) error {
 
-	mux.Handle("POST", pattern_UserInt_ReviewResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_ReviewInt_ReviewResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.UserInt/ReviewResource", runtime.WithHTTPPathPattern("/svc.user.UserInt/ReviewResource"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/svc.user.ReviewInt/ReviewResource", runtime.WithHTTPPathPattern("/svc.user.ReviewInt/ReviewResource"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_UserInt_ReviewResource_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ReviewInt_ReviewResource_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_UserInt_ReviewResource_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ReviewInt_ReviewResource_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -163,9 +163,9 @@ func RegisterUserIntHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 }
 
 var (
-	pattern_UserInt_ReviewResource_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"svc.user.UserInt", "ReviewResource"}, ""))
+	pattern_ReviewInt_ReviewResource_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"svc.user.ReviewInt", "ReviewResource"}, ""))
 )
 
 var (
-	forward_UserInt_ReviewResource_0 = runtime.ForwardResponseMessage
+	forward_ReviewInt_ReviewResource_0 = runtime.ForwardResponseMessage
 )

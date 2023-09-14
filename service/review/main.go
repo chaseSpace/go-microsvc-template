@@ -42,7 +42,7 @@ func main() {
 	x := xgrpc.New() // New一个封装好的grpc对象
 	x.Apply(func(s *grpc.Server) {
 		// 注册内部的rpc接口对象（review服务一般不对外提供接口，所以模板只有int接口对象）
-		review.RegisterUserIntServer(s, new(handler.ReviewIntCtrl))
+		review.RegisterReviewIntServer(s, new(handler.ReviewIntCtrl))
 	})
 
 	x.Start(deploy.XConf)
