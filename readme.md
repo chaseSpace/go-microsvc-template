@@ -46,7 +46,7 @@
 - ✅ shell脚本支持mac环境（默认linux）
 - ✅ 定义微服务Error类型，以便跨服务传递error（在GRPC拦截器中解析），[查看代码](./pkg/xerr/err.go)
 - ✅ 跨多个服务传递metadata示例（通过Context），搜索函数`TraceGRPC`
-- ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `WithFailedClient`
+- ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `CircuitBreaker`, `Retry`, `WithFailedClient`
 - ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
 - ✅ 优化proto解析错误response，[查看示例](#41-优化proto参数错误的response)
 - gateway实现oauth2.0统一鉴权（admin服务单独简单token-自动续期鉴权）
