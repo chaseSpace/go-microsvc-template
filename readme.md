@@ -48,12 +48,19 @@
 - ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `WithFailedClient`
 - ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
 - ✅ 美化proto解析错误response，[查看示例](#41-美化proto-unmarshal-error-response)
+- gateway实现oauth2.0统一鉴权（admin服务单独简单token-自动续期鉴权）
 
 
 运行通过的示例：
 
 - ✅ **本地**单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
 - ✅ **本地**跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
+
+目前已提供常见的微服务示例：
+- admin: 管理后台
+- user：用户模块（后续会实现基础的注册、登录功能）
+- assets（TODO）：资产模块（后续会实现一个简单含流水、消费、进账的货币功能）
+- review：审核模块（自行接入第三方）
 
 
 本项目文档指引：
