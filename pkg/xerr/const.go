@@ -13,9 +13,9 @@ var (
 
 // 500 series
 var (
-	ErrInternal    = XErr{Code: 500, Msg: "ErrInternal"}
-	ErrGRPCTimeout = XErr{Code: 504, Msg: "ErrGRPCTimeout"}
-	ErrNoRPCClient = ErrInternal.NewMsg("no available rpc client")
+	ErrInternal           = XErr{Code: 500, Msg: "ErrInternal"}
+	ErrRPCTimeout         = XErr{Code: 504, Msg: "rpc timeout"}
+	ErrServiceUnavailable = XErr{Code: 510, Msg: "service unavailable"}
 )
 
 // Customized errors

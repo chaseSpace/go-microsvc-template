@@ -21,8 +21,8 @@ func TestNoRPCClient(t *testing.T) {
 		Base: nil,
 		Uids: nil,
 	})
-	if !xerr.ErrNoRPCClient.Is(err) {
-		t.Errorf("case 1: err is not ErrNoRPCClient: %v", err)
+	if !xerr.ErrServiceUnavailable.Is(err) {
+		t.Errorf("case 1: err is not ErrServiceUnavailable: %v", err)
 	}
 }
 

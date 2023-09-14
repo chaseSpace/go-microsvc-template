@@ -56,7 +56,7 @@ func (t XErr) AppendMsg(msg string, args ...any) XErr {
 
 func (t XErr) Equal(err error) bool {
 	if err == nil {
-		return false
+		return t.IsNil()
 	}
 	if e, ok := FromErr(err); ok {
 		return e.Code == t.Code
@@ -86,6 +86,10 @@ func (t XErr) Is(err error) bool {
 
 func (t XErr) IsNil() bool {
 	return t.Code == ErrNil.Code
+}
+
+func (t XErr) IsInternal() bool {
+	return t.Code >= 500 && t.Code < 600
 }
 
 // IsNil helper function to XErr.IsNil()

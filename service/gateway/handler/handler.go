@@ -60,10 +60,9 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 		service     = enums.Svc(items[1])
 		forwardPath = items[0]
 	)
+
 	conn := svccli.GetConn(service)
-	if conn == nil {
-		return nil, xerr.ErrNoRPCClient.AppendMsg(service.Name())
-	}
+
 	ctx, cancel := newRpcCtx(fctx)
 	defer cancel()
 

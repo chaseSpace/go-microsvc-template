@@ -4,6 +4,7 @@ import (
 	"google.golang.org/grpc"
 	"microsvc/enums"
 	"microsvc/infra/sd"
+	"microsvc/infra/xgrpc"
 	"sync"
 )
 
@@ -25,11 +26,16 @@ var defaultConnMgr = &InstanceMgr{
 const cleanSvcInstanceErrCntThreshold = 10
 
 // GetConn TODO: optimize, dont use global lock here
-func GetConn(svc enums.Svc) *grpc.ClientConn {
+func GetConn(svc enums.Svc) (conn *grpc.ClientConn) {
 	defaultConnMgr.mu.RLock()
 	inst := defaultConnMgr.cmap[svc]
 	defaultConnMgr.mu.RUnlock()
 
+	defer func() {
+		if conn == nil {
+			conn = xgrpc.NewInvalidGRPCConn(svc.Name())
+		}
+	}()
 	if inst != nil {
 		obj, err := inst.impl.GetInstance()
 
@@ -46,7 +52,7 @@ func GetConn(svc enums.Svc) *grpc.ClientConn {
 		} else {
 			inst.errCnt++
 		}
-		return nil
+		return
 	}
 
 	// Add conn instance

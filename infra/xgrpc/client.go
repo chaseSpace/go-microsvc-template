@@ -7,8 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/k0kubun/pp"
+	"github.com/samber/lo"
+	"github.com/sony/gobreaker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	"microsvc/deploy"
@@ -18,10 +21,33 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 const invalidAddress = "invalidAddress"
+const maxRpcRetry = 2
+
+var circuitBreaker = circuitBreakerT{cmap: make(map[string]*gobreaker.CircuitBreaker)}
+
+type circuitBreakerT struct {
+	mu   sync.RWMutex
+	cmap map[string]*gobreaker.CircuitBreaker
+}
+
+func (c *circuitBreakerT) Get(svc string) *gobreaker.CircuitBreaker {
+	c.mu.RLock()
+	cb := c.cmap[svc]
+	c.mu.RUnlock()
+	if cb != nil {
+		return cb
+	}
+	c.mu.Lock()
+	c.mu.Unlock()
+	cb = newCircuitBreaker(svc)
+	c.cmap[svc] = cb
+	return cb
+}
 
 func NewInvalidGRPCConn(svc string) *grpc.ClientConn {
 	cc, err := grpc.Dial(invalidAddress, grpc.WithInsecure(), withClientInterceptorOpt(svc))
@@ -121,7 +147,13 @@ func newClientInterceptor(svc string) ClientInterceptor {
 
 func withClientInterceptorOpt(svc string) grpc.DialOption {
 	inter := newClientInterceptor(svc)
-	return grpc.WithChainUnaryInterceptor(inter.GRPCCallLog, inter.ExtractGRPCErr, inter.WithFailedClient) // 逆序执行
+	return grpc.WithChainUnaryInterceptor(
+		inter.GRPCCallLog,
+		inter.ExtractGRPCErr,
+		inter.CircuitBreaker,
+		inter.Retry,
+		inter.WithFailedClient,
+	) // 逆序执行
 }
 
 func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -159,7 +191,7 @@ func (i ClientInterceptor) ExtractGRPCErr(ctx context.Context, method string, re
 		e, ok := status.FromError(err)
 		if ok {
 			if e.Message() == context.DeadlineExceeded.Error() {
-				return xerr.ErrGRPCTimeout
+				return xerr.ErrRPCTimeout
 			}
 			if strings.HasPrefix(e.Message(), unmarshalReqErrPrefix) {
 				return xerr.ErrBadRequest.AppendMsg(method).AppendMsg(e.Message()[len(unmarshalReqErrPrefix):])
@@ -172,9 +204,45 @@ func (i ClientInterceptor) ExtractGRPCErr(ctx context.Context, method string, re
 	return err
 }
 
+// CircuitBreaker executes after retry interceptor
+func (i ClientInterceptor) CircuitBreaker(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
+	_, cerr := circuitBreaker.Get(i.svc).Execute(func() (interface{}, error) {
+		err = invoker(ctx, method, req, reply, cc, opts...)
+		if err == nil {
+			println(1122)
+			return nil, nil
+		}
+		println(1111, err)
+		if breakerTakeError(err) {
+			return nil, err
+		}
+		// ignore other errors
+		return nil, nil
+	})
+	if cerr != nil {
+		return cerr
+	}
+	return
+}
+
+func (i ClientInterceptor) Retry(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	for i := 0; i < maxRpcRetry; i++ {
+		err := invoker(ctx, method, req, reply, cc, opts...)
+		if err == nil {
+			return nil
+		}
+		// retry it on timeout
+		if s, ok := status.FromError(err); ok && lo.Contains([]codes.Code{codes.Unavailable, codes.DeadlineExceeded}, s.Code()) {
+			continue
+		}
+		return err
+	}
+	return nil
+}
+
 func (i ClientInterceptor) WithFailedClient(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	if cc.Target() == invalidAddress {
-		return xerr.ErrNoRPCClient.AppendMsg("%s", i.svc)
+		return xerr.ErrServiceUnavailable.AppendMsg("%s", i.svc)
 	}
 	return invoker(ctx, method, req, reply, cc, opts...)
 }

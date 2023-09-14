@@ -70,8 +70,7 @@ func (i *InstanceImpl) getCurr() (instance *GrpcInstance, err error) {
 		}
 		instance = nil
 	}
-	err = xerr.ErrInternal.NewMsg(logPrefix+"%s no instance available", i.svc)
-	return
+	return nil, xerr.ErrServiceUnavailable.AppendMsg(i.svc)
 }
 
 func (i *InstanceImpl) isConnReady(instance *GrpcInstance) bool {
