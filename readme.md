@@ -302,7 +302,7 @@ Content-Length: 153
 
 实现一个简单的注册中心模块，然后**在开发环境**随服务启动。
 
-- [~~网络协议之mDNS~~（由于windows支持不完善，不再采纳）](https://www.cnblogs.com/Alanf/p/8653223.html)
+- [~~网络协议之mDNS~~（由于windows支持不完善，不再使用）](https://www.cnblogs.com/Alanf/p/8653223.html)
 - [simple_sd实现](./xvendor/simple_sd)
 
 注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
