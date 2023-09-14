@@ -1,3 +1,4 @@
+# 正确传参 - 通过网关调用user接口
 POST http://localhost:8000/forward/svc.user.UserExt/GetUser
 Content-Type: application/json
 
@@ -5,10 +6,19 @@ Content-Type: application/json
   "uids": [1]
 }
 
-###
+### 正确传参 - 通过网关调用admin接口（admin再调用user接口）
 POST http://localhost:8000/forward/svc.admin.AdminExt/GetUser
 Content-Type: application/json
 
 {
   "uids": [1]
+}
+
+
+### 错误传参
+POST http://localhost:8000/forward/svc.admin.AdminExt/GetUser
+Content-Type: application/json
+
+{
+  "uids": 1
 }
