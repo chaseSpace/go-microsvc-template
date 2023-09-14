@@ -10,7 +10,7 @@
   * [2. 目录结构释义](#2-目录结构释义)
   * [3. 如何使用](#3-如何使用)
   * [4. 示例集合](#4-示例集合)
-    * [4.1 美化proto unmarshal error response](#41-美化proto-unmarshal-error-response)
+    * [4.1 优化proto unmarshal error response](#41-优化proto-unmarshal-error-response)
   * [5. 本地（dev）环境启动微服务的原理](#5-本地dev环境启动微服务的原理)
   * [6. 工具下载（更新）](#6-工具下载更新)
     * [6.1 下载protoc](#61-下载protoc)
@@ -47,7 +47,7 @@
 - ✅ 跨多个服务传递metadata示例（通过Context），搜索函数`TraceGRPC`
 - ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `WithFailedClient`
 - ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
-- ✅ 美化proto解析错误response，[查看示例](#41-美化proto-unmarshal-error-response)
+- ✅ 优化proto解析错误response，[查看示例](#41-优化proto-unmarshal-error-response)
 - gateway实现oauth2.0统一鉴权（admin服务单独简单token-自动续期鉴权）
 
 
@@ -261,9 +261,9 @@ go run service/admin/main.go
 
 ### 4. 示例集合
 
-#### 4.1 美化proto unmarshal error response
+#### 4.1 优化proto参数错误的response
 
-**美化前**
+**优化前**
 ```shell
 POST http://localhost:8000/svc.admin.AdminExt/GetUser
 
@@ -279,7 +279,7 @@ Content-Length: 138
 }
 ```
 
-**美化后**
+**优化后**
 ```shell
 POST http://localhost:8000/svc.admin.AdminExt/GetUser
 
