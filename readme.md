@@ -55,6 +55,8 @@
 
 - ✅ **本地**单服务GRPC接口测试用例（[user-ext_api_test](./test/user/ext_api_test.go)）
 - ✅ **本地**跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
+- ✅ **Gateway** HTTP接口测试（调用后端微服务），使用Goland `HTTP Request`功能（[apitest.http](./test/gateway/apitest.http)）
+
 
 目前已提供常见的微服务示例：
 - admin: 管理后台
