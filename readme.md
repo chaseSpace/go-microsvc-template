@@ -38,7 +38,7 @@
 - ✅ 使用gorm作为orm组件，支持扩展
 - ✅ 使用redis作为cache组件，支持扩展
 - RPC超时重试与熔断功能
-- 支持本地无注册中心启动**多个**微服务
+- ✅ 支持本地启动**多个**微服务（不需要部署第三方注册）
 
 其他有用的特性：
 
@@ -141,6 +141,7 @@ func main() {
       Password: "123",
     },
   },
+  SimpleSdHttpPort: 5000,
   gRPCPort: 0,
   httpPort: 0,
   svcConf:  nil,
@@ -155,9 +156,9 @@ func main() {
 }
 
 Congratulations! ^_^
-serving gRPC on localhost:60797
+Your service ["go-admin"] is serving gRPC on "localhost:60280"
 
-{"LEVEL":"x-info","TS":"2023-08-29 15:44:41.625","CALLER":"sd/base.go:61","MSG":"sd: register svc success","reg_svc":"go-admin","addr":"192.168.10.9:60797","SERVICE":"go-admin"}
+{"LEVEL":"x-info","TS":"2023-08-29 15:44:41.625","CALLER":"sd/base.go:61","MSG":"sd: register svc success","reg_svc":"go-admin","addr":"127.0.0.1:60280","SERVICE":"go-admin"}
 
 ### 停止服务...
 
@@ -241,7 +242,12 @@ serving gRPC on localhost:60797
 ```shell
 git clone https://github.com/chaseSpace/go-microsvc-template.git
 cd go-microsvc-template/
-go mod tidy
+go mod download
+
+# 启动服务
+go run service/user/main.go
+go run service/admin/main.go
+...
 ```
 
 ### 4. 示例集合
@@ -285,9 +291,10 @@ Content-Length: 153
 理论上来说，调用微服务是走注册中心的，要想在本地启动多个微服务且能正常互相调用，又不想在本地部署一个类似etcd/consul/zookeeper
 的注册中心，最简单的办法是：
 
-实现一个简单的注册中心服务，然后**在开发环境**随服务启动。
+实现一个简单的注册中心模块，然后**在开发环境**随服务启动。
 
-- [网络协议之mDNS](https://www.cnblogs.com/Alanf/p/8653223.html)
+- [~~网络协议之mDNS~~（由于windows支持不完善，不再采纳）](https://www.cnblogs.com/Alanf/p/8653223.html)
+- [simple_sd实现](./xvendor/simple_sd)
 
 注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
 
