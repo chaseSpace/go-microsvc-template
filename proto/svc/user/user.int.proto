@@ -26,7 +26,7 @@ message TestRsp{
 }
 
 // *Ext 是外部服务接口组，要鉴权
-// *Int 是内部服务接口组，可不鉴权，并且不使用HTTP gateway;
+// *Int 是内部服务接口组，可不鉴权
 service UserInt {
   rpc GetUser(GetUserIntReq) returns (GetUserIntRsp);
   rpc Test(TestReq) returns (TestRsp);
