@@ -349,9 +349,6 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 ### 7. 其他
 
-#### 计划
-- 支持K8s部署
-
 #### 建议
 
 - `protocol/`是存放生成协议代码的目录，在实际项目开发中可以加入`.gitignore`文件，以避免在PR review时产生困扰；
