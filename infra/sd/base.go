@@ -24,7 +24,7 @@ var rootSD abstract.ServiceDiscovery
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		var err error
-		if cc.IsDevEnv() {
+		if cc.Env.IsDev() {
 			if cc.SimpleSdHttpPort > 0 {
 				rootSD = simple_sd.New(cc.SimpleSdHttpPort)
 				tryRunSimpleSdOnDev(cc.SimpleSdHttpPort)
@@ -44,7 +44,7 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 
 func MustRegister(reg ...deploy.RegisterSvc) {
 	selfIp := "127.0.0.1"
-	if !deploy.XConf.IsDevEnv() {
+	if !deploy.XConf.Env.IsDev() {
 		localIps, err := ip.GetLocalPrivateIPs(true, "")
 		if err != nil || len(localIps) == 0 {
 			xlog.Panic(logPrefix+"GetLocalPrivateIPs failed", zap.Error(err))

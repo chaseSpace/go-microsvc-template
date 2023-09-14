@@ -50,10 +50,6 @@ func (s *XConfig) GetConfDir(subPath ...string) string {
 	return filepath.Join(append([]string{"deploy", s.Env.S()}, subPath...)...)
 }
 
-func (s *XConfig) IsDevEnv() bool {
-	return s.Env == enums.EnvDev
-}
-
 type Initializer func(cc *XConfig)
 
 var XConf = &XConfig{}

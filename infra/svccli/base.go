@@ -23,7 +23,7 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
 		var err error
 		if defaultSD == nil {
-			if cc.IsDevEnv() {
+			if cc.Env.IsDev() {
 				//defaultSD = mdns.New()
 				defaultSD = simple_sd.New(cc.SimpleSdHttpPort)
 			} else {

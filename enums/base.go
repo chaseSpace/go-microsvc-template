@@ -11,3 +11,7 @@ const (
 func (e Environment) S() string {
 	return string(e)
 }
+
+func (e Environment) IsDev() bool {
+	return e == EnvDev
+}
