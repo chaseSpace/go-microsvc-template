@@ -47,7 +47,7 @@ func getEncoder(level zapcore.Level) zapcore.Encoder {
 	ec.EncodeLevel = customLevelEncoder
 	ec.EncodeTime = zapcore.TimeEncoderOfLayout(xtime.DatetimeMs)
 	ec.LevelKey = "LEVEL"
-	ec.TimeKey = "TS"
+	ec.TimeKey = "TIME"
 	ec.CallerKey = "CALLER"
 	ec.MessageKey = "MSG"
 	ec.StacktraceKey = "STACK"
