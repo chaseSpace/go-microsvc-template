@@ -30,8 +30,6 @@ var (
 	ErrInstanceNotRegistered = errors.New("instance not register")
 )
 
-const DiscoveryInterval = time.Millisecond * 200
-
 func (s *SimpleSd) Register(instance ServiceInstance) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

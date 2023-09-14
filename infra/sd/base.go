@@ -91,7 +91,7 @@ func tryRunSimpleSdOnDev(port int) {
 		xlog.Debug(logPrefix + fmt.Sprintf("simple_sd server is already running on local:%d", port))
 		return
 	}
-	xlog.Debug(logPrefix+"start simple_sd server now...", zap.Int("port", port))
+	xlog.Debug(logPrefix + "no simple_sd server found, start it now on localhost:" + fmt.Sprintf("%d", port))
 
 	go func() {
 		err := server.Run()

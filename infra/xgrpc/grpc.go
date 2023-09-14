@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/k0kubun/pp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
@@ -67,10 +68,10 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		xlog.Panic("failed to get grpc listener", zap.Error(err))
 	}
 	portSetter.SetGRPC(port)
-	grpcAddr := fmt.Sprintf(":%d", port)
+	grpcAddr := fmt.Sprintf("localhost:%d", port)
 
-	fmt.Println("\nCongratulations! ^_^")
-	fmt.Printf("serving gRPC on localhost%v\n", grpcAddr)
+	fmt.Printf("\nCongratulations! ^_^\n")
+	_, _ = pp.Printf("Your service [%s] is serving gRPC on %s\n", portSetter.GetSvc(), grpcAddr)
 
 	defer graceful.AddStopFunc(func() { // grpc server should stop before http
 		x.svr.GracefulStop()

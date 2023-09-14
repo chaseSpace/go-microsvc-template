@@ -5,6 +5,7 @@ import (
 )
 
 type SvcListenPortSetter interface {
+	GetSvc() string
 	SetGRPC(int)
 	SetHTTP(int)
 }

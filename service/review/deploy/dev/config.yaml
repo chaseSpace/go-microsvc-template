@@ -1,4 +1,4 @@
 root:
-  svc: user
+  svc: review
   log_level: debug
-  # 存放user相关配置，db信息配置到根目录的deploy/
+  # 存放review相关配置，db信息配置到根目录的deploy/

@@ -26,6 +26,10 @@ type XConfig struct {
 	svcConf SvcConfImpl
 }
 
+func (x *XConfig) GetSvc() string {
+	return x.Svc.Name()
+}
+
 func (x *XConfig) SetGRPC(port int) {
 	x.gRPCPort = port
 }
