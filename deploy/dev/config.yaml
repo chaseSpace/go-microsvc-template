@@ -1,7 +1,7 @@
 # 存放公共相关配置，比如db信息
 grpc_port: 6000
-http_port: 6500
-simplesd_http_port: 5000
+http_port: 6001
+simplesd_http_port: 6100
 mysql:
   microsvc:  # db name，根据实际修改
     host: 0.0.0.0
