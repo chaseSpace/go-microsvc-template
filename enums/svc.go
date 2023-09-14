@@ -13,4 +13,5 @@ const (
 	SvcGateway Svc = "gateway"
 	SvcUser    Svc = "user"
 	SvcAdmin   Svc = "admin"
+	SvcReview  Svc = "review"
 )

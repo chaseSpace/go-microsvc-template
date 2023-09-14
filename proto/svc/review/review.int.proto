@@ -2,8 +2,6 @@ syntax = "proto3";
 package svc.user;
 option go_package = "microsvc/protocol/svc/review";
 
-import "svc/const.proto";
-
 message ReviewResourceReq{
   ReviewType type = 1;
   int64 uid = 2;
@@ -22,12 +20,11 @@ enum ReviewType {
 }
 
 enum ResultState {
-  Unknown = 0;
+  Unavailable = 0;
   Pass = 1;
   Reject = 2;
   Review = 3;
 }
-
 
 // *Ext 是外部服务接口组，要鉴权
 // *Int 是内部服务接口组，可不鉴权
