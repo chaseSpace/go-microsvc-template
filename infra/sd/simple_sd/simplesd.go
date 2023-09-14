@@ -61,9 +61,8 @@ func (s *SimpleSd) Register(service string, host string, port int, metadata map[
 		Metadata: metadata,
 	}}
 	res := new(httpRes)
-	rsp, bytes, errs := gorequest.New().Post(s.getRequestUrl(registerPath)).SendStruct(req).EndStruct(res)
+	_, _, errs := gorequest.New().Post(s.getRequestUrl(registerPath)).SendStruct(req).EndStruct(res)
 	if len(errs) > 0 {
-		fmt.Printf("111 %+v  --- %s  rsp:%+v\n", errs, bytes, rsp)
 		return errs[0]
 	}
 	if res.Code != httpResOkCode {
@@ -116,7 +115,7 @@ func (s *SimpleSd) Discover(ctx context.Context, serviceName string, block bool)
 	if !block {
 		req.LastHash = ""
 	}
-	println(111, req.LastHash)
+	//println(111, req.LastHash)
 	data := &discoveryRsp{}
 	res := &httpRes{Data: data}
 	_, _, errs := gorequest.New().Post(s.getRequestUrl(discoveryPath)).SendStruct(req).EndStruct(res)
