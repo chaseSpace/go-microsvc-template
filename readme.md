@@ -49,7 +49,7 @@
 - ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `CircuitBreaker`, `Retry`, `WithFailedClient`
 - ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
 - ✅ 优化proto解析错误response，[查看示例](#41-优化proto参数错误的response)
-- gateway实现JWT+Cache统一鉴权（admin服务单独鉴权）
+- 各微服务在Interceptor实现JWT+Cache鉴权（admin服务单独鉴权）
 
 
 运行通过的示例：
