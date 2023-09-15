@@ -87,7 +87,10 @@ func newGRPCServer(svc string, interceptors ...grpc.UnaryServerInterceptor) *grp
 	}
 
 	// 创建 gRPC 服务器
-	base := []grpc.UnaryServerInterceptor{RecoverGRPCRequest, ToCommonResponse, LogGRPCRequest, TraceGRPC, StandardizationGRPCErr}
+	base := []grpc.UnaryServerInterceptor{RecoverGRPCRequest,
+		ToCommonResponse, LogGRPCRequest,
+		TraceGRPC, StandardizationGRPCErr,
+		Authentication}
 
 	server := grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(serverTLSConfig)),

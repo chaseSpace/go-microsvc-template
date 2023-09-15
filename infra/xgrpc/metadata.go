@@ -6,9 +6,8 @@ import (
 )
 
 const (
-	MdKeyFromGateway = "from-gateway"   // store bool to flag grpc request if is from gateway
-	MdKeyAuth        = "authentication" // store token for authentication
-	MdKeyTraceId     = "trace-id"       // store trace id
+	MdKeyAuth    = "authentication" // store token for authentication
+	MdKeyTraceId = "trace-id"       // store trace id
 )
 
 func TransferMetadataWithinCtx(ctx context.Context, key ...string) context.Context {

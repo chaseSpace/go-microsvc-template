@@ -6,6 +6,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"microsvc/bizcomm/auth"
 	"microsvc/enums"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
@@ -35,7 +36,8 @@ const (
 )
 
 var (
-	routerRegexToSvc = regexp.MustCompile(`svc.(\w+).\w+Ext/\w+`)
+	routeRegexToSvc   = regexp.MustCompile(`svc\.(\w+)\.\w+Ext/\w+`)
+	routeRegexToAdmin = regexp.MustCompile(`admin\.(\w+)\.\w+Ext/\w+`)
 )
 
 func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
@@ -47,13 +49,13 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 
 	fullPath := string(fctx.Path())
 	if !strings.HasPrefix(fullPath, apiUnionPathPrefix) {
-		return nil, xerr.ErrApiNotFound.NewMsg("path must start with %s", apiUnionPathPrefix)
+		return nil, xerr.ErrNotFound.NewMsg("path must start with %s", apiUnionPathPrefix)
 	}
 
 	dstPath := fullPath[len(apiUnionPathPrefix):]
-	items := routerRegexToSvc.FindStringSubmatch(dstPath)
+	items := routeRegexToSvc.FindStringSubmatch(dstPath)
 	if len(items) != 2 {
-		return nil, xerr.ErrApiNotFound
+		return nil, xerr.ErrNotFound
 	}
 
 	fctx.SetUserValue(ctxKeyFromGateway, false)
@@ -79,8 +81,7 @@ func newRpcCtx(fctx *fasthttp.RequestCtx) (context.Context, context.CancelFunc) 
 	traceId, _ := fctx.Value(xgrpc.MdKeyTraceId).(string)
 
 	md := metadata.Pairs(
-		xgrpc.MdKeyFromGateway, "true",
-		xgrpc.MdKeyAuth, "Bearer 123",
+		xgrpc.MdKeyAuth, string(fctx.Request.Header.Peek(auth.HttpHeaderKey)),
 		xgrpc.MdKeyTraceId, traceId,
 	)
 

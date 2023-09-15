@@ -1,6 +1,7 @@
 # 正确传参 - 通过网关调用user接口
 POST http://localhost:8000/forward/svc.user.UserExt/GetUser
 Content-Type: application/json
+Authorization: Bearer 123
 
 {
   "uids": [1]

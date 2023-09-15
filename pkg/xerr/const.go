@@ -4,9 +4,13 @@ package xerr
 
 // 200-400 series
 var (
-	ErrNil         = XErr{Code: 200, Msg: "OK"}
-	ErrParams      = XErr{Code: 400, Msg: "ErrParams"}
-	ErrApiNotFound = XErr{Code: 404, Msg: "ErrApiNotFound"}
+	ErrNil              = XErr{Code: 200, Msg: "OK"}
+	ErrParams           = XErr{Code: 400, Msg: "ErrParams"}
+	ErrUnauthorized     = XErr{Code: 401, Msg: "ErrUnauthorized"}
+	ErrForbidden        = XErr{Code: 403, Msg: "ErrForbidden"}
+	ErrNotFound         = XErr{Code: 404, Msg: "ErrNotFound"}
+	ErrMethodNotAllowed = XErr{Code: 405, Msg: "ErrMethodNotAllowed"}
+	ErrReqTimeout       = XErr{Code: 408, Msg: "ErrReqTimeout"}
 
 	ErrBadRequest = ErrParams.NewMsg("ErrBadRequest")
 )

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/k0kubun/pp"
 	"go.uber.org/zap"
@@ -12,6 +13,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"microsvc/bizcomm/auth"
 	"microsvc/deploy"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
@@ -288,5 +290,35 @@ func StandardizationGRPCErr(ctx context.Context, req interface{}, info *grpc.Una
 			return nil, xerr.ToXErr(errors.New(e.Message()))
 		}
 	}
+	return
+}
+
+type SvcClaims struct {
+	Authenticated auth.AuthenticatedSvcUser
+	jwt.RegisteredClaims
+}
+
+type AdminClaims struct {
+	Custom auth.AuthenticatedAdminUser
+	jwt.RegisteredClaims
+}
+
+func Authentication(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	tokenStr := GetIncomingMdVal(ctx, MdKeyAuth)
+	if strings.TrimSpace(tokenStr) == "" || strings.TrimLeft(tokenStr, "Bearer ") == "" {
+		return nil, xerr.ErrUnauthorized.AppendMsg("empty token")
+	}
+	claims := SvcClaims{}
+	token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(deploy.XConf.SvcTokenSignKey), nil
+	})
+	if err != nil {
+		return nil, xerr.ErrUnauthorized.AppendMsg(err.Error())
+	}
+	if !token.Valid {
+		return nil, xerr.ErrUnauthorized
+	}
+	ctx = context.WithValue(ctx, auth.CtxAuthenticated{}, claims.Authenticated)
+	resp, err = handler(ctx, req)
 	return
 }
