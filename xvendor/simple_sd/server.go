@@ -50,6 +50,11 @@ func (s *SimpleSd) Deregister(service, id string) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if serv := s.registry[service]; serv != nil {
+		serv.eventUpdate.L.Lock()
+		defer func() {
+			serv.eventUpdate.L.Unlock()
+			serv.eventUpdate.Broadcast()
+		}()
 		return serv.Remove(id)
 	}
 	return errors.Wrap(ErrInstanceNotRegistered, fmt.Sprintf("service: %s, id: %s", service, id))
