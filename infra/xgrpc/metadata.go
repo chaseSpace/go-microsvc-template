@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	MetaKeyFromGateway = "from-gateway"   // store bool to flag grpc request if is from gateway
-	MetaKeyAuth        = "authentication" // store token for authentication
-	MetaKeyTraceId     = "trace-id"       // store trace id
+	MdKeyFromGateway = "from-gateway"   // store bool to flag grpc request if is from gateway
+	MdKeyAuth        = "authentication" // store token for authentication
+	MdKeyTraceId     = "trace-id"       // store trace id
 )
 
 func TransferMetadataWithinCtx(ctx context.Context, key ...string) context.Context {
@@ -25,7 +25,19 @@ func TransferMetadataWithinCtx(ctx context.Context, key ...string) context.Conte
 	return ctx
 }
 
-func GetMetaVal(ctx context.Context, key string) string {
+// GetOutgoingMdVal should be used in client side
+func GetOutgoingMdVal(ctx context.Context, key string) string {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if ok {
+		if ss := md.Get(key); len(ss) > 0 {
+			return ss[0]
+		}
+	}
+	return ""
+}
+
+// GetIncomingMdVal should be used in server side
+func GetIncomingMdVal(ctx context.Context, key string) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
 		if ss := md.Get(key); len(ss) > 0 {

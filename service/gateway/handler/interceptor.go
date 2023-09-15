@@ -15,6 +15,7 @@ import (
 type Handler func(ctx *fasthttp.RequestCtx) ([]byte, error)
 type UnaryInterceptor func(ctx *fasthttp.RequestCtx, handle Handler) ([]byte, error)
 
+// this interceptor model is same as grpc.UnaryClientInterceptor (onion model)
 func addInterceptor(handle func(ctx *fasthttp.RequestCtx) ([]byte, error), interceptor ...UnaryInterceptor) fasthttp.RequestHandler {
 	return func(fctx *fasthttp.RequestCtx) {
 		fctx.SetContentType("application/json")
@@ -49,15 +50,27 @@ func getChainUnaryHandler(interceptors []UnaryInterceptor, curr int, finalInvoke
 	}
 }
 
-// ------------ Interceptor ----------------
+// ------------ interceptor define ----------------
 
-func logInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (res []byte, err error) {
+type interceptor struct {
+}
+
+func (interceptor) Trace(ctx *fasthttp.RequestCtx, handler Handler) (res []byte, err error) {
 	tid := util.NewKsuid()
-	ctx.SetUserValue(xgrpc.MetaKeyTraceId, tid)
-	start := time.Now()
-	xlog.Info("logInterceptor_start", zap.ByteString("path", ctx.Path()), zap.String("trace-id", tid))
-	defer func() {
+	ctx.SetUserValue(xgrpc.MdKeyTraceId, tid)
 
+	//println(111)
+	res, err = handler(ctx)
+	return res, err
+}
+
+func (interceptor) Log(ctx *fasthttp.RequestCtx, handler Handler) (res []byte, err error) {
+	tid := ctx.Value(xgrpc.MdKeyTraceId).(string)
+	start := time.Now()
+
+	xlog.Info("logInterceptor_start", zap.ByteString("path", ctx.Path()), zap.String("trace-id", tid))
+	//println(222)
+	defer func() {
 		elapsed := xtime.FormatDur(time.Since(start))
 		if xerr.IsNil(err) {
 			xlog.Info("handle_ok", zap.ByteString("path", ctx.Path()), zap.String("dur", elapsed), zap.String("trace-id", tid))
@@ -65,14 +78,7 @@ func logInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (res []byte, err 
 			xlog.Info("handle_fail", zap.ByteString("path", ctx.Path()), zap.Error(err), zap.String("dur", elapsed), zap.String("trace-id", tid))
 		}
 	}()
-	res, err = handler(ctx)
-	return res, err
-}
 
-func traceInterceptor(ctx *fasthttp.RequestCtx, handler Handler) (res []byte, err error) {
-	// TODO add trace logic
-	//tid := ctx.UserValue(xgrpc.MetaKeyTraceId).(string)
-	//println(111, tid)
 	res, err = handler(ctx)
 	return res, err
 }

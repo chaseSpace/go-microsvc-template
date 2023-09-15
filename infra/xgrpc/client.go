@@ -164,8 +164,7 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 	defer func() {
 		elapsed := xtime.FormatDur(time.Since(start))
 		zapFields := []zap.Field{
-			zap.String("method", method), zap.String("dur", elapsed),
-			zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)),
+			zap.String("method", method), zap.String("dur", elapsed), zap.String("trace-id", GetOutgoingMdVal(ctx, MdKeyTraceId)),
 			zap.Any("req", req), zap.Any("rsp", reply),
 		}
 
@@ -209,10 +208,8 @@ func (i ClientInterceptor) CircuitBreaker(ctx context.Context, method string, re
 	_, cerr := circuitBreaker.Get(i.svc).Execute(func() (interface{}, error) {
 		err = invoker(ctx, method, req, reply, cc, opts...)
 		if err == nil {
-			println(1122)
 			return nil, nil
 		}
-		println(1111, err)
 		if breakerTakeError(err) {
 			return nil, err
 		}
@@ -225,9 +222,9 @@ func (i ClientInterceptor) CircuitBreaker(ctx context.Context, method string, re
 	return
 }
 
-func (i ClientInterceptor) Retry(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+func (i ClientInterceptor) Retry(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
 	for i := 0; i < maxRpcRetry; i++ {
-		err := invoker(ctx, method, req, reply, cc, opts...)
+		err = invoker(ctx, method, req, reply, cc, opts...)
 		if err == nil {
 			return nil
 		}
@@ -237,7 +234,7 @@ func (i ClientInterceptor) Retry(ctx context.Context, method string, req, reply 
 		}
 		return err
 	}
-	return nil
+	return
 }
 
 func (i ClientInterceptor) WithFailedClient(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {

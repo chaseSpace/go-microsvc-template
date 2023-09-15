@@ -22,7 +22,8 @@ type GatewayCtrl struct {
 const gatewayForwardTimeout = time.Second * 5
 
 func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
-	interceptors := []UnaryInterceptor{logInterceptor, traceInterceptor}
+	inter := interceptor{}
+	interceptors := []UnaryInterceptor{inter.Trace, inter.Log}
 	addInterceptor(forwardHandler, interceptors...)(ctx)
 }
 
@@ -66,7 +67,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 	ctx, cancel := newRpcCtx(fctx)
 	defer cancel()
 
-	err := conn.Invoke(ctx, forwardPath, fctx.PostBody(), res, grpc.CallContentSubtype(protobytes.Bytes))
+	err := conn.Invoke(ctx, forwardPath, fctx.PostBody(), res, grpc.CallContentSubtype(protobytes.Name))
 	if err != nil {
 		return nil, err.(xerr.XErr) // err is converted to XErr in grpc client interceptor
 	}
@@ -75,12 +76,12 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 
 func newRpcCtx(fctx *fasthttp.RequestCtx) (context.Context, context.CancelFunc) {
 
-	traceId, _ := fctx.Value(xgrpc.MetaKeyTraceId).(string)
+	traceId, _ := fctx.Value(xgrpc.MdKeyTraceId).(string)
 
 	md := metadata.Pairs(
-		xgrpc.MetaKeyFromGateway, "true",
-		xgrpc.MetaKeyAuth, "Bearer 123",
-		xgrpc.MetaKeyTraceId, traceId,
+		xgrpc.MdKeyFromGateway, "true",
+		xgrpc.MdKeyAuth, "Bearer 123",
+		xgrpc.MdKeyTraceId, traceId,
 	)
 
 	ctx, cancel := context.WithTimeout(context.TODO(), gatewayForwardTimeout)

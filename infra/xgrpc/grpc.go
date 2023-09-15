@@ -231,7 +231,7 @@ func RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnarySe
 		if r := recover(); r != nil {
 			err = xerr.ErrInternal.NewMsg(fmt.Sprintf("panic recovered: %v", r))
 			xlog.DPanic("RecoverGRPCRequest", zap.String("method", info.FullMethod), zap.Any("err", r),
-				zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)))
+				zap.String("trace-id", GetIncomingMdVal(ctx, MdKeyTraceId)))
 			fmt.Printf("PANIC %v\n%s", r, string(debug.Stack()))
 		}
 	}()
@@ -257,7 +257,7 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 
 	zapFields := []zap.Field{
 		zap.String("method", info.FullMethod), zap.String("dur", elapsed),
-		zap.Any("req", req), zap.String("trace-id", GetMetaVal(ctx, MetaKeyTraceId)),
+		zap.Any("req", req), zap.String("trace-id", GetIncomingMdVal(ctx, MdKeyTraceId)),
 	}
 	if err != nil {
 		errmsg := err.Error()
@@ -276,7 +276,7 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 func TraceGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	// We just need transfer some necessary metadata to next rpc call
 	// see: https://golang2.eddycjy.com/posts/ch3/09-grpc-metadata-creds/
-	ctx = TransferMetadataWithinCtx(ctx, MetaKeyTraceId)
+	ctx = TransferMetadataWithinCtx(ctx, MdKeyTraceId)
 	return handler(ctx, req)
 }
 

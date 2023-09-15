@@ -30,7 +30,7 @@ func newCircuitBreaker(name string) *gobreaker.CircuitBreaker {
 		Name:        name,
 		MaxRequests: 1,                //  maximum number of requests allowed to pass through when the breaker is half-open
 		Interval:    time.Second * 30, // cyclic period of breaker to clear interval counter, defaults to 0 that indicates the breaker never clear interval counter
-		Timeout:     time.Second * 30, // timeout for CircuitBreaker is open, breaker switch to half-open after `timeout`, default 60s.
+		Timeout:     time.Second * 10, // timeout for CircuitBreaker stay open, breaker switch to half-open after `timeout`, default 60s.
 		ReadyToTrip: func(counts gobreaker.Counts) bool {
 			// define the condition of the breaker gets to open state
 			//fmt.Printf("ReadyToTrip_xx  %+v\n", counts)

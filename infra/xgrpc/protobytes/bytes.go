@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const Bytes = "bytes"
+const Name = "bytes"
 
 func init() {
 	encoding.RegisterCodec(codecBytes{})
@@ -42,5 +42,5 @@ func (codecBytes) Unmarshal(data []byte, v interface{}) error {
 }
 
 func (codecBytes) Name() string {
-	return Bytes
+	return Name
 }
