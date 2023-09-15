@@ -49,7 +49,7 @@
 - ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `CircuitBreaker`, `Retry`, `WithFailedClient`
 - ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
 - ✅ 优化proto解析错误response，[查看示例](#41-优化proto参数错误的response)
-- gateway实现oauth2.0统一鉴权（admin服务单独简单token-自动续期鉴权）
+- gateway实现JWT+Cache统一鉴权（admin服务单独鉴权）
 
 
 运行通过的示例：
