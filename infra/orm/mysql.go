@@ -89,10 +89,10 @@ func NewMysqlObj(dbname deploy.DBname) *MysqlObj {
 	return &MysqlObj{name: dbname}
 }
 
-func RegSvcDB(obj ...*MysqlObj) {
+func Setup(obj ...*MysqlObj) {
 	for _, o := range obj {
 		if o.name == "" {
-			panic(fmt.Sprintf("orm.RegSvcDB: need name"))
+			panic(fmt.Sprintf("orm.Setup: need name"))
 		}
 	}
 	servicesDB = obj

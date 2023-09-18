@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"microsvc/bizcomm"
+	"microsvc/bizcomm/commuser"
 	"microsvc/proto/model/user"
 	"microsvc/service/user/dao"
 )
@@ -35,7 +35,7 @@ func GetUser(uid ...int64) (umap map[int64]*user.User, err error) {
 		if err != nil {
 			return nil, err
 		}
-		bizcomm.MergeUserListToMap(umap, list)
+		commuser.MergeUserListToMap(umap, list)
 	}
 	return
 }

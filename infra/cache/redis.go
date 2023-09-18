@@ -7,6 +7,8 @@ import (
 	"go.uber.org/zap"
 	"microsvc/deploy"
 	"microsvc/pkg/xlog"
+	"microsvc/util"
+	"time"
 )
 
 var instMap = make(map[deploy.DBname]*redis.Client)
@@ -22,7 +24,9 @@ func InitRedis(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 				DB:         v.DB,
 				MaxRetries: 2,
 			})
-			err = rdb.Ping(context.Background()).Err()
+			util.RunTaskWithCtxTimeout(time.Second, func(ctx context.Context) {
+				err = rdb.Ping(ctx).Err()
+			})
 			if err != nil {
 				break
 			}
@@ -82,7 +86,7 @@ func NewRedisObj(dbname deploy.DBname) *RedisObj {
 	return o
 }
 
-func RegSvcDB(obj ...*RedisObj) {
+func Setup(obj ...*RedisObj) {
 	for _, o := range obj {
 		if o.name == "" {
 			panic(fmt.Sprintf("cache.AddSvcDB: need name"))

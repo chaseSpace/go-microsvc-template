@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserExtClient interface {
+	Signup(ctx context.Context, in *SignupReq, opts ...grpc.CallOption) (*SignupRes, error)
+	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginRes, error)
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error)
 }
 
@@ -31,6 +33,24 @@ type userExtClient struct {
 
 func NewUserExtClient(cc grpc.ClientConnInterface) UserExtClient {
 	return &userExtClient{cc}
+}
+
+func (c *userExtClient) Signup(ctx context.Context, in *SignupReq, opts ...grpc.CallOption) (*SignupRes, error) {
+	out := new(SignupRes)
+	err := c.cc.Invoke(ctx, "/svc.user.UserExt/Signup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userExtClient) Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginRes, error) {
+	out := new(LoginRes)
+	err := c.cc.Invoke(ctx, "/svc.user.UserExt/Login", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error) {
@@ -46,6 +66,8 @@ func (c *userExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grp
 // All implementations should embed UnimplementedUserExtServer
 // for forward compatibility
 type UserExtServer interface {
+	Signup(context.Context, *SignupReq) (*SignupRes, error)
+	Login(context.Context, *LoginReq) (*LoginRes, error)
 	GetUser(context.Context, *GetUserReq) (*GetUserRes, error)
 }
 
@@ -53,6 +75,12 @@ type UserExtServer interface {
 type UnimplementedUserExtServer struct {
 }
 
+func (UnimplementedUserExtServer) Signup(context.Context, *SignupReq) (*SignupRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Signup not implemented")
+}
+func (UnimplementedUserExtServer) Login(context.Context, *LoginReq) (*LoginRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
 func (UnimplementedUserExtServer) GetUser(context.Context, *GetUserReq) (*GetUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
@@ -66,6 +94,42 @@ type UnsafeUserExtServer interface {
 
 func RegisterUserExtServer(s grpc.ServiceRegistrar, srv UserExtServer) {
 	s.RegisterService(&UserExt_ServiceDesc, srv)
+}
+
+func _UserExt_Signup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignupReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserExtServer).Signup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/svc.user.UserExt/Signup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserExtServer).Signup(ctx, req.(*SignupReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserExt_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserExtServer).Login(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/svc.user.UserExt/Login",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserExtServer).Login(ctx, req.(*LoginReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _UserExt_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -93,6 +157,14 @@ var UserExt_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "svc.user.UserExt",
 	HandlerType: (*UserExtServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Signup",
+			Handler:    _UserExt_Signup_Handler,
+		},
+		{
+			MethodName: "Login",
+			Handler:    _UserExt_Login_Handler,
+		},
 		{
 			MethodName: "GetUser",
 			Handler:    _UserExt_GetUser_Handler,

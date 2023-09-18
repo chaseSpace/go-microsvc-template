@@ -6,9 +6,10 @@ import "include/google/protobuf/any.proto";
 
 message BaseExtReq {
   bool this_is_ext_api = 1;
-  string app = 2;
+  string app = 2; // client app package name
   string app_version = 3;
   //...
+  map<string, string> extension = 10;
 }
 
 message AdminBaseReq{
@@ -16,6 +17,7 @@ message AdminBaseReq{
   int64 uid = 2;
   string nick = 3;
   // ...
+  map<string, string> extension = 10;
 }
 
 message HttpCommonRsp{

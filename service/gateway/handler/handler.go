@@ -81,7 +81,7 @@ func newRpcCtx(fctx *fasthttp.RequestCtx) (context.Context, context.CancelFunc) 
 	traceId, _ := fctx.Value(xgrpc.MdKeyTraceId).(string)
 
 	md := metadata.Pairs(
-		xgrpc.MdKeyAuth, string(fctx.Request.Header.Peek(auth.HttpHeaderKey)),
+		xgrpc.MdKeyAuth, string(fctx.Request.Header.Peek(auth.HeaderKey)),
 		xgrpc.MdKeyTraceId, traceId,
 	)
 

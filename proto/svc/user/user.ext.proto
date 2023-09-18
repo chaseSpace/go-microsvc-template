@@ -14,12 +14,39 @@ message GetUserRes{
 
 message User{
   int64 uid = 1;
-  string nick = 2;
-  int32 age = 3;
-  int32 sex = 4;
+  int64 ext_uid = 2;
+  string nickname = 3;
+  int32 age = 4;
+  int32 sex = 5;
+}
+
+
+message SignupReq{
+  string account = 1;
+  string password = 2;
+  int32 sex = 3;
+  string birthday = 4;
+  string captcha = 10; // verify code
+}
+
+message SignupRes{
+  string token = 1;
+}
+
+
+message LoginReq{
+  BaseExtReq base = 1;
+  string account = 2;
+  string password = 3;
+}
+message LoginRes{
+  User info = 1;
+  string token = 2;
 }
 
 // *Ext 是外部服务接口组，要鉴权
 service UserExt {
+  rpc Signup(SignupReq) returns (SignupRes);
+  rpc Login(LoginReq) returns (LoginRes);
   rpc GetUser(GetUserReq) returns (GetUserRes);
 }

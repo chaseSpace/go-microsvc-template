@@ -1,4 +1,4 @@
-package bizcomm
+package commuser
 
 import "microsvc/proto/model/user"
 

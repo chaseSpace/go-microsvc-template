@@ -24,7 +24,8 @@ var (
 
 // Customized errors
 var (
-	_             = 0
-	ErrBizTimeout = XErr{Code: 1000, Msg: "ErrBizTimeout"}
-	ErrThirdParty = XErr{Code: 1001, Msg: "ErrThirdParty"}
+	_                      = 0
+	ErrBizTimeout          = XErr{Code: 1000, Msg: "ErrBizTimeout"}
+	ErrThirdParty          = XErr{Code: 1001, Msg: "ErrThirdParty"}
+	ErrInvalidRegisterInfo = XErr{Code: 1002, Msg: "ErrInvalidRegisterInfo"}
 )

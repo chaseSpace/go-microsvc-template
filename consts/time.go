@@ -2,6 +2,7 @@ package consts
 
 import "time"
 
+// Datetime is the time in `yyyy-mm-dd hh:mm:ss` format
 type Datetime string
 
 func (t Datetime) Time() (time.Time, error) {
