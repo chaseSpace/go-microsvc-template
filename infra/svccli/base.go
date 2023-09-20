@@ -3,7 +3,7 @@ package svccli
 import (
 	"go.uber.org/zap"
 	"microsvc/deploy"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra/sd"
 	"microsvc/infra/sd/abstract"
 	"microsvc/infra/sd/consul"
@@ -39,12 +39,12 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 
 type RpcClient struct {
 	once      sync.Once
-	svc       enums.Svc
+	svc       svc.Svc
 	inst      *sd.InstanceImpl
 	genClient sd.GenClient
 }
 
-func NewCli(svc enums.Svc, gc sd.GenClient) *RpcClient {
+func NewCli(svc svc.Svc, gc sd.GenClient) *RpcClient {
 	cli := &RpcClient{svc: svc, genClient: gc}
 	return cli
 }

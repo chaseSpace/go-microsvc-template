@@ -6,11 +6,18 @@ import (
 )
 
 const (
-	MdKeyAuth    = "authentication" // store token for authentication
-	MdKeyTraceId = "trace-id"       // store trace id
+	MdKeyAuthToken       = "authorization" // store token for authentication
+	MdKeyTraceId         = "trace-id"      // store trace id
+	MdKeyFromGatewayFlag = "from-gateway"
 )
 
-func TransferMetadataWithinCtx(ctx context.Context, key ...string) context.Context {
+const MdKeyFlagExist = "1"
+
+func transferMetadataWithinCtx(ctx context.Context, method string, key ...string) (context.Context, error) {
+	ctx, err := sutil.setupCtx(ctx, method)
+	if err != nil {
+		return nil, err
+	}
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
 		md2 := metadata.New(nil)
@@ -19,9 +26,9 @@ func TransferMetadataWithinCtx(ctx context.Context, key ...string) context.Conte
 				md2[k] = md[k]
 			}
 		}
-		return metadata.NewOutgoingContext(ctx, md2)
+		return metadata.NewOutgoingContext(ctx, md2), nil
 	}
-	return ctx
+	return ctx, nil
 }
 
 // GetOutgoingMdVal should be used in client side

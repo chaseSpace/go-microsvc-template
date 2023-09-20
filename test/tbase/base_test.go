@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/go-uuid"
 	"github.com/segmentio/ksuid"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra/svccli/rpcext"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/admin"
@@ -14,7 +14,7 @@ import (
 )
 
 func TestNoRPCClient(t *testing.T) {
-	TearUpWithEmptySD(enums.SvcUser, deploy2.UserConf)
+	TearUpWithEmptySD(svc.User, deploy2.UserConf)
 	defer TearDown()
 
 	_, err := rpcext.Admin().GetUser(context.TODO(), &admin.GetUserReq{
@@ -28,7 +28,7 @@ func TestNoRPCClient(t *testing.T) {
 
 // Run user svc first.
 func TestHaveRPCClient(t *testing.T) {
-	TearUp(enums.SvcUser, deploy2.UserConf)
+	TearUp(svc.User, deploy2.UserConf)
 	defer TearDown()
 
 	rsp, err := rpcext.User().GetUser(context.TODO(), &user.GetUserReq{

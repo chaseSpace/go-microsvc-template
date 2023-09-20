@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra/svccli/rpcext"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/admin"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	tbase.TearUp(enums.SvcAdmin, deploy.AdminConf)
+	tbase.TearUp(svc.Admin, deploy.AdminConf)
 }
 
 // 这是一个跨服务调用接口，需要同时启动admin和user服务

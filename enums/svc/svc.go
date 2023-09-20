@@ -1,4 +1,4 @@
-package enums
+package svc
 
 type Svc string
 
@@ -10,8 +10,8 @@ func (s Svc) Name() string {
 }
 
 const (
-	SvcGateway Svc = "gateway"
-	SvcUser    Svc = "user"
-	SvcAdmin   Svc = "admin"
-	SvcReview  Svc = "review"
+	Gateway Svc = "gateway"
+	User    Svc = "user"
+	Admin   Svc = "admin"
+	Review  Svc = "review"
 )

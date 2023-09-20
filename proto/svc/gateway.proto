@@ -1,9 +1,0 @@
-syntax = "proto3";
-package svc;
-option go_package = "microsvc/protocol/svc";
-
-message GatewayHttpRsp{
-  int32 code = 1;
-  string msg = 2;
-  bool from_gateway = 3;
-}

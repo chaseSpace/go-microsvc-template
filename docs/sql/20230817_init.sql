@@ -1,7 +1,7 @@
 create database biz;
 create database biz_log;
 
-drop table biz.user;
+drop table if exists biz.user;
 create table biz.user
 (
     id          int primary key auto_increment,

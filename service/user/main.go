@@ -3,9 +3,8 @@ package main
 import (
 	"google.golang.org/grpc"
 	"microsvc/deploy"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra"
-	"microsvc/infra/cache"
 	"microsvc/infra/orm"
 	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
@@ -25,7 +24,7 @@ func main() {
 	defer graceful.OnExit()
 
 	// 初始化config
-	deploy.Init(enums.SvcUser, deploy2.UserConf)
+	deploy.Init(svc.User, deploy2.UserConf)
 
 	// 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
 	pkg.Setup(
@@ -35,7 +34,7 @@ func main() {
 
 	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	infra.Setup(
-		cache.InitRedis(true),
+		//cache.InitRedis(true),
 		orm.InitGorm(true),
 		sd.Init(true),
 		svccli.Init(true),

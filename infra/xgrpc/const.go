@@ -5,7 +5,7 @@ const (
 	certClientCN = "client.microsvc"
 	certServerCN = "server.microsvc"
 )
-const unmarshalReqErrPrefix = "grpc: error unmarshalling request: "
+const grpcUnmarshalReqErrPrefix = "grpc: error unmarshalling request: "
 
 func specialClientAuth(svc string, dnsNames []string) bool {
 	for _, domain := range dnsNames {
@@ -14,4 +14,11 @@ func specialClientAuth(svc string, dnsNames []string) bool {
 		}
 	}
 	return false
+}
+
+type CtxServerSideKey struct{}
+
+type CtxServerSideVal struct {
+	IsExtMethod bool
+	FromGateway bool
 }

@@ -1,0 +1,30 @@
+### UserExt/Signup
+POST http://localhost:8000/forward/svc.user.UserExt/Signup
+Content-Type: application/json
+#Authorization: 注册接口 不需要鉴权
+
+{
+  "email": "yzm@gmail.com",
+  "password": "123",
+  "sex": 1,
+  "birthday": "1998-01-01",
+  "captcha": "yzsd"
+}
+
+### UserExt/GetUser
+POST http://localhost:8000/forward/svc.user.UserExt/GetUser
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "uids": [1]
+}
+
+### AdminExt/GetUser
+POST http://localhost:8000/forward/svc.admin.AdminExt/GetUser
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "uids": [1]
+}

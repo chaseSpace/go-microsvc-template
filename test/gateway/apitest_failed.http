@@ -1,0 +1,62 @@
+### UserExt/Signup
+POST http://localhost:8000/forward/svc.user.UserExt/Signup
+Content-Type: application/json
+#Authorization: 注册接口 不需要鉴权
+
+{
+  "email": "yzm@gmail.com",
+  "password": "123",
+  "sex": 1,
+  "birthday": "1998-01-01",
+  "captcha": "yzsd"
+}
+
+### UserExt/GetUser-NoToken
+POST http://localhost:8000/forward/svc.user.UserExt/GetUser
+Content-Type: application/json
+
+{
+  "uids": [
+    1
+  ]
+}
+
+### UserExt/GetUser-ExpiredToken
+POST http://localhost:8000/forward/svc.user.UserExt/GetUser
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHQtdWlkIjoxLCJ1aWQiOjEsInNleCI6MSwibG9naW4tYXQiOiIyMDIzLTA5LTIwIDE4OjU2OjU2IiwicmVnLWF0IjoiMjAyMy0wOS0yMCAxODo1Njo1NiIsImV4cCI6MTY5NTIwNzQxN30.vtOmm-C6RRyk6AXcWvaZ2_-KG8mFxkjx3EZttNf21NM
+
+{
+  "uids": [
+    1
+  ]
+}
+
+### UserExt/GetUser-WrongToken
+POST http://localhost:8000/forward/svc.user.UserExt/GetUser
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHQtdWlkIjoxLCJ1aWQiOjEsInNleCI6MSwibG9naW4tYXQiOiIyMDIzLTA5LTIwIDE4OjU2OjU2IiwicmVnLWF0IjoiMjAyMy0wOS0yMCAxODo1Njo1NiIsImV4cCI6MTY5NTIwNzQxN30.vtOmm-C6RRyk6AXcWvaZ2_-KG8mFxkjx3EZttNf21Nx
+
+{
+  "uids": [
+    1
+  ]
+}
+
+### AdminExt/GetUser-ErrParams
+POST http://localhost:8000/forward/svc.admin.AdminExt/GetUser
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "uids": []
+}
+
+### AdminExt/GetUser-BadRequest
+POST http://localhost:8000/forward/svc.admin.AdminExt/GetUser
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "uids": 1
+}

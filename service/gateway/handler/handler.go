@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"microsvc/bizcomm/auth"
-	"microsvc/enums"
+	"microsvc/enums/svc"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
 	"microsvc/infra/xgrpc/protobytes"
@@ -36,8 +36,8 @@ const (
 )
 
 var (
-	routeRegexToSvc   = regexp.MustCompile(`svc\.(\w+)\.\w+Ext/\w+`)
-	routeRegexToAdmin = regexp.MustCompile(`admin\.(\w+)\.\w+Ext/\w+`)
+	routeRegexToSvc = regexp.MustCompile(`svc\.(\w+)\.\w+Ext/\w+`)
+	//routeRegexToAdmin = regexp.MustCompile(`admin\.(\w+)\.\w+Ext/\w+`)
 )
 
 func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
@@ -60,7 +60,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 
 	fctx.SetUserValue(ctxKeyFromGateway, false)
 	var (
-		service     = enums.Svc(items[1])
+		service     = svc.Svc(items[1])
 		forwardPath = items[0]
 	)
 
@@ -81,8 +81,9 @@ func newRpcCtx(fctx *fasthttp.RequestCtx) (context.Context, context.CancelFunc) 
 	traceId, _ := fctx.Value(xgrpc.MdKeyTraceId).(string)
 
 	md := metadata.Pairs(
-		xgrpc.MdKeyAuth, string(fctx.Request.Header.Peek(auth.HeaderKey)),
+		xgrpc.MdKeyAuthToken, string(fctx.Request.Header.Peek(auth.HeaderKey)),
 		xgrpc.MdKeyTraceId, traceId,
+		xgrpc.MdKeyFromGatewayFlag, xgrpc.MdKeyFlagExist,
 	)
 
 	ctx, cancel := context.WithTimeout(context.TODO(), gatewayForwardTimeout)

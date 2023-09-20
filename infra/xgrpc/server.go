@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"microsvc/bizcomm/auth"
 	"microsvc/deploy"
+	enumsvc "microsvc/enums/svc"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/pkg/xtime"
@@ -49,7 +50,7 @@ type XgRPC struct {
 }
 
 func New(interceptors ...grpc.UnaryServerInterceptor) *XgRPC {
-	svr := newGRPCServer(deploy.XConf.Svc.Name(), interceptors...)
+	svr := newGRPCServer(deploy.XConf.Svc, interceptors...)
 	return &XgRPC{
 		svr:             svr,
 		extHttpRegister: nil,
@@ -223,7 +224,7 @@ func newHTTPMuxOpts() []runtime.ServeMuxOption {
 	}
 }
 
-func newGRPCServer(svc string, interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
+func newGRPCServer(svc enumsvc.Svc, interceptors ...grpc.UnaryServerInterceptor) *grpc.Server {
 	certDir := filepath.Join(deploy.XConf.GetConfDir(), "cert")
 
 	certPath := filepath.Join(certDir, "server-cert.pem")
@@ -272,7 +273,7 @@ func newGRPCServer(svc string, interceptors ...grpc.UnaryServerInterceptor) *grp
 						//	cert.Subject.CommonName, cert.NotBefore, cert.NotAfter)
 					default:
 						// 授权特定client
-						if specialClientAuth(svc, cert.DNSNames) {
+						if specialClientAuth(svc.Name(), cert.DNSNames) {
 							//pp.Printf("验证通过--特定client CN：%s  DNSNames: %+v\n", cert.Subject.CommonName, cert.DNSNames)
 						} else {
 							return fmt.Errorf("grpc: handshake faield, invalid client certificate with CN(%s)", cert.Subject.CommonName)
@@ -296,11 +297,17 @@ func newGRPCServer(svc string, interceptors ...grpc.UnaryServerInterceptor) *grp
 		},
 	}
 
+	inter := newServerInterceptor(svc)
 	// 创建 gRPC 服务器
-	base := []grpc.UnaryServerInterceptor{RecoverGRPCRequest,
-		ToCommonResponse, LogGRPCRequest,
-		TraceGRPC, StandardizationGRPCErr,
-		Authentication}
+	base := []grpc.UnaryServerInterceptor{
+		inter.RecoverGRPCRequest,
+		inter.ConvertExtResponse,
+		inter.LogGRPCRequest,
+		inter.TraceGRPC,
+		inter.StandardizationGRPCErr,
+		inter.Authentication,
+		inter.Innermost,
+	}
 
 	server := grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(serverTLSConfig)),
@@ -312,15 +319,15 @@ func newGRPCServer(svc string, interceptors ...grpc.UnaryServerInterceptor) *grp
 
 // -------- 下面是grpc中间件 -----------
 
-type IsExtApiReq interface {
-	GetBase() *svc.BaseExtReq
+type ServerInterceptor struct {
+	svc enumsvc.Svc
 }
 
-type IsAdminApiReq interface {
-	GetBase() *svc.AdminBaseReq
+func newServerInterceptor(svc enumsvc.Svc) ServerInterceptor {
+	return ServerInterceptor{svc: svc}
 }
 
-func RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func (ServerInterceptor) RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = xerr.ErrInternal.NewMsg(fmt.Sprintf("panic recovered: %v", r))
@@ -329,22 +336,26 @@ func RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnarySe
 			fmt.Printf("PANIC %v\n%s", r, string(debug.Stack()))
 		}
 	}()
+	// We just need transfer some necessary metadata to next rpc call
+	// see: https://golang2.eddycjy.com/posts/ch3/09-grpc-metadata-creds/
+	ctx, err = transferMetadataWithinCtx(ctx, info.FullMethod, MdKeyTraceId)
+	if err != nil {
+		return
+	}
 	return handler(ctx, req)
 }
 
-func ToCommonResponse(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func (ServerInterceptor) ConvertExtResponse(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	resp, err = handler(ctx, req)
-	if err == nil {
-		_, ok := req.(IsExtApiReq)
-		_, ok2 := req.(IsAdminApiReq)
-		if ok || ok2 {
-			return proto2.RespondOK(resp), nil
-		}
+	// We disregarded the error from setupCtx since it had already been
+	// handled at the innermost level of the GRPC interceptor, which is `Innermost`
+	if sutil.isExtMethod(ctx) {
+		return proto2.WrapExtResponse(resp, err, false), nil
 	}
 	return resp, err
 }
 
-func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func (ServerInterceptor) LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	start := time.Now()
 	resp, err = handler(ctx, req)
 	elapsed := xtime.FormatDur(time.Since(start))
@@ -367,14 +378,12 @@ func LogGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServer
 	return
 }
 
-func TraceGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	// We just need transfer some necessary metadata to next rpc call
-	// see: https://golang2.eddycjy.com/posts/ch3/09-grpc-metadata-creds/
-	ctx = TransferMetadataWithinCtx(ctx, MdKeyTraceId)
+func (ServerInterceptor) TraceGRPC(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	// TODO: add tracing
 	return handler(ctx, req)
 }
 
-func StandardizationGRPCErr(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func (ServerInterceptor) StandardizationGRPCErr(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	resp, err = handler(ctx, req)
 	if err != nil {
 		e, ok := status.FromError(err)
@@ -386,31 +395,80 @@ func StandardizationGRPCErr(ctx context.Context, req interface{}, info *grpc.Una
 }
 
 type SvcClaims struct {
-	Authenticated auth.SvcUser
+	auth.SvcUser
 	jwt.RegisteredClaims
 }
 
 type AdminClaims struct {
-	Authenticated auth.AdminUser
+	auth.AdminUser
 	jwt.RegisteredClaims
 }
 
-func Authentication(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	tokenStr := GetIncomingMdVal(ctx, MdKeyAuth)
-	if strings.TrimSpace(tokenStr) == "" || strings.TrimLeft(tokenStr, "Bearer ") == "" {
+func (s ServerInterceptor) Authentication(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if auth.NoAuthMethods[info.FullMethod] != nil || !sutil.isExtMethod(ctx) {
+		return handler(ctx, req)
+	}
+	tokenStr := strings.TrimPrefix(GetIncomingMdVal(ctx, MdKeyAuthToken), "Bearer ")
+	if tokenStr == "" {
 		return nil, xerr.ErrUnauthorized.AppendMsg("empty token")
 	}
-	claims := SvcClaims{}
-	token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(deploy.XConf.SvcTokenSignKey), nil
-	})
+
+	var (
+		claims auth.Authenticator
+		token  *jwt.Token
+		jti    string
+	)
+
+	if s.svc == enumsvc.Admin {
+		claims = &AdminClaims{}
+		token, err = jwt.ParseWithClaims(tokenStr, claims.(jwt.Claims), func(token *jwt.Token) (interface{}, error) {
+			issuer, _ := token.Claims.GetIssuer()
+			if issuer != auth.TokenIssuer {
+				return nil, fmt.Errorf("unknown issuer:%s", issuer)
+			}
+			subject, _ := token.Claims.GetSubject()
+			if subject != fmt.Sprintf("%d", claims.GetUser().(auth.AdminUser).Uid) {
+				return nil, fmt.Errorf("unknown subject:%s", subject)
+			}
+			jti = claims.(*AdminClaims).RegisteredClaims.ID
+			return []byte(deploy.XConf.AdminTokenSignKey), nil
+		})
+	} else { // common svc
+		claims = &SvcClaims{}
+		token, err = jwt.ParseWithClaims(tokenStr, claims.(jwt.Claims), func(token *jwt.Token) (interface{}, error) {
+			issuer, _ := token.Claims.GetIssuer()
+			if issuer != auth.TokenIssuer {
+				return nil, fmt.Errorf("unknown issuer:%s", issuer)
+			}
+			subject, _ := token.Claims.GetSubject()
+			if subject != fmt.Sprintf("%d", claims.GetUser().(auth.SvcUser).ExternalUID) {
+				return nil, fmt.Errorf("unknown subject:%s", subject)
+			}
+			jti = claims.(*SvcClaims).RegisteredClaims.ID
+			return []byte(deploy.XConf.SvcTokenSignKey), nil
+		})
+	}
 	if err != nil {
 		return nil, xerr.ErrUnauthorized.AppendMsg(err.Error())
 	}
-	if !token.Valid || !claims.Authenticated.IsValid() {
+	if !token.Valid {
 		return nil, xerr.ErrUnauthorized
 	}
-	ctx = context.WithValue(ctx, auth.CtxAuthenticated{}, claims.Authenticated)
+	// TODO: Check the 'jti' field to prevent replay attacks.
+	xlog.Warn("NEED CHECK `jti` FIELD -- server.interceptor.Authentication", zap.String("jti", jti))
+
+	if !claims.IsValid() {
+		return nil, xerr.ErrUnauthorized.AppendMsg("invalid claims")
+	}
+	ctx = context.WithValue(ctx, auth.CtxAuthenticated{}, claims.GetUser())
 	resp, err = handler(ctx, req)
 	return
+}
+
+// Innermost the innermost interceptor if server side
+func (ServerInterceptor) Innermost(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if sutil.isExtMethod(ctx) && !sutil.fromGatewayCall(ctx) {
+		return nil, fmt.Errorf("restrict gateway to calling external gRPC method(%s) only", info.FullMethod)
+	}
+	return handler(ctx, req)
 }

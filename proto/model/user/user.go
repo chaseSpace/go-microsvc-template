@@ -68,12 +68,12 @@ func (u *User) SetIntField(uid, extUid int64, sex enums.Sex) {
 	u.Sex = sex
 }
 
-func (u *User) SetStrField(nickname string) {
+func (u *User) SetStrField(nickname, password, salt string) {
 	u.Nickname = nickname
-}
-
-func (u *User) SetTimeField(birthday time.Time, password, salt string) {
-	u.Birthday = birthday
 	u.Password = password
 	u.PasswdSalt = salt
+}
+
+func (u *User) SetTimeField(birthday time.Time) {
+	u.Birthday = birthday
 }

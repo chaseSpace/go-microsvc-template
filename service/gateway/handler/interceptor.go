@@ -7,7 +7,7 @@ import (
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
 	"microsvc/pkg/xtime"
-	"microsvc/protocol/svc"
+	proto2 "microsvc/proto"
 	"microsvc/util"
 	"time"
 )
@@ -26,16 +26,7 @@ func addInterceptor(handle func(ctx *fasthttp.RequestCtx) ([]byte, error), inter
 		if err == nil {
 			fctx.SetBody(res) // transparent forwarding body
 		} else {
-			httpRes := &svc.GatewayHttpRsp{
-				Code:        xerr.ErrInternal.Code,
-				Msg:         xerr.ErrInternal.Msg,
-				FromGateway: fctx.Value(ctxKeyFromGateway).(bool),
-			}
-			ecode, ok := xerr.FromErr(err)
-			if ok {
-				httpRes.Code = ecode.Code
-				httpRes.Msg = ecode.Msg
-			}
+			httpRes := proto2.WrapExtResponse(nil, err, true)
 			fctx.SetBody(util.ToJson(httpRes))
 		}
 	}

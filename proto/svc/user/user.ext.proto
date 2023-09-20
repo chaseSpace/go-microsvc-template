@@ -22,7 +22,7 @@ message User{
 
 
 message SignupReq{
-  string account = 1;
+  string email = 1;
   string password = 2;
   int32 sex = 3;
   string birthday = 4;
@@ -34,12 +34,12 @@ message SignupRes{
 }
 
 
-message LoginReq{
+message SigninReq{
   BaseExtReq base = 1;
   string account = 2;
   string password = 3;
 }
-message LoginRes{
+message SigninRes{
   User info = 1;
   string token = 2;
 }
@@ -47,6 +47,6 @@ message LoginRes{
 // *Ext 是外部服务接口组，要鉴权
 service UserExt {
   rpc Signup(SignupReq) returns (SignupRes);
-  rpc Login(LoginReq) returns (LoginRes);
+  rpc Signin(SigninReq) returns (SigninRes);
   rpc GetUser(GetUserReq) returns (GetUserRes);
 }

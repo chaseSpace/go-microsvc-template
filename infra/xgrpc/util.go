@@ -2,6 +2,7 @@ package xgrpc
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/samber/lo"
 	"github.com/sony/gobreaker"
@@ -9,23 +10,17 @@ import (
 	"google.golang.org/grpc/status"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
+	"strings"
 	"time"
 )
 
-func beautifyReqAndResInClient(req, reply interface{}) (interface{}, interface{}) {
-	// When grpc call is from gateway,the request is []byte, and the reply is *bytes.Buffer
-	_req, _ := req.([]byte)
-	if _req != nil {
-		req = string(_req)
-	}
-	res, _ := reply.(*bytes.Buffer)
-	if res != nil {
-		reply = res.String()
-	}
-	return req, reply
-}
+// -------------------------- clientUtil ------------------------------
 
-func newCircuitBreaker(name string) *gobreaker.CircuitBreaker {
+type clientUtil struct{}
+
+var cutil = clientUtil{}
+
+func (clientUtil) newCircuitBreaker(name string) *gobreaker.CircuitBreaker {
 	return gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:        name,
 		MaxRequests: 1,                //  maximum number of requests allowed to pass through when the breaker is half-open
@@ -41,8 +36,21 @@ func newCircuitBreaker(name string) *gobreaker.CircuitBreaker {
 		},
 	})
 }
+func (clientUtil) fromGatewayCall(ctx context.Context) bool {
+	return GetOutgoingMdVal(ctx, MdKeyFromGatewayFlag) == MdKeyFlagExist
+}
 
-func breakerTakeError(err error) bool {
+func (clientUtil) beautifyReqAndResInClient(ctx context.Context, req, reply interface{}) (interface{}, interface{}) {
+	if !cutil.fromGatewayCall(ctx) {
+		return req, reply
+	}
+	// When grpc call is from gateway,the request type must be `[]byte`, and the reply type must be `*bytes.Buffer`
+	req = string(req.([]byte))
+	reply = reply.(*bytes.Buffer).String()
+	return req, reply
+}
+
+func (clientUtil) breakerTakeError(err error) bool {
 	if xe, ok := err.(xerr.XErr); ok && xe.IsInternal() {
 		return true
 	}
@@ -56,4 +64,39 @@ func breakerTakeError(err error) bool {
 		codes.Aborted,
 		codes.FailedPrecondition,
 	}, s.Code())
+}
+
+// -------------------------- serverUtil ------------------------------
+type serverUtil struct{}
+
+var sutil = serverUtil{}
+
+func (serverUtil) setupCtx(ctx context.Context, method string) (context.Context, error) {
+	isExtMethod := false
+	fromGateway := GetIncomingMdVal(ctx, MdKeyFromGatewayFlag) == MdKeyFlagExist
+
+	// method such as: /svc.user.UserExt/Signup
+	ss := strings.Split(method, "/")
+	if len(ss) == 3 {
+		if strings.HasSuffix(ss[1], "Ext") {
+			isExtMethod = true
+		} else if !strings.HasSuffix(ss[1], "Int") {
+			return nil, fmt.Errorf("illegal grpc method: %s", method)
+		}
+		ctx = context.WithValue(ctx, CtxServerSideKey{}, CtxServerSideVal{
+			IsExtMethod: isExtMethod,
+			FromGateway: fromGateway,
+		})
+		return ctx, nil
+	}
+	return nil, fmt.Errorf("illegal grpc method: %s", method)
+}
+
+func (serverUtil) isExtMethod(ctx context.Context) bool {
+	val := ctx.Value(CtxServerSideKey{}).(CtxServerSideVal)
+	return val.IsExtMethod
+}
+
+func (serverUtil) fromGatewayCall(ctx context.Context) bool {
+	return GetIncomingMdVal(ctx, MdKeyFromGatewayFlag) == MdKeyFlagExist
 }

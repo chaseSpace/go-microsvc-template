@@ -6,16 +6,40 @@ import (
 )
 
 type CommonRes struct {
-	svc.BaseRes
-	Data interface{} `json:"data"`
+	*svc.BaseRes
+	Data        interface{} `json:"data,omitempty"`
+	FromGateway bool        `json:"from_gateway,omitempty"`
 }
 
-func RespondOK(data interface{}) *CommonRes {
+// WrapExtResponse
+/*
+old grpc response(err==nil):
+
+	{
+	  "a": 1
+	}
+
+new grpc response:
+
+	{
+	   "code": 200,
+	   "msg": "OK",
+	   "data": {"a": 1},
+	}
+*/
+func WrapExtResponse(data interface{}, err error, fromGateway bool) *CommonRes {
+	base := &svc.BaseRes{
+		Code: xerr.ErrNil.Code,
+		Msg:  xerr.ErrNil.Msg,
+	}
+	if err != nil {
+		xe := xerr.ToXErr(err)
+		base.Code = xe.Code
+		base.Msg = xe.Msg
+	}
 	return &CommonRes{
-		BaseRes: svc.BaseRes{
-			Code: xerr.ErrNil.Code,
-			Msg:  xerr.ErrNil.Msg,
-		},
-		Data: data,
+		BaseRes:     base,
+		Data:        data,
+		FromGateway: fromGateway,
 	}
 }

@@ -7,6 +7,7 @@ import (
 	muser "microsvc/proto/model/user"
 	"microsvc/protocol/svc/user"
 	"microsvc/service/user/logic"
+	"time"
 )
 
 type UserExtCtrl struct {
@@ -14,7 +15,7 @@ type UserExtCtrl struct {
 
 var _ user.UserExtServer = new(UserExtCtrl)
 
-func (u UserExtCtrl) Signup(ctx context.Context, req *user.SignupReq) (*user.SignupRes, error) {
+func (UserExtCtrl) Signup(ctx context.Context, req *user.SignupReq) (*user.SignupRes, error) {
 	userModel := muser.User{}
 
 	sex := enums.Sex(req.Sex)
@@ -24,7 +25,8 @@ func (u UserExtCtrl) Signup(ctx context.Context, req *user.SignupReq) (*user.Sig
 	//TODO gen uid extUID
 	userModel.SetIntField(1, 1, sex)
 
-	token, err := logic.GenLoginToken(1, 1, sex)
+	// TODO get regTime
+	token, err := logic.GenLoginToken(1, 1, time.Now(), sex)
 	if err != nil {
 		return nil, err
 	}
@@ -32,12 +34,14 @@ func (u UserExtCtrl) Signup(ctx context.Context, req *user.SignupReq) (*user.Sig
 	return res, nil
 }
 
-func (u UserExtCtrl) Login(ctx context.Context, req *user.LoginReq) (*user.LoginRes, error) {
+func (UserExtCtrl) Signin(ctx context.Context, req *user.SigninReq) (*user.SigninRes, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (u UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {
+func (UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {
+	//u := auth.GetAuthUser(ctx)
+	//pp.Println(1111, u)
 	if len(req.Uids) == 0 {
 		return nil, xerr.ErrParams
 	}

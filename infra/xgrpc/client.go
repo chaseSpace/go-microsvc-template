@@ -44,7 +44,7 @@ func (c *circuitBreakerT) Get(svc string) *gobreaker.CircuitBreaker {
 	}
 	c.mu.Lock()
 	c.mu.Unlock()
-	cb = newCircuitBreaker(svc)
+	cb = cutil.newCircuitBreaker(svc)
 	c.cmap[svc] = cb
 	return cb
 }
@@ -153,7 +153,7 @@ func withClientInterceptorOpt(svc string) grpc.DialOption {
 		inter.CircuitBreaker,
 		inter.Retry,
 		inter.WithFailedClient,
-	) // 逆序执行
+	) // execute in reverse order
 }
 
 func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -168,7 +168,7 @@ func (i ClientInterceptor) GRPCCallLog(ctx context.Context, method string, req, 
 			zap.Any("req", req), zap.Any("rsp", reply),
 		}
 
-		req, reply = beautifyReqAndResInClient(req, reply)
+		req, reply = cutil.beautifyReqAndResInClient(ctx, req, reply)
 		if err != nil {
 			errmsg := err.Error()
 			if e, ok := xerr.FromErrStr(errmsg); ok {
@@ -192,8 +192,8 @@ func (i ClientInterceptor) ExtractGRPCErr(ctx context.Context, method string, re
 			if e.Message() == context.DeadlineExceeded.Error() {
 				return xerr.ErrRPCTimeout
 			}
-			if strings.HasPrefix(e.Message(), unmarshalReqErrPrefix) {
-				return xerr.ErrBadRequest.AppendMsg(method).AppendMsg(e.Message()[len(unmarshalReqErrPrefix):])
+			if strings.HasPrefix(e.Message(), grpcUnmarshalReqErrPrefix) {
+				return xerr.ErrBadRequest.AppendMsg(method).AppendMsg(e.Message()[len(grpcUnmarshalReqErrPrefix):])
 			}
 			err = xerr.ToXErr(errors.New(e.Message()))
 		} else {
@@ -210,7 +210,7 @@ func (i ClientInterceptor) CircuitBreaker(ctx context.Context, method string, re
 		if err == nil {
 			return nil, nil
 		}
-		if breakerTakeError(err) {
+		if cutil.breakerTakeError(err) {
 			return nil, err
 		}
 		// ignore other errors
