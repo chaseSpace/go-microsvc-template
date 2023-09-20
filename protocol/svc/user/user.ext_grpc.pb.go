@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserExtClient interface {
 	Signup(ctx context.Context, in *SignupReq, opts ...grpc.CallOption) (*SignupRes, error)
-	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginRes, error)
+	Signin(ctx context.Context, in *SigninReq, opts ...grpc.CallOption) (*SigninRes, error)
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error)
 }
 
@@ -44,9 +44,9 @@ func (c *userExtClient) Signup(ctx context.Context, in *SignupReq, opts ...grpc.
 	return out, nil
 }
 
-func (c *userExtClient) Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginRes, error) {
-	out := new(LoginRes)
-	err := c.cc.Invoke(ctx, "/svc.user.UserExt/Login", in, out, opts...)
+func (c *userExtClient) Signin(ctx context.Context, in *SigninReq, opts ...grpc.CallOption) (*SigninRes, error) {
+	out := new(SigninRes)
+	err := c.cc.Invoke(ctx, "/svc.user.UserExt/Signin", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (c *userExtClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grp
 // for forward compatibility
 type UserExtServer interface {
 	Signup(context.Context, *SignupReq) (*SignupRes, error)
-	Login(context.Context, *LoginReq) (*LoginRes, error)
+	Signin(context.Context, *SigninReq) (*SigninRes, error)
 	GetUser(context.Context, *GetUserReq) (*GetUserRes, error)
 }
 
@@ -78,8 +78,8 @@ type UnimplementedUserExtServer struct {
 func (UnimplementedUserExtServer) Signup(context.Context, *SignupReq) (*SignupRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Signup not implemented")
 }
-func (UnimplementedUserExtServer) Login(context.Context, *LoginReq) (*LoginRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+func (UnimplementedUserExtServer) Signin(context.Context, *SigninReq) (*SigninRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Signin not implemented")
 }
 func (UnimplementedUserExtServer) GetUser(context.Context, *GetUserReq) (*GetUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
@@ -114,20 +114,20 @@ func _UserExt_Signup_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserExt_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoginReq)
+func _UserExt_Signin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SigninReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserExtServer).Login(ctx, in)
+		return srv.(UserExtServer).Signin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/svc.user.UserExt/Login",
+		FullMethod: "/svc.user.UserExt/Signin",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserExtServer).Login(ctx, req.(*LoginReq))
+		return srv.(UserExtServer).Signin(ctx, req.(*SigninReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -162,8 +162,8 @@ var UserExt_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserExt_Signup_Handler,
 		},
 		{
-			MethodName: "Login",
-			Handler:    _UserExt_Login_Handler,
+			MethodName: "Signin",
+			Handler:    _UserExt_Signin_Handler,
 		},
 		{
 			MethodName: "GetUser",

@@ -29,7 +29,7 @@ type BaseExtReq struct {
 	ThisIsExtApi bool   `protobuf:"varint,1,opt,name=this_is_ext_api,json=thisIsExtApi,proto3" json:"this_is_ext_api,omitempty"`
 	App          string `protobuf:"bytes,2,opt,name=app,proto3" json:"app,omitempty"` // client app package name
 	AppVersion   string `protobuf:"bytes,3,opt,name=app_version,json=appVersion,proto3" json:"app_version,omitempty"`
-	// ...
+	//...
 	Extension map[string]string `protobuf:"bytes,10,rep,name=extension,proto3" json:"extension,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
