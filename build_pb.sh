@@ -33,11 +33,12 @@ clear)
       --go-grpc_out=$OUTPUT_DIR \
       --go-grpc_opt=paths=source_relative \
       --go-grpc_opt=require_unimplemented_servers=false \
-      --grpc-gateway_out=$OUTPUT_DIR \
-      --grpc-gateway_opt logtostderr=true \
-      --grpc-gateway_opt paths=source_relative \
-      --grpc-gateway_opt generate_unbound_methods=true \
       proto/svc/$_pb_dir/*.proto proto/svc/*.proto
+#      --grpc-gateway_out=$OUTPUT_DIR \
+#      --grpc-gateway_opt logtostderr=true \
+#      --grpc-gateway_opt paths=source_relative \
+#      --grpc-gateway_opt generate_unbound_methods=true \
+
   else
     echo "regenerate all proto files..."
     rm -rf ./protocol/*
@@ -48,11 +49,12 @@ clear)
       --go-grpc_out=$OUTPUT_DIR \
       --go-grpc_opt=paths=source_relative \
       --go-grpc_opt=require_unimplemented_servers=false \
-      --grpc-gateway_out=$OUTPUT_DIR \
-      --grpc-gateway_opt logtostderr=true \
-      --grpc-gateway_opt paths=source_relative \
-      --grpc-gateway_opt generate_unbound_methods=true \
       proto/svc/*/*.proto proto/svc/*.proto
+#      --grpc-gateway_out=$OUTPUT_DIR \
+#      --grpc-gateway_opt logtostderr=true \
+#      --grpc-gateway_opt paths=source_relative \
+#      --grpc-gateway_opt generate_unbound_methods=true \
+
   fi
   ;;
 esac
