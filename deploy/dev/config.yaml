@@ -4,6 +4,7 @@ http_port: 6001
 simplesd_http_port: 6100
 svc_token_sign_key: 7DgF2kR9pE8hYsW6
 admin_token_sign_key: 5aR7Bp3W9Q2v8X1F
+sensitive_info_crypt_key: 7D13gRSkd0o49xE9
 mysql:
   biz: # db name，根据实际修改
     host: 192.168.56.1

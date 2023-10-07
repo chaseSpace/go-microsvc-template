@@ -13,13 +13,14 @@ import (
 
 // XConfig 是主配置结构体
 type XConfig struct {
-	Svc               svc.Svc           `mapstructure:"svc"` // set by this.svcConf
-	Env               enums.Environment `mapstructure:"env"`
-	Mysql             map[string]*Mysql `mapstructure:"mysql"`
-	Redis             map[string]*Redis `mapstructure:"redis"`
-	SimpleSdHttpPort  int               `mapstructure:"simplesd_http_port"`
-	SvcTokenSignKey   string            `mapstructure:"svc_token_sign_key"`
-	AdminTokenSignKey string            `mapstructure:"admin_token_sign_key"`
+	Svc                   svc.Svc           `mapstructure:"svc"` // set by this.svcConf
+	Env                   enums.Environment `mapstructure:"env"`
+	Mysql                 map[string]*Mysql `mapstructure:"mysql"`
+	Redis                 map[string]*Redis `mapstructure:"redis"`
+	SimpleSdHttpPort      int               `mapstructure:"simplesd_http_port"`       // 本地简单注册中心的固定端口，可在配置修改
+	SvcTokenSignKey       string            `mapstructure:"svc_token_sign_key"`       // 微服务鉴权token使用的key
+	AdminTokenSignKey     string            `mapstructure:"admin_token_sign_key"`     // Admin鉴权token使用的key
+	SensitiveInfoCryptKey string            `mapstructure:"sensitive_info_crypt_key"` // 敏感信息加密key（如手机号、身份证等）
 
 	// 私有字段
 	gRPCPort int
