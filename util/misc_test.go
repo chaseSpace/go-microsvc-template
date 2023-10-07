@@ -1,6 +1,7 @@
 package util
 
 import (
+	"github.com/stretchr/testify/assert"
 	"net"
 	"testing"
 )
@@ -29,4 +30,18 @@ func TestGetTcpListenerWithinRangePort(t *testing.T) {
 		ss = append(ss, lis)
 	}
 	closeAll()
+}
+
+func TestFuzzyChars(t *testing.T) {
+	// success case
+	assert.Equal(t, "h*l", FuzzyChars("hel"))
+	assert.Equal(t, "h***o", FuzzyChars("hello"))
+	assert.Equal(t, "he**o1", FuzzyChars("hello1"))
+
+	assert.Equal(t, "158****8888", FuzzyChars("15899998888", FuzzyCharTypPhone))
+	assert.Equal(t, "020-29***23", FuzzyChars("020-2938123", FuzzyCharTypPhone))
+	assert.Equal(t, "0***2", FuzzyChars("020-2", FuzzyCharTypPhone))
+	assert.Equal(t, "020-2*4", FuzzyChars("020-234", FuzzyCharTypPhone))
+
+	assert.Equal(t, "440308********3456", FuzzyChars("440308198612183456", FuzzyCharTypCitizenId))
 }
