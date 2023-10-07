@@ -10,7 +10,6 @@
   * [2. 目录结构释义](#2-目录结构释义)
   * [3. 如何使用](#3-如何使用)
   * [4. 示例集合](#4-示例集合)
-    * [4.1 优化proto unmarshal error response](#41-优化proto-unmarshal-error-response)
   * [5. 本地（dev）环境启动微服务的原理](#5-本地dev环境启动微服务的原理)
   * [6. 工具下载（更新）](#6-工具下载更新)
     * [6.1 下载protoc](#61-下载protoc)
@@ -264,40 +263,7 @@ go run service/gateway/main.go
 ```
 
 ### 4. 示例集合
-
-#### 4.1 优化proto参数错误的response
-
-**优化前**
-```shell
-POST http://localhost:8000/svc.admin.AdminExt/GetUser
-
-HTTP/1.1 200 OK
-Server: fasthttp
-Date: Sun, 03 Sep 2023 02:55:58 GMT
-Content-Type: application/json
-Content-Length: 138
-
-{
-  "code": 500,
-  "msg": "grpc: error unmarshalling request: json: cannot unmarshal number into Go struct field GetUserReq.uids of type []int64"
-}
-```
-
-**优化后**
-```shell
-POST http://localhost:8000/svc.admin.AdminExt/GetUser
-
-HTTP/1.1 200 OK
-Server: fasthttp
-Date: Sun, 03 Sep 2023 02:56:37 GMT
-Content-Type: application/json
-Content-Length: 153
-
-{
-  "code": 400,
-  "msg": "ErrBadRequest ➜ /svc.admin.AdminExt/GetUser ➜ json: cannot unmarshal number into Go struct field GetUserReq.uids of type []int64"
-}
-```
+[【示例集合】](./examples.md)
 
 ### 5. 本地（dev）环境启动微服务的原理
 
