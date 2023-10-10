@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"github.com/k0kubun/pp"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"microsvc/deploy"
@@ -34,7 +35,13 @@ func InitRedis(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 		}
 
 		if err == nil {
+			fmt.Println("#### infra.redis init success")
 			err = setupSvcDB()
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			pp.Printf("#### infra.redis init failed: %v\n", err)
 		}
 
 		onEnd(must, err)

@@ -21,7 +21,7 @@ message User{
 }
 
 
-message SignupReq{
+message SignUpReq{
   string email = 1;
   string password = 2;
   int32 sex = 3;
@@ -29,24 +29,24 @@ message SignupReq{
   string captcha = 10; // verify code
 }
 
-message SignupRes{
+message SignUpRes{
   string token = 1;
 }
 
 
-message SigninReq{
+message SignInReq{
   BaseExtReq base = 1;
   string account = 2;
   string password = 3;
 }
-message SigninRes{
+message SignInRes{
   User info = 1;
   string token = 2;
 }
 
 // *Ext 是外部服务接口组，要鉴权
 service UserExt {
-  rpc Signup(SignupReq) returns (SignupRes);
-  rpc Signin(SigninReq) returns (SigninRes);
+  rpc SignUp(SignUpReq) returns (SignUpRes);
+  rpc SignIn(SignInReq) returns (SignInRes);
   rpc GetUser(GetUserReq) returns (GetUserRes);
 }

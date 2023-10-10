@@ -7,14 +7,14 @@ admin_token_sign_key: 5aR7Bp3W9Q2v8X1F
 sensitive_info_crypt_key: 7D13gRSkd0o49xE9
 mysql:
   biz: # db name，根据实际修改
-    host: 192.168.56.1
+    host: localhost
     port: 3306
     user: root
     password: 123
     gorm_args: "charset=utf8mb4&parseTime=True&loc=Local"
 
   biz_log:
-    host: 192.168.56.1
+    host: localhost
     port: 3306
     user: root
     password: 123

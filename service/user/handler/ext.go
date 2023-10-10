@@ -15,7 +15,7 @@ type UserExtCtrl struct {
 
 var _ user.UserExtServer = new(UserExtCtrl)
 
-func (UserExtCtrl) Signup(ctx context.Context, req *user.SignupReq) (*user.SignupRes, error) {
+func (UserExtCtrl) SignUp(ctx context.Context, req *user.SignUpReq) (*user.SignUpRes, error) {
 	userModel := muser.User{}
 
 	sex := enums.Sex(req.Sex)
@@ -30,11 +30,11 @@ func (UserExtCtrl) Signup(ctx context.Context, req *user.SignupReq) (*user.Signu
 	if err != nil {
 		return nil, err
 	}
-	res := &user.SignupRes{Token: token}
+	res := &user.SignUpRes{Token: token}
 	return res, nil
 }
 
-func (UserExtCtrl) Signin(ctx context.Context, req *user.SigninReq) (*user.SigninRes, error) {
+func (UserExtCtrl) SignIn(ctx context.Context, req *user.SignInReq) (*user.SignInRes, error) {
 	//TODO implement me
 	panic("implement me")
 }

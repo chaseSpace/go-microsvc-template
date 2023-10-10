@@ -202,7 +202,7 @@ func (x *User) GetSex() int32 {
 	return 0
 }
 
-type SignupReq struct {
+type SignUpReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -214,8 +214,8 @@ type SignupReq struct {
 	Captcha  string `protobuf:"bytes,10,opt,name=captcha,proto3" json:"captcha,omitempty"` // verify code
 }
 
-func (x *SignupReq) Reset() {
-	*x = SignupReq{}
+func (x *SignUpReq) Reset() {
+	*x = SignUpReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_svc_user_user_ext_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -223,13 +223,13 @@ func (x *SignupReq) Reset() {
 	}
 }
 
-func (x *SignupReq) String() string {
+func (x *SignUpReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SignupReq) ProtoMessage() {}
+func (*SignUpReq) ProtoMessage() {}
 
-func (x *SignupReq) ProtoReflect() protoreflect.Message {
+func (x *SignUpReq) ProtoReflect() protoreflect.Message {
 	mi := &file_svc_user_user_ext_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -241,47 +241,47 @@ func (x *SignupReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SignupReq.ProtoReflect.Descriptor instead.
-func (*SignupReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use SignUpReq.ProtoReflect.Descriptor instead.
+func (*SignUpReq) Descriptor() ([]byte, []int) {
 	return file_svc_user_user_ext_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *SignupReq) GetEmail() string {
+func (x *SignUpReq) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *SignupReq) GetPassword() string {
+func (x *SignUpReq) GetPassword() string {
 	if x != nil {
 		return x.Password
 	}
 	return ""
 }
 
-func (x *SignupReq) GetSex() int32 {
+func (x *SignUpReq) GetSex() int32 {
 	if x != nil {
 		return x.Sex
 	}
 	return 0
 }
 
-func (x *SignupReq) GetBirthday() string {
+func (x *SignUpReq) GetBirthday() string {
 	if x != nil {
 		return x.Birthday
 	}
 	return ""
 }
 
-func (x *SignupReq) GetCaptcha() string {
+func (x *SignUpReq) GetCaptcha() string {
 	if x != nil {
 		return x.Captcha
 	}
 	return ""
 }
 
-type SignupRes struct {
+type SignUpRes struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -289,8 +289,8 @@ type SignupRes struct {
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 }
 
-func (x *SignupRes) Reset() {
-	*x = SignupRes{}
+func (x *SignUpRes) Reset() {
+	*x = SignUpRes{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_svc_user_user_ext_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -298,13 +298,13 @@ func (x *SignupRes) Reset() {
 	}
 }
 
-func (x *SignupRes) String() string {
+func (x *SignUpRes) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SignupRes) ProtoMessage() {}
+func (*SignUpRes) ProtoMessage() {}
 
-func (x *SignupRes) ProtoReflect() protoreflect.Message {
+func (x *SignUpRes) ProtoReflect() protoreflect.Message {
 	mi := &file_svc_user_user_ext_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -316,19 +316,19 @@ func (x *SignupRes) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SignupRes.ProtoReflect.Descriptor instead.
-func (*SignupRes) Descriptor() ([]byte, []int) {
+// Deprecated: Use SignUpRes.ProtoReflect.Descriptor instead.
+func (*SignUpRes) Descriptor() ([]byte, []int) {
 	return file_svc_user_user_ext_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *SignupRes) GetToken() string {
+func (x *SignUpRes) GetToken() string {
 	if x != nil {
 		return x.Token
 	}
 	return ""
 }
 
-type SigninReq struct {
+type SignInReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -338,8 +338,8 @@ type SigninReq struct {
 	Password string          `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 }
 
-func (x *SigninReq) Reset() {
-	*x = SigninReq{}
+func (x *SignInReq) Reset() {
+	*x = SignInReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_svc_user_user_ext_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -347,13 +347,13 @@ func (x *SigninReq) Reset() {
 	}
 }
 
-func (x *SigninReq) String() string {
+func (x *SignInReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SigninReq) ProtoMessage() {}
+func (*SignInReq) ProtoMessage() {}
 
-func (x *SigninReq) ProtoReflect() protoreflect.Message {
+func (x *SignInReq) ProtoReflect() protoreflect.Message {
 	mi := &file_svc_user_user_ext_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -365,33 +365,33 @@ func (x *SigninReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SigninReq.ProtoReflect.Descriptor instead.
-func (*SigninReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use SignInReq.ProtoReflect.Descriptor instead.
+func (*SignInReq) Descriptor() ([]byte, []int) {
 	return file_svc_user_user_ext_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *SigninReq) GetBase() *svc.BaseExtReq {
+func (x *SignInReq) GetBase() *svc.BaseExtReq {
 	if x != nil {
 		return x.Base
 	}
 	return nil
 }
 
-func (x *SigninReq) GetAccount() string {
+func (x *SignInReq) GetAccount() string {
 	if x != nil {
 		return x.Account
 	}
 	return ""
 }
 
-func (x *SigninReq) GetPassword() string {
+func (x *SignInReq) GetPassword() string {
 	if x != nil {
 		return x.Password
 	}
 	return ""
 }
 
-type SigninRes struct {
+type SignInRes struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -400,8 +400,8 @@ type SigninRes struct {
 	Token string `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
 }
 
-func (x *SigninRes) Reset() {
-	*x = SigninRes{}
+func (x *SignInRes) Reset() {
+	*x = SignInRes{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_svc_user_user_ext_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -409,13 +409,13 @@ func (x *SigninRes) Reset() {
 	}
 }
 
-func (x *SigninRes) String() string {
+func (x *SignInRes) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SigninRes) ProtoMessage() {}
+func (*SignInRes) ProtoMessage() {}
 
-func (x *SigninRes) ProtoReflect() protoreflect.Message {
+func (x *SignInRes) ProtoReflect() protoreflect.Message {
 	mi := &file_svc_user_user_ext_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -427,19 +427,19 @@ func (x *SigninRes) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SigninRes.ProtoReflect.Descriptor instead.
-func (*SigninRes) Descriptor() ([]byte, []int) {
+// Deprecated: Use SignInRes.ProtoReflect.Descriptor instead.
+func (*SignInRes) Descriptor() ([]byte, []int) {
 	return file_svc_user_user_ext_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *SigninRes) GetInfo() *User {
+func (x *SignInRes) GetInfo() *User {
 	if x != nil {
 		return x.Info
 	}
 	return nil
 }
 
-func (x *SigninRes) GetToken() string {
+func (x *SignInRes) GetToken() string {
 	if x != nil {
 		return x.Token
 	}
@@ -473,7 +473,7 @@ var file_svc_user_user_ext_proto_rawDesc = []byte{
 	0x69, 0x63, 0x6b, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x67, 0x65, 0x18, 0x04,
 	0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x61, 0x67, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x73, 0x65, 0x78,
 	0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x73, 0x65, 0x78, 0x22, 0x85, 0x01, 0x0a, 0x09,
-	0x53, 0x69, 0x67, 0x6e, 0x75, 0x70, 0x52, 0x65, 0x71, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61,
+	0x53, 0x69, 0x67, 0x6e, 0x55, 0x70, 0x52, 0x65, 0x71, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61,
 	0x69, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12,
 	0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x73,
@@ -481,27 +481,27 @@ var file_svc_user_user_ext_proto_rawDesc = []byte{
 	0x08, 0x62, 0x69, 0x72, 0x74, 0x68, 0x64, 0x61, 0x79, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x08, 0x62, 0x69, 0x72, 0x74, 0x68, 0x64, 0x61, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x61, 0x70,
 	0x74, 0x63, 0x68, 0x61, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x61, 0x70, 0x74,
-	0x63, 0x68, 0x61, 0x22, 0x21, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x75, 0x70, 0x52, 0x65, 0x73,
+	0x63, 0x68, 0x61, 0x22, 0x21, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x55, 0x70, 0x52, 0x65, 0x73,
 	0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x66, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x69, 0x6e,
+	0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x66, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e,
 	0x52, 0x65, 0x71, 0x12, 0x23, 0x0a, 0x04, 0x62, 0x61, 0x73, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x0f, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x42, 0x61, 0x73, 0x65, 0x45, 0x78, 0x74, 0x52,
 	0x65, 0x71, 0x52, 0x04, 0x62, 0x61, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x63, 0x63, 0x6f,
 	0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x63, 0x63, 0x6f, 0x75,
 	0x6e, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x45,
-	0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x12, 0x22, 0x0a, 0x04, 0x69,
+	0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x52, 0x65, 0x73, 0x12, 0x22, 0x0a, 0x04, 0x69,
 	0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x73, 0x76, 0x63, 0x2e,
 	0x75, 0x73, 0x65, 0x72, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x12,
 	0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
 	0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x32, 0xa8, 0x01, 0x0a, 0x07, 0x55, 0x73, 0x65, 0x72, 0x45, 0x78,
-	0x74, 0x12, 0x32, 0x0a, 0x06, 0x53, 0x69, 0x67, 0x6e, 0x75, 0x70, 0x12, 0x13, 0x2e, 0x73, 0x76,
-	0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x75, 0x70, 0x52, 0x65, 0x71,
+	0x74, 0x12, 0x32, 0x0a, 0x06, 0x53, 0x69, 0x67, 0x6e, 0x55, 0x70, 0x12, 0x13, 0x2e, 0x73, 0x76,
+	0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x55, 0x70, 0x52, 0x65, 0x71,
 	0x1a, 0x13, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x53, 0x69, 0x67, 0x6e,
-	0x75, 0x70, 0x52, 0x65, 0x73, 0x12, 0x32, 0x0a, 0x06, 0x53, 0x69, 0x67, 0x6e, 0x69, 0x6e, 0x12,
-	0x13, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x69,
+	0x55, 0x70, 0x52, 0x65, 0x73, 0x12, 0x32, 0x0a, 0x06, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x12,
+	0x13, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x49,
 	0x6e, 0x52, 0x65, 0x71, 0x1a, 0x13, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
-	0x53, 0x69, 0x67, 0x6e, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x12, 0x35, 0x0a, 0x07, 0x47, 0x65, 0x74,
+	0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x52, 0x65, 0x73, 0x12, 0x35, 0x0a, 0x07, 0x47, 0x65, 0x74,
 	0x55, 0x73, 0x65, 0x72, 0x12, 0x14, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
 	0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x73, 0x76, 0x63,
 	0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73,
@@ -527,24 +527,24 @@ var file_svc_user_user_ext_proto_goTypes = []interface{}{
 	(*GetUserReq)(nil),     // 0: svc.user.GetUserReq
 	(*GetUserRes)(nil),     // 1: svc.user.GetUserRes
 	(*User)(nil),           // 2: svc.user.User
-	(*SignupReq)(nil),      // 3: svc.user.SignupReq
-	(*SignupRes)(nil),      // 4: svc.user.SignupRes
-	(*SigninReq)(nil),      // 5: svc.user.SigninReq
-	(*SigninRes)(nil),      // 6: svc.user.SigninRes
+	(*SignUpReq)(nil),      // 3: svc.user.SignUpReq
+	(*SignUpRes)(nil),      // 4: svc.user.SignUpRes
+	(*SignInReq)(nil),      // 5: svc.user.SignInReq
+	(*SignInRes)(nil),      // 6: svc.user.SignInRes
 	nil,                    // 7: svc.user.GetUserRes.UmapEntry
 	(*svc.BaseExtReq)(nil), // 8: svc.BaseExtReq
 }
 var file_svc_user_user_ext_proto_depIdxs = []int32{
 	8, // 0: svc.user.GetUserReq.base:type_name -> svc.BaseExtReq
 	7, // 1: svc.user.GetUserRes.umap:type_name -> svc.user.GetUserRes.UmapEntry
-	8, // 2: svc.user.SigninReq.base:type_name -> svc.BaseExtReq
-	2, // 3: svc.user.SigninRes.info:type_name -> svc.user.User
+	8, // 2: svc.user.SignInReq.base:type_name -> svc.BaseExtReq
+	2, // 3: svc.user.SignInRes.info:type_name -> svc.user.User
 	2, // 4: svc.user.GetUserRes.UmapEntry.value:type_name -> svc.user.User
-	3, // 5: svc.user.UserExt.Signup:input_type -> svc.user.SignupReq
-	5, // 6: svc.user.UserExt.Signin:input_type -> svc.user.SigninReq
+	3, // 5: svc.user.UserExt.SignUp:input_type -> svc.user.SignUpReq
+	5, // 6: svc.user.UserExt.SignIn:input_type -> svc.user.SignInReq
 	0, // 7: svc.user.UserExt.GetUser:input_type -> svc.user.GetUserReq
-	4, // 8: svc.user.UserExt.Signup:output_type -> svc.user.SignupRes
-	6, // 9: svc.user.UserExt.Signin:output_type -> svc.user.SigninRes
+	4, // 8: svc.user.UserExt.SignUp:output_type -> svc.user.SignUpRes
+	6, // 9: svc.user.UserExt.SignIn:output_type -> svc.user.SignInRes
 	1, // 10: svc.user.UserExt.GetUser:output_type -> svc.user.GetUserRes
 	8, // [8:11] is the sub-list for method output_type
 	5, // [5:8] is the sub-list for method input_type
@@ -596,7 +596,7 @@ func file_svc_user_user_ext_proto_init() {
 			}
 		}
 		file_svc_user_user_ext_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignupReq); i {
+			switch v := v.(*SignUpReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -608,7 +608,7 @@ func file_svc_user_user_ext_proto_init() {
 			}
 		}
 		file_svc_user_user_ext_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SignupRes); i {
+			switch v := v.(*SignUpRes); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -620,7 +620,7 @@ func file_svc_user_user_ext_proto_init() {
 			}
 		}
 		file_svc_user_user_ext_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SigninReq); i {
+			switch v := v.(*SignInReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -632,7 +632,7 @@ func file_svc_user_user_ext_proto_init() {
 			}
 		}
 		file_svc_user_user_ext_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SigninRes); i {
+			switch v := v.(*SignInRes); i {
 			case 0:
 				return &v.state
 			case 1:

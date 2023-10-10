@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+	"github.com/k0kubun/pp"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -36,7 +37,19 @@ func InitGorm(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 		}
 
 		if err == nil {
+			fmt.Println("#### infra.mysql init success")
+			sqlDB, _ := db.DB()
+
+			sqlDB.SetMaxOpenConns(100)
+			sqlDB.SetMaxIdleConns(20)
+
+			// 检查业务需要的db是否在配置中存在
 			err = setupSvcDB()
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			pp.Printf("#### infra.mysql init failed: %v\n", err)
 		}
 
 		onEnd(must, err)

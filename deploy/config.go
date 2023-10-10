@@ -133,7 +133,7 @@ type Mysql struct {
 }
 
 func (m Mysql) Dsn() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", m.User, m.Password, m.Host, m.Port, m.DBname, m.GormArgs)
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s&timeout=3s", m.User, m.Password, m.Host, m.Port, m.DBname, m.GormArgs)
 }
 
 type Redis struct {
