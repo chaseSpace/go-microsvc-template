@@ -160,7 +160,8 @@ func TestExample(t *testing.T) {
 	var existIds, skipIds []uint64
 	// 1. 定义用来判断已经用过的uid的函数
 	existFn := func(id uint64) (bool, error) {
-		// 通常是尝试写入db
+		// 一般通过尝试写入db是否成功 来判断是否存在
+		// 省略。。。
 		return lo.Contains(existIds, id), nil
 	}
 
