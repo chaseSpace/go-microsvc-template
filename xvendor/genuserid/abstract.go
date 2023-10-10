@@ -10,5 +10,5 @@ import "context"
 */
 type UidGeneratorApi interface {
 	UpdateStartUid(uint64)
-	GenUid(ctx context.Context) (uint64, error)
+	GenUid(ctx context.Context) (uint64, error) // 通过ctx设置timeout
 }
