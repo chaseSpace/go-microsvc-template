@@ -9,6 +9,7 @@ const (
 	MdKeyAuthToken       = "authorization" // store token for authentication
 	MdKeyTraceId         = "trace-id"      // store trace id
 	MdKeyFromGatewayFlag = "from-gateway"
+	MdKeyTestCall        = "test-call"
 )
 
 const MdKeyFlagExist = "1"
@@ -51,4 +52,8 @@ func GetIncomingMdVal(ctx context.Context, key string) string {
 		}
 	}
 	return ""
+}
+
+func IsIncomingMdKeyExist(ctx context.Context, key string) bool {
+	return GetIncomingMdVal(ctx, key) == MdKeyFlagExist
 }
