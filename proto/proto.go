@@ -13,13 +13,13 @@ type CommonRes struct {
 
 // WrapExtResponse
 /*
-old grpc response(err==nil):
+old external grpc response(err==nil):
 
 	{
 	  "a": 1
 	}
 
-new grpc response:
+new external grpc response:
 
 	{
 	   "code": 200,
