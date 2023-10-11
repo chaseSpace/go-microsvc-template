@@ -98,5 +98,9 @@ func (serverUtil) isExtMethod(ctx context.Context) bool {
 }
 
 func (serverUtil) fromGatewayCall(ctx context.Context) bool {
-	return GetIncomingMdVal(ctx, MdKeyFromGatewayFlag) == MdKeyFlagExist
+	return IsIncomingMdKeyExist(ctx, MdKeyFromGatewayFlag)
+}
+
+func (serverUtil) isTestCall(ctx context.Context) bool {
+	return IsIncomingMdKeyExist(ctx, MdKeyTestCall)
 }
