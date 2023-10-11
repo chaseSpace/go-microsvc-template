@@ -25,7 +25,8 @@ type Method struct {
 }
 
 var NoAuthMethods = map[string]*Method{
-	"/svc.user.UserExt/Signup": {},
+	"/svc.user.UserExt/SignUp": {},
+	"/svc.user.UserExt/SignIn": {},
 }
 
 type CtxAuthenticated struct{}
@@ -43,13 +44,12 @@ type Authenticator interface {
 }
 
 type SvcUser struct {
-	ExternalUID int64 `json:"ext-uid"`
 	AuthenticatedUser
 }
 
 func (a SvcUser) IsValid() bool {
 	if a.AuthenticatedUser.IsValid() {
-		return a.ExternalUID > 0
+		return a.Uid > 0
 	}
 	return false
 }
@@ -94,4 +94,26 @@ func (a *AuthenticatedUser) GetLoginAt() time.Time {
 
 func (a *AuthenticatedUser) GetRegAt() time.Time {
 	return a._RegAt
+}
+
+func NewTestSvcUser(uid int64, sex enums.Sex) *SvcUser {
+	return &SvcUser{
+		AuthenticatedUser{
+			Uid:     uid,
+			Sex:     sex,
+			RegAt:   "2024-01-01 00:00:00",
+			LoginAt: time.Now().Format(time.DateTime),
+		},
+	}
+}
+
+func NewTestAdminUser(uid int64, sex enums.Sex) *AdminUser {
+	return &AdminUser{
+		AuthenticatedUser{
+			Uid:     uid,
+			Sex:     sex,
+			RegAt:   "2024-01-01 00:00:00",
+			LoginAt: time.Now().Format(time.DateTime),
+		},
+	}
 }
