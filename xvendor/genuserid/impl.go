@@ -35,7 +35,7 @@ func (u *UidGenerator) GenUid(ctx context.Context) (uint64, error) {
 	var boolVal bool
 	var err error
 	for i := 1; ; i++ {
-		go func() {
+		go func(id uint64) {
 			defer func() {
 				cc <- struct{}{}
 			}()
@@ -46,7 +46,7 @@ func (u *UidGenerator) GenUid(ctx context.Context) (uint64, error) {
 				return
 			}
 			validId = true
-		}()
+		}(id)
 
 		select {
 		case <-ctx.Done():
