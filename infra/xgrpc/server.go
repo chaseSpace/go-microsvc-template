@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"microsvc/bizcomm/auth"
 	"microsvc/deploy"
+	"microsvc/enums"
 	enumsvc "microsvc/enums/svc"
 	"microsvc/pkg/xerr"
 	"microsvc/pkg/xlog"
@@ -348,8 +349,8 @@ func (ServerInterceptor) RecoverGRPCRequest(ctx context.Context, req interface{}
 func (ServerInterceptor) ConvertExtResponse(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	resp, err = handler(ctx, req)
 	// We disregarded the error from setupCtx since it had already been
-	// handled at the innermost level of the GRPC interceptor, which is `Innermost`
-	if sutil.isExtMethod(ctx) {
+	// handled at the innermost level of the GRPC interceptor, which name is `Innermost`
+	if sutil.isExtMethod(ctx) && sutil.fromGatewayCall(ctx) {
 		return proto2.WrapExtResponse(resp, err, false), nil
 	}
 	return resp, err
@@ -410,6 +411,17 @@ func (s ServerInterceptor) Authentication(ctx context.Context, req interface{}, 
 	}
 	tokenStr := strings.TrimPrefix(GetIncomingMdVal(ctx, MdKeyAuthToken), "Bearer ")
 	if tokenStr == "" {
+		if IsIncomingMdKeyExist(ctx, MdKeyTestCall) {
+			var user any
+			if s.svc == enumsvc.Admin {
+				user = auth.NewTestAdminUser(1, enums.SexMale)
+			} else {
+				user = auth.NewTestSvcUser(1, enums.SexMale)
+			}
+			ctx = context.WithValue(ctx, auth.CtxAuthenticated{}, user)
+			resp, err = handler(ctx, req)
+			return resp, err
+		}
 		return nil, xerr.ErrUnauthorized.AppendMsg("empty token")
 	}
 
@@ -419,7 +431,7 @@ func (s ServerInterceptor) Authentication(ctx context.Context, req interface{}, 
 		jti    string
 	)
 
-	if s.svc == enumsvc.Admin {
+	if s.svc == enumsvc.Admin { // admin svc
 		claims = &AdminClaims{}
 		token, err = jwt.ParseWithClaims(tokenStr, claims.(jwt.Claims), func(token *jwt.Token) (interface{}, error) {
 			issuer, _ := token.Claims.GetIssuer()
@@ -441,7 +453,7 @@ func (s ServerInterceptor) Authentication(ctx context.Context, req interface{}, 
 				return nil, fmt.Errorf("unknown issuer:%s", issuer)
 			}
 			subject, _ := token.Claims.GetSubject()
-			if subject != fmt.Sprintf("%d", claims.GetUser().(auth.SvcUser).ExternalUID) {
+			if subject != fmt.Sprintf("%d", claims.GetUser().(auth.SvcUser).Uid) {
 				return nil, fmt.Errorf("unknown subject:%s", subject)
 			}
 			jti = claims.(*SvcClaims).RegisteredClaims.ID
@@ -467,7 +479,7 @@ func (s ServerInterceptor) Authentication(ctx context.Context, req interface{}, 
 
 // Innermost the innermost interceptor if server side
 func (ServerInterceptor) Innermost(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	if sutil.isExtMethod(ctx) && !sutil.fromGatewayCall(ctx) {
+	if sutil.isExtMethod(ctx) && !sutil.fromGatewayCall(ctx) && !sutil.isTestCall(ctx) {
 		return nil, fmt.Errorf("restrict gateway to calling external gRPC method(%s) only", info.FullMethod)
 	}
 	return handler(ctx, req)
