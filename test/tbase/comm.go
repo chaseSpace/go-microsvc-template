@@ -1,6 +1,8 @@
 package tbase
 
 import (
+	"context"
+	"google.golang.org/grpc/metadata"
 	"microsvc/consts"
 	"microsvc/deploy"
 	"microsvc/enums/svc"
@@ -8,8 +10,10 @@ import (
 	"microsvc/infra/sd"
 	"microsvc/infra/sd/abstract"
 	"microsvc/infra/svccli"
+	"microsvc/infra/xgrpc"
 	"microsvc/pkg"
 	"microsvc/pkg/xlog"
+	"microsvc/util"
 	"microsvc/util/graceful"
 	"os"
 	"path/filepath"
@@ -86,4 +90,15 @@ func TearDown() {
 func isProjectRootDir() bool {
 	_, err := os.Stat("go.mod")
 	return err == nil
+}
+
+// TestCallCtx 它的traceId在多次使用时是同一个，若需要不同的traceId请使用 NewTestCallCtx
+var TestCallCtx = NewTestCallCtx()
+
+func NewTestCallCtx() context.Context {
+	md := metadata.Pairs(
+		xgrpc.MdKeyTestCall, xgrpc.MdKeyFlagExist,
+		xgrpc.MdKeyTraceId, util.NewKsuid(),
+	)
+	return metadata.NewOutgoingContext(context.TODO(), md)
 }
