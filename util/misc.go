@@ -48,8 +48,8 @@ var (
 
 func NewKsuid() string {
 	__ksuidMutex.Lock()
+	defer __ksuidMutex.Unlock()
 	__ksuid = __ksuid.Next()
-	__ksuidMutex.Unlock()
 	return __ksuid.String()
 }
 

@@ -3,6 +3,7 @@ package util
 import (
 	"github.com/stretchr/testify/assert"
 	"net"
+	"sync"
 	"testing"
 )
 
@@ -44,4 +45,27 @@ func TestFuzzyChars(t *testing.T) {
 	assert.Equal(t, "020-2*4", FuzzyChars("020-234", FuzzyCharTypPhone))
 
 	assert.Equal(t, "440308********3456", FuzzyChars("440308198612183456", FuzzyCharTypCitizenId))
+}
+
+func TestNewKsuid(t *testing.T) {
+	var ids sync.Map
+
+	var x sync.WaitGroup
+
+	loops := 1000
+	for i := 0; i < loops; i++ {
+		x.Add(1)
+		go func() {
+			ids.Store(NewKsuid(), 1)
+			x.Done()
+		}()
+	}
+	x.Wait()
+
+	actuals := 0
+	ids.Range(func(key, value any) bool {
+		actuals++
+		return true
+	})
+	assert.Equal(t, loops, actuals)
 }
