@@ -12,6 +12,14 @@ type XErr struct {
 	Msg  string
 }
 
+func New(msg string, code ...int32) XErr {
+	cd := ErrInternal.Code
+	if len(code) > 0 {
+		cd = code[0]
+	}
+	return XErr{Code: cd, Msg: msg}
+}
+
 // FromErr from error type to XErr, that might be fail then nil returned
 func FromErr(err error) (t XErr, ok bool) {
 	if err == nil {
