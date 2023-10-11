@@ -7,6 +7,7 @@ import "context"
 支持特性：
 - 指定起始id
 - 跳过指定uid（自定义逻辑，可使用正则等方式）
+- 串行生成（lock）
 */
 type UidGeneratorApi interface {
 	UpdateStartUid(uint64)
