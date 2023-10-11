@@ -33,7 +33,7 @@ func (codecBytes) Unmarshal(data []byte, v interface{}) error {
 	if !ok {
 		vb, ok := v.(*bytes.Buffer) // from gateway
 		if !ok {
-			return fmt.Errorf("failed to marshal, message is %T, want protobytes.Message or []byte", v)
+			return fmt.Errorf("failed to unmarshal, message is %T, want protobytes.Message or []byte", v)
 		}
 		_, err := vb.Write(data)
 		return err

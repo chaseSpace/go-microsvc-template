@@ -22,9 +22,11 @@ type GatewayCtrl struct {
 
 const gatewayForwardTimeout = time.Second * 5
 
+var (
+	interceptors = []UnaryInterceptor{interceptor{}.Trace, interceptor{}.Log}
+)
+
 func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
-	inter := interceptor{}
-	interceptors := []UnaryInterceptor{inter.Trace, inter.Log}
 	addInterceptor(forwardHandler, interceptors...)(ctx)
 }
 
