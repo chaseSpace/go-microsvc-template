@@ -10,7 +10,6 @@ import (
 
 type User struct {
 	Base
-	ExtUid    int64     `gorm:"column:ext_uid" json:"ext_uid"` // 外部id
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
@@ -20,7 +19,7 @@ type Base struct {
 	Nickname   string    `gorm:"column:nickname" json:"nickname"`
 	Birthday   time.Time `gorm:"column:birthday" json:"birthday"`
 	Sex        enums.Sex `gorm:"column:sex" json:"sex"`
-	PasswdSalt string    `gorm:"column:passwd_salt" json:"passwd_salt"`
+	PasswdSalt string    `gorm:"column:password_salt" json:"password_salt"`
 	Password   string    `gorm:"column:password" json:"password"`
 }
 
@@ -29,17 +28,18 @@ func (u *User) TableName() string {
 }
 
 func (u *User) Check() error {
-	if !(u.Uid > 0 && u.ExtUid > 0) {
-		return fmt.Errorf("invalid uid or ext_uid")
+	if !(u.Uid > 0) {
+		return fmt.Errorf("invalid uid")
 	}
-	if strings.TrimSpace(u.Nickname) == "" {
-		return fmt.Errorf("invalid nickname")
+	u.Nickname = strings.TrimSpace(u.Nickname)
+	if u.Nickname == "" || len([]rune(u.Nickname)) > 10 {
+		return fmt.Errorf("无效昵称或超出长度")
 	}
-	if u.Birthday.IsZero() || !u.Sex.IsValid() {
-		return fmt.Errorf("invalid birthday or sex")
+	if u.Sex.IsInvalid() {
+		return fmt.Errorf("请设置有效的性别")
 	}
-	if !(u.PasswdSalt != "" && u.Password != "") {
-		return fmt.Errorf("invalid password")
+	if u.Birthday.IsZero() {
+		return fmt.Errorf("无效的生日信息")
 	}
 	return nil
 }
@@ -62,9 +62,8 @@ func (u *User) ToPb() *user.User {
 	}
 }
 
-func (u *User) SetIntField(uid, extUid int64, sex enums.Sex) {
+func (u *User) SetIntField(uid int64, sex enums.Sex) {
 	u.Uid = uid
-	u.ExtUid = extUid
 	u.Sex = sex
 }
 
