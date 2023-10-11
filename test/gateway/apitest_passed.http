@@ -1,14 +1,13 @@
 ### UserExt/Signup
-POST http://localhost:8000/forward/svc.user.UserExt/Signup
+POST http://localhost:8000/forward/svc.user.UserExt/SignUp
 Content-Type: application/json
 #Authorization: 注册接口 不需要鉴权
 
 {
-  "email": "yzm@gmail.com",
-  "password": "123",
+  "nickname": "xxx",
   "sex": 1,
   "birthday": "1998-01-01",
-  "captcha": "yzsd"
+  "phone_verify_code": "yzsd"
 }
 
 ### UserExt/GetUser
