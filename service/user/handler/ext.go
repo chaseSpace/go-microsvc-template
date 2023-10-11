@@ -4,10 +4,8 @@ import (
 	"context"
 	"microsvc/enums"
 	"microsvc/pkg/xerr"
-	muser "microsvc/proto/model/user"
 	"microsvc/protocol/svc/user"
 	"microsvc/service/user/logic"
-	"time"
 )
 
 type UserExtCtrl struct {
@@ -16,17 +14,12 @@ type UserExtCtrl struct {
 var _ user.UserExtServer = new(UserExtCtrl)
 
 func (UserExtCtrl) SignUp(ctx context.Context, req *user.SignUpReq) (*user.SignUpRes, error) {
-	userModel := muser.User{}
-
-	sex := enums.Sex(req.Sex)
-	if !sex.IsValid() {
-		return nil, xerr.ErrParams.AppendMsg("sex")
+	umodel, err := logic.CreateUser(ctx, req)
+	if err != nil {
+		return nil, err
 	}
-	//TODO gen uid extUID
-	userModel.SetIntField(1, 1, sex)
 
-	// TODO get regTime
-	token, err := logic.GenLoginToken(1, 1, time.Now(), sex)
+	token, err := logic.GenLoginToken(umodel.Uid, umodel.CreatedAt, enums.Sex(req.Sex))
 	if err != nil {
 		return nil, err
 	}
