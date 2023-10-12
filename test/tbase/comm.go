@@ -13,6 +13,7 @@ import (
 	"microsvc/infra/xgrpc"
 	"microsvc/pkg"
 	"microsvc/pkg/xlog"
+	svc2 "microsvc/protocol/svc"
 	"microsvc/util"
 	"microsvc/util/graceful"
 	"os"
@@ -101,4 +102,11 @@ func NewTestCallCtx() context.Context {
 		xgrpc.MdKeyTraceId, util.NewKsuid(),
 	)
 	return metadata.NewOutgoingContext(context.TODO(), md)
+}
+
+var TestBaseExtReq = &svc2.BaseExtReq{
+	ThisIsExtApi: true,
+	App:          "test_app",
+	AppVersion:   "1.0.0",
+	Extension:    nil,
 }
