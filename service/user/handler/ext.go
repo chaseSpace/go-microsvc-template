@@ -2,9 +2,12 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"microsvc/bizcomm/commuser"
 	"microsvc/enums"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/user"
+	"microsvc/service/user/dao"
 	"microsvc/service/user/logic"
 )
 
@@ -14,7 +17,11 @@ type UserExtCtrl struct {
 var _ user.UserExtServer = new(UserExtCtrl)
 
 func (UserExtCtrl) SignUp(ctx context.Context, req *user.SignUpReq) (*user.SignUpRes, error) {
-	umodel, err := logic.CreateUser(ctx, req)
+	umodel, err := logic.CheckSignUpReq(req)
+	if err != nil {
+		return nil, err
+	}
+	err = logic.CreateUser(ctx, req, umodel)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +35,25 @@ func (UserExtCtrl) SignUp(ctx context.Context, req *user.SignUpReq) (*user.SignU
 }
 
 func (UserExtCtrl) SignIn(ctx context.Context, req *user.SignInReq) (*user.SignInRes, error) {
-	//TODO implement me
-	panic("implement me")
+	err := logic.CheckSignInReq(req)
+	if err != nil {
+		return nil, err
+	}
+	xphone := commuser.GetDBPhone(req.PhoneAreaCode, req.Phone)
+	_, umodel, err := dao.GetUserByPhone(xphone)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("111 phone: %v,   model:%+v\n", req.Phone, umodel)
+	if umodel.Uid == 0 {
+		return nil, xerr.ErrParams.New("手机号未注册")
+	}
+	token, err := logic.GenLoginToken(umodel.Uid, umodel.CreatedAt, umodel.Sex)
+	if err != nil {
+		return nil, err
+	}
+	res := &user.SignInRes{Token: token, Info: umodel.ToPb()}
+	return res, nil
 }
 
 func (UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {

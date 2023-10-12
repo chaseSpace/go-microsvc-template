@@ -53,40 +53,66 @@ func TestSignUp(t *testing.T) {
 		{
 			title: "1.无效昵称或超出长度",
 			req: &user.SignUpReq{
-				Nickname:        "user1234567", // 昵称限长10字符
-				Sex:             enums.SexMale.Int32(),
-				Birthday:        "2024-01-02",
-				PhoneVerifyCode: "",
+				Nickname:   "user1234567", // 昵称限长10字符
+				Sex:        enums.SexMale.Int32(),
+				Birthday:   "2024-01-02",
+				VerifyCode: "",
 			},
-			wantErr: xerr.ErrParams.NewMsg("无效昵称或超出长度"),
+			wantErr: xerr.ErrParams.New("无效昵称或超出长度"),
 		},
 		{
 			title: "2.无效的生日信息",
 			req: &user.SignUpReq{
-				Nickname:        "user1", // 昵称限长10字符
-				Sex:             enums.SexMale.Int32(),
-				Birthday:        "",
-				PhoneVerifyCode: "",
+				Nickname:   "user1", // 昵称限长10字符
+				Sex:        enums.SexMale.Int32(),
+				Birthday:   "",
+				VerifyCode: "",
 			},
-			wantErr: xerr.ErrParams.NewMsg("无效的生日信息"),
+			wantErr: xerr.ErrParams.New("无效的生日信息"),
 		},
 		{
 			title: "3.请设置有效的性别",
 			req: &user.SignUpReq{
-				Nickname:        "user1", // 昵称限长10字符
-				Sex:             enums.SexUnknown.Int32(),
-				Birthday:        "2023-01-01",
-				PhoneVerifyCode: "",
+				Nickname:   "user1", // 昵称限长10字符
+				Sex:        enums.SexUnknown.Int32(),
+				Birthday:   "2023-01-01",
+				VerifyCode: "",
 			},
-			wantErr: xerr.ErrParams.NewMsg("请设置有效的性别"),
+			wantErr: xerr.ErrParams.New("请设置有效的性别"),
 		},
 		{
-			title: "4.OK",
+			title: "4.请提供有效的手机区号",
 			req: &user.SignUpReq{
-				Nickname:        "user1", // 昵称限长10字符
-				Sex:             enums.SexMale.Int32(),
-				Birthday:        "2023-01-01",
-				PhoneVerifyCode: "",
+				Nickname:      "user1", // 昵称限长10字符
+				Sex:           enums.SexMale.Int32(),
+				Birthday:      "2023-01-01",
+				PhoneAreaCode: "",
+				Phone:         "",
+				VerifyCode:    "xsd1",
+			},
+			wantErr: xerr.ErrParams.New("请提供有效的手机区号"),
+		},
+		{
+			title: "5.请提供有效的手机号",
+			req: &user.SignUpReq{
+				Nickname:      "user1", // 昵称限长10字符
+				Sex:           enums.SexMale.Int32(),
+				Birthday:      "2023-01-01",
+				PhoneAreaCode: "86",
+				Phone:         "",
+				VerifyCode:    "xsd1",
+			},
+			wantErr: xerr.ErrParams.New("请提供有效的手机号"),
+		},
+		{
+			title: "OK",
+			req: &user.SignUpReq{
+				Nickname:      "user1", // 昵称限长10字符
+				Sex:           enums.SexMale.Int32(),
+				Birthday:      "2023-01-01",
+				PhoneAreaCode: "86",
+				Phone:         "18855556666",
+				VerifyCode:    "xsd1",
 			},
 			wantErr: nil,
 		},
@@ -104,10 +130,10 @@ func TestBatchSignUp(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		req := &user.SignUpReq{
-			Nickname:        fmt.Sprintf("user%d", i), // 昵称限长10字符
-			Sex:             enums.SexMale.Int32(),
-			Birthday:        "2023-01-01",
-			PhoneVerifyCode: "",
+			Nickname:   fmt.Sprintf("user%d", i), // 昵称限长10字符
+			Sex:        enums.SexMale.Int32(),
+			Birthday:   "2023-01-01",
+			VerifyCode: "",
 		}
 		if i%2 == 0 {
 			req.Sex = enums.SexFemale.Int32()
@@ -125,15 +151,15 @@ func TestConcurrencySignUp(t *testing.T) {
 
 	genUIDRepeatedErrCnt := atomic.Int32{}
 
-	expectedErr := xerr.ErrInternal.NewMsg("太多人注册辣，隔几秒再试一下哦")
+	expectedErr := xerr.ErrInternal.New("太多人注册辣，隔几秒再试一下哦")
 	// 并发注册
 	total := 100
 	for i := 0; i < total; i++ {
 		req := &user.SignUpReq{
-			Nickname:        fmt.Sprintf("user%d", i), // 昵称限长10字符
-			Sex:             enums.SexMale.Int32(),
-			Birthday:        "2023-01-01",
-			PhoneVerifyCode: "",
+			Nickname:   fmt.Sprintf("user%d", i), // 昵称限长10字符
+			Sex:        enums.SexMale.Int32(),
+			Birthday:   "2023-01-01",
+			VerifyCode: "",
 		}
 		if i%2 == 0 {
 			req.Sex = enums.SexFemale.Int32()
@@ -156,5 +182,78 @@ func TestConcurrencySignUp(t *testing.T) {
 		t.Errorf("并发次数：%d, 失败次数:%d 超出预期\n", total, errCnt)
 	} else {
 		t.Logf("并发次数：%d, 失败次数:%d 符合预期\n", total, errCnt)
+	}
+}
+
+func TestSignIn(t *testing.T) {
+	tbase.TearUp(svc.User, deploy2.UserConf)
+	defer tbase.TearDown()
+
+	type item struct {
+		title   string
+		req     *user.SignInReq
+		wantErr error
+	}
+	tt := []item{
+		{
+			title: "无效手机区号",
+			req: &user.SignInReq{
+				Base:          tbase.TestBaseExtReq,
+				PhoneAreaCode: "",
+				Phone:         "",
+				VerifyCode:    "",
+			},
+			wantErr: xerr.ErrParams.New("请提供有效的手机区号"),
+		},
+		{
+			title: "无效手机号",
+			req: &user.SignInReq{
+				Base:          tbase.TestBaseExtReq,
+				PhoneAreaCode: "86",
+				Phone:         "",
+				VerifyCode:    "",
+			},
+			wantErr: xerr.ErrParams.New("请提供有效的手机号"),
+		},
+		{
+			title: "无效验证码",
+			req: &user.SignInReq{
+				Base:          tbase.TestBaseExtReq,
+				PhoneAreaCode: "86",
+				Phone:         "18855556666",
+				VerifyCode:    "",
+			},
+			wantErr: xerr.ErrParams.New("请提供有效的验证码"),
+		},
+		{
+			title: "手机号未注册",
+			req: &user.SignInReq{
+				Base:          tbase.TestBaseExtReq,
+				PhoneAreaCode: "86",
+				Phone:         "0123456789x",
+				VerifyCode:    "sd81",
+			},
+			wantErr: xerr.ErrParams.New("手机号未注册"),
+		},
+		{
+			title: "OK（此case通过 需要先调用上面的 TestSignUp ）",
+			req: &user.SignInReq{
+				Base:          tbase.TestBaseExtReq,
+				PhoneAreaCode: "86",
+				Phone:         "18855556666",
+				VerifyCode:    "sd81",
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, v := range tt {
+		r, err := rpcext.User().SignIn(tbase.TestCallCtx, v.req)
+		assert.Equal(t, v.wantErr, err)
+
+		if v.wantErr == nil {
+			assert.NotEmpty(t, r.Token)
+			assert.NotEmpty(t, r.Info)
+		}
 	}
 }

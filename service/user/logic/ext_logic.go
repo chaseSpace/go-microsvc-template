@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"microsvc/bizcomm/auth"
+	"microsvc/bizcomm/commuser"
 	"microsvc/deploy"
 	"microsvc/enums"
 	"microsvc/infra/xgrpc"
@@ -19,21 +20,7 @@ import (
 	"time"
 )
 
-func CreateUser(ctx context.Context, req *user2.SignUpReq) (userModel *user.User, err error) {
-	userModel = new(user.User)
-
-	birth, _ := time.ParseInLocation(time.DateOnly, req.Birthday, time.Local)
-
-	userModel.Uid = 1 // 暂设为1，以便通过check
-	userModel.Sex = enums.Sex(req.Sex)
-	userModel.Nickname = req.Nickname
-	userModel.Birthday = birth
-	// TODO check phone verify code
-
-	if err = userModel.Check(); err != nil {
-		return nil, xerr.ErrParams.NewMsg(err.Error())
-	}
-
+func CreateUser(ctx context.Context, req *user2.SignUpReq, userModel *user.User) (err error) {
 	tryInsert := func(i int) (duplicate bool, err error) {
 		// 搜索测试函数：TestConcurrencySignUp
 		ctx, cancel := context.WithTimeout(ctx, time.Second) // 经测试，1s可以抗住约60~80个并发请求（连接本地mysql），基本足够使用，可根据实际情况调整
@@ -108,4 +95,56 @@ func GenLoginToken(uid int64, regTime time.Time, sex enums.Sex) (string, error) 
 		}, deploy.XConf.SvcTokenSignKey)
 
 	return token, err
+}
+
+func CheckSignUpReq(req *user2.SignUpReq) (*user.User, error) {
+	birth, _ := time.ParseInLocation(time.DateOnly, req.Birthday, time.Local)
+
+	umodel := &user.User{
+		Base: user.Base{
+			Uid:      1,
+			Nickname: req.Nickname,
+			Birthday: birth,
+			Sex:      enums.Sex(req.Sex),
+			Phone:    commuser.GetDBPhone(req.PhoneAreaCode, req.Phone),
+		},
+	}
+	err := umodel.Check()
+	if err != nil {
+		return nil, xerr.ErrParams.New(err.Error())
+	}
+
+	if !commuser.IsPhoneAreaCodeSupported(req.PhoneAreaCode) {
+		return nil, xerr.ErrParams.New("请提供有效的手机区号")
+	}
+	switch req.PhoneAreaCode {
+	case "86":
+		if len(req.Phone) != 11 {
+			return nil, xerr.ErrParams.New("请提供有效的手机号")
+		}
+	}
+	if len(req.VerifyCode) != 4 {
+		return nil, xerr.ErrParams.New("请提供有效的验证码")
+	}
+	// TODO: check req.VerifyCode
+
+	umodel.Uid = 0
+	return umodel, nil
+}
+
+func CheckSignInReq(req *user2.SignInReq) error {
+	if !commuser.IsPhoneAreaCodeSupported(req.PhoneAreaCode) {
+		return xerr.ErrParams.New("请提供有效的手机区号")
+	}
+	switch req.PhoneAreaCode {
+	case "86":
+		if len(req.Phone) != 11 {
+			return xerr.ErrParams.New("请提供有效的手机号")
+		}
+	}
+	if len(req.VerifyCode) != 4 {
+		return xerr.ErrParams.New("请提供有效的验证码")
+	}
+	// TODO: check req.VerifyCode
+	return nil
 }
