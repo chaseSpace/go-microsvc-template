@@ -46,7 +46,7 @@ func TestExistFn(t *testing.T) {
 
 	for i := 0; i < 3; i++ {
 		id, err := g.GenUid(timeoutCtx(time.Millisecond * 20))
-		assert.ErrorIs(t, err, context.DeadlineExceeded)
+		assert.Equal(t, err, context.DeadlineExceeded)
 		assert.Equal(t, uint64(0), id)
 	}
 
@@ -59,7 +59,7 @@ func TestExistFn(t *testing.T) {
 	g = NewUidGenerator(1, existFn, defaultSkipFn)
 	for i := 1; i <= 3; i++ {
 		id, err := g.GenUid(context.TODO())
-		assert.EqualError(t, err, _err.Error())
+		assert.Equal(t, err, _err)
 		assert.Equal(t, uint64(0), id)
 	}
 
@@ -115,7 +115,7 @@ func TestSkipFn(t *testing.T) {
 	g = NewUidGenerator(1, defaultExistFn, skipFn)
 	for i := 1; i <= 3; i++ {
 		id, err := g.GenUid(context.TODO())
-		assert.EqualError(t, err, _err.Error())
+		assert.Equal(t, err, _err)
 		assert.Equal(t, uint64(0), id)
 	}
 
@@ -173,7 +173,7 @@ func TestExample(t *testing.T) {
 	}
 	skipFn := func(id uint64) (bool, error) {
 		for _, p := range skipPattern {
-			r := regexp2.MustCompile(p, 0) // 标准库regex不支持命名分组，所以第三方re库
+			r := regexp2.MustCompile(p, 0) // 标准库regex不支持分组的反向引用，所以第三方re库
 			match, err := r.MatchString(fmt.Sprintf("%d", id))
 			assert.Nil(t, err)
 			if match {
@@ -191,7 +191,7 @@ func TestExample(t *testing.T) {
 	startUid := readFromDB()
 	g := NewUidGenerator(startUid, existFn, skipFn)
 	for i := 0; i < 10; i++ {
-		id, err := g.GenUid(timeoutCtx(time.Second * 2)) // 超时建议2s，主要考虑existFn通常会读取数据较为耗时
+		id, err := g.GenUid(timeoutCtx(time.Second)) // 超时建议1s，主要考虑existFn通常会读取数据较为耗时
 		assert.Nil(t, err)
 		t.Log("Uid generated", id)
 		g.UpdateStartUid(id)
