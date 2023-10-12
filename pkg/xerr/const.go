@@ -12,7 +12,7 @@ var (
 	ErrMethodNotAllowed = XErr{Code: 405, Msg: "ErrMethodNotAllowed"}
 	ErrReqTimeout       = XErr{Code: 408, Msg: "ErrReqTimeout"}
 
-	ErrBadRequest = ErrParams.NewMsg("ErrBadRequest")
+	ErrBadRequest = ErrParams.New("ErrBadRequest")
 )
 
 // 500 series

@@ -51,7 +51,7 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 
 	fullPath := string(fctx.Path())
 	if !strings.HasPrefix(fullPath, apiUnionPathPrefix) {
-		return nil, xerr.ErrNotFound.NewMsg("path must start with %s", apiUnionPathPrefix)
+		return nil, xerr.ErrNotFound.New("path must start with %s", apiUnionPathPrefix)
 	}
 
 	dstPath := fullPath[len(apiUnionPathPrefix):]

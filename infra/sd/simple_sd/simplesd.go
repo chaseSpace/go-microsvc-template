@@ -67,7 +67,7 @@ func (s *SimpleSd) Register(service string, host string, port int, metadata map[
 		return errs[0]
 	}
 	if res.Code != httpResOkCode {
-		return xerr.ErrInternal.NewMsg("register failed, got resp: %+v", res)
+		return xerr.ErrInternal.New("register failed, got resp: %+v", res)
 	}
 	s.registry[service] = req
 	return nil
@@ -76,7 +76,7 @@ func (s *SimpleSd) Register(service string, host string, port int, metadata map[
 func (s *SimpleSd) Deregister(service string) error {
 	params := s.registry[service]
 	if params == nil {
-		return xerr.ErrInternal.NewMsg("never called Register")
+		return xerr.ErrInternal.New("never called Register")
 	}
 	type deregisterReq struct {
 		Service string
@@ -92,7 +92,7 @@ func (s *SimpleSd) Deregister(service string) error {
 		return errs[0]
 	}
 	if res.Code != httpResOkCode {
-		return xerr.ErrInternal.NewMsg("deregister failed, got resp: %+v", res)
+		return xerr.ErrInternal.New("deregister failed, got resp: %+v", res)
 	}
 	delete(s.registry, params.Id)
 	return nil
@@ -116,7 +116,7 @@ func (s *SimpleSd) Discover(ctx context.Context, serviceName string, block bool)
 		return nil, errs[0]
 	}
 	if res.Code != httpResOkCode {
-		return nil, xerr.ErrInternal.NewMsg("discovery failed, got resp: %+v", res)
+		return nil, xerr.ErrInternal.New("discovery failed, got resp: %+v", res)
 	}
 	s.lastHash = data.Hash
 	return lo.Map(data.Instances, func(item simple_sd.ServiceInstance, index int) abstract.ServiceInstance {
@@ -134,7 +134,7 @@ func (s *SimpleSd) Discover(ctx context.Context, serviceName string, block bool)
 func (s *SimpleSd) HealthCheck(ctx context.Context, service string) error {
 	params := s.registry[service]
 	if params == nil {
-		return xerr.ErrInternal.NewMsg("never called Register")
+		return xerr.ErrInternal.New("never called Register")
 	}
 	req := &simple_sd.HealthCheckReq{
 		Service: service,
@@ -147,7 +147,7 @@ func (s *SimpleSd) HealthCheck(ctx context.Context, service string) error {
 		return errs[0]
 	}
 	if res.Code != httpResOkCode {
-		return xerr.ErrInternal.NewMsg("health check failed, got resp: %+v", res)
+		return xerr.ErrInternal.New("health check failed, got resp: %+v", res)
 	}
 	if !rspBody.Registered {
 		xlog.Warn(fmt.Sprintf("simple_sd.HealthCheck: service [%s - id:%s] offline, do re-register now", service, params.Id))

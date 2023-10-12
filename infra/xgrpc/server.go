@@ -331,7 +331,7 @@ func newServerInterceptor(svc enumsvc.Svc) ServerInterceptor {
 func (ServerInterceptor) RecoverGRPCRequest(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = xerr.ErrInternal.NewMsg(fmt.Sprintf("panic recovered: %v", r))
+			err = xerr.ErrInternal.New(fmt.Sprintf("panic recovered: %v", r))
 			xlog.DPanic("RecoverGRPCRequest", zap.String("method", info.FullMethod), zap.Any("err", r),
 				zap.String("trace-id", GetIncomingMdVal(ctx, MdKeyTraceId)))
 			fmt.Printf("PANIC %v\n%s", r, string(debug.Stack()))

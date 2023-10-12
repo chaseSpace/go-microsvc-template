@@ -82,7 +82,7 @@ func (c *Consul) Discover(ctx context.Context, serviceName string, block bool) (
 func (c *Consul) HealthCheck(ctx context.Context, service string) error {
 	params := c.registry[service]
 	if params == nil {
-		return xerr.ErrInternal.NewMsg("never called Register")
+		return xerr.ErrInternal.New("never called Register")
 	}
 	err := context.DeadlineExceeded // default
 	dur := time.Minute

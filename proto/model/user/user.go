@@ -21,6 +21,7 @@ type Base struct {
 	Sex        enums.Sex `gorm:"column:sex" json:"sex"`
 	PasswdSalt string    `gorm:"column:password_salt" json:"password_salt"`
 	Password   string    `gorm:"column:password" json:"password"`
+	Phone      string    `gorm:"column:phone" json:"phone"`
 }
 
 func (u *User) TableName() string {
@@ -58,6 +59,7 @@ func (u *User) ToPb() *user.User {
 		Uid:      u.Uid,
 		Nickname: u.Nickname,
 		Age:      u.Age(),
+		Birthday: u.Birthday.Format(time.DateOnly),
 		Sex:      u.Sex.Int32(),
 	}
 }

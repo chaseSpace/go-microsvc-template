@@ -42,7 +42,7 @@ func ToXErr(err error) XErr {
 	if t, ok := FromErr(err); ok {
 		return t
 	}
-	return ErrInternal.NewMsg(err.Error())
+	return ErrInternal.New(err.Error())
 }
 
 func (t XErr) FlatMsg() string {
@@ -53,7 +53,7 @@ func (t XErr) Error() string {
 	return util.ToJsonStr(&t)
 }
 
-func (t XErr) NewMsg(msg string, args ...any) XErr {
+func (t XErr) New(msg string, args ...any) XErr {
 	t.Msg = fmt.Sprintf(msg, args...)
 	return t
 }
