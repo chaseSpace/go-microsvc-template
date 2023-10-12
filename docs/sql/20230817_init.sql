@@ -11,8 +11,10 @@ create table biz.user
     sex           tinyint unsigned not null comment '0-未知 1男2女',
     password      varchar(40)      not null,
     password_salt varchar(10)      not null,
+    phone         varchar(30)      not null,
     created_at    datetime         not null default current_timestamp,
     updated_at    datetime         not null default current_timestamp on update current_timestamp,
     unique key idx_uid (uid),
+    unique key idx_phone (phone),
     key idx_ct (created_at)
 )
