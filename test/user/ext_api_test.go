@@ -111,10 +111,22 @@ func TestSignUp(t *testing.T) {
 				Sex:           enums.SexMale.Int32(),
 				Birthday:      "2023-01-01",
 				PhoneAreaCode: "86",
-				Phone:         "18855556666",
+				Phone:         "18855556666", // 若提示已被注册，先删除db账号记录
 				VerifyCode:    "xsd1",
 			},
 			wantErr: nil,
+		},
+		{
+			title: "6.手机号已注册",
+			req: &user.SignUpReq{
+				Nickname:      "user1", // 昵称限长10字符
+				Sex:           enums.SexMale.Int32(),
+				Birthday:      "2023-01-01",
+				PhoneAreaCode: "86",
+				Phone:         "18855556666", // 若提示已被注册，先删除db账号记录
+				VerifyCode:    "xsd1",
+			},
+			wantErr: xerr.ErrParams.New("该手机号已被注册"),
 		},
 	}
 

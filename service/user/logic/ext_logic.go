@@ -40,7 +40,15 @@ func CreateUser(ctx context.Context, req *user2.SignUpReq, userModel *user.User)
 
 		// inserting
 		err = dao.CreateUser(userModel)
-		if db.IsMysqlDuplicateErr(err) {
+
+		forIndex := ""
+		if db.IsMysqlDuplicateErr(err, &forIndex) {
+			if forIndex == user.UniqueKeyPhone {
+				return false, xerr.ErrParams.New("该手机号已被注册")
+			}
+			if forIndex != user.UniqueKeyUID {
+				return false, xerr.New("user表其他唯一列出现重复，请检查")
+			}
 			return true, nil
 		}
 		if err == nil {
