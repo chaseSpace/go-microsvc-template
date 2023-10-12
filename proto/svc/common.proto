@@ -4,6 +4,7 @@ option go_package = "microsvc/protocol/svc";
 
 import "include/google/protobuf/any.proto";
 
+// 由客户端提供此结构体信息
 message BaseExtReq {
   bool this_is_ext_api = 1;
   string app = 2; // client app package name

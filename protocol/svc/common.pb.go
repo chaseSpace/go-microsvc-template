@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// 由客户端提供此结构体信息
 type BaseExtReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
