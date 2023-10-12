@@ -16,7 +16,8 @@ message User{
   int64 uid = 1;
   string nickname = 2;
   int32 age = 3;
-  int32 sex = 4;
+  string birthday = 4;
+  int32 sex = 5;
 }
 
 
@@ -24,18 +25,20 @@ message SignUpReq{
   string nickname = 1;
   int32 sex = 2;
   string birthday = 3;
-  string phone_verify_code = 10;
+  string phone_area_code = 4;
+  string phone = 5;
+  string verify_code = 6;
 }
 
 message SignUpRes{
   string token = 1;
 }
 
-
 message SignInReq{
   BaseExtReq base = 1;
-  string account = 2;
-  string password = 3;
+  string phone_area_code = 2;
+  string phone = 3;
+  string verify_code = 4;
 }
 message SignInRes{
   User info = 1;
