@@ -4,6 +4,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"strings"
 )
 
 func IsMysqlErr(err error) bool {
@@ -29,11 +30,15 @@ Lost connection to MySQL server (2013): 当与 MySQL 服务器的连接丢失时
 Data too long for column (1406): 当尝试插入的数据超过了列的最大长度时，会发生这个错误。错误代码为 1406。你需要检查数据的长度，并根据需要调整列的长度。
 */
 
-func IsMysqlDuplicateErr(err error) bool {
+func IsMysqlDuplicateErr(err error, forIndex *string) bool {
 	if err == nil {
 		return false
 	}
 	if err, ok := err.(*mysql.MySQLError); ok && err.Number == 1062 {
+		ss := strings.Split(err.Error(), "for key ")
+		if len(ss) == 2 {
+			*forIndex = ss[1]
+		}
 		return true
 	}
 	return false

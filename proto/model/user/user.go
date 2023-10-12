@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+const (
+	UniqueKeyUID   = "'idx_uid'"
+	UniqueKeyPhone = "'idx_phone'"
+)
+
 type User struct {
 	Base
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
