@@ -5,7 +5,6 @@ import (
 	"github.com/dlclark/regexp2"
 	"microsvc/service/user/dao"
 	"microsvc/util"
-	"microsvc/util/db"
 	"microsvc/xvendor/genuserid"
 )
 
@@ -24,7 +23,7 @@ type globalObjectCtrl struct {
 
 func (globalObjectCtrl) InitUidGenerator() error {
 	maxUID, err := dao.GetMaxUid()
-	if db.IsMysqlErr(err) {
+	if err != nil {
 		return err
 	}
 	if maxUID < 1 {
