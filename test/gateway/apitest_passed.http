@@ -6,9 +6,28 @@ Content-Type: application/json
 {
   "nickname": "xxx",
   "sex": 1,
+  "phone_area_code": "86",
+  "phone": "18855556666",
   "birthday": "1998-01-01",
-  "phone_verify_code": "yzsd"
+  "verify_code": "yzsd"
 }
+
+### UserExt/SignIn
+POST http://localhost:8000/forward/svc.user.UserExt/SignIn
+Content-Type: application/json
+#Authorization: 注册接口 不需要鉴权
+
+{
+  "base": {
+    "this_is_ext_api":true,
+    "app": "test_app",
+    "app_version": "1.0.0"
+  },
+  "phone_area_code": "86",
+  "phone": "18855556666",
+  "verify_code": "yzsd"
+}
+
 
 ### UserExt/GetUser
 POST http://localhost:8000/forward/svc.user.UserExt/GetUser

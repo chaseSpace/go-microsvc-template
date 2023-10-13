@@ -8,6 +8,8 @@ import (
 
 /*
 userid 生成模块
+
+TODO: 改为号池模式
 */
 
 var ErrReachOnceLoopTimesLimit = errors.New("reach to max once loop times limit")

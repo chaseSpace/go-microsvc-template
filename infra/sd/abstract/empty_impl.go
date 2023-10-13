@@ -30,6 +30,5 @@ func (e Empty) Discover(ctx context.Context, serviceName string, block bool) ([]
 }
 
 func (e Empty) HealthCheck(ctx context.Context, service string) error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
