@@ -20,10 +20,10 @@ import (
 	"time"
 )
 
-func CreateUser(ctx context.Context, req *user2.SignUpReq, userModel *user.User) (err error) {
-	tryInsert := func(i int) (duplicate bool, err error) {
+func CreateUser(ctx context.Context, userModel *user.User) (err error) {
+	tryInsert := func() (duplicate bool, err error) {
 		// 搜索测试函数：TestConcurrencySignUp
-		ctx, cancel := context.WithTimeout(ctx, time.Second) // 经测试，1s可以抗住约60~80个并发请求（连接本地mysql），基本足够使用，可根据实际情况调整
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
 		defer cancel()
 
 		_uid, err := uidGenerator.GenUid(ctx)
@@ -36,7 +36,7 @@ func CreateUser(ctx context.Context, req *user2.SignUpReq, userModel *user.User)
 		uid := int64(_uid)
 		userModel.Uid = uid
 
-		xlog.Info(fmt.Sprintf("CreateUser trying no.%d", i), zap.Any("model", *userModel))
+		xlog.Info("CreateUser before", zap.Any("model", *userModel))
 
 		// inserting
 		err = dao.CreateUser(userModel)
@@ -49,18 +49,15 @@ func CreateUser(ctx context.Context, req *user2.SignUpReq, userModel *user.User)
 			if forIndex != user.UniqueKeyUID {
 				return false, xerr.New("user表其他唯一列出现重复，请检查")
 			}
+			println(1212, uid)
 			return true, nil
-		}
-		if err == nil {
-			uidGenerator.UpdateStartUid(_uid)
 		}
 		return false, err
 	}
 
 	var duplicate bool
-	var tried int
 
-	duplicate, err = tryInsert(tried)
+	duplicate, err = tryInsert()
 	if err != nil {
 		return
 	}
@@ -68,7 +65,7 @@ func CreateUser(ctx context.Context, req *user2.SignUpReq, userModel *user.User)
 	if duplicate {
 		err = xerr.New("太多人注册辣，隔几秒再试一下哦")
 
-		xlog.Error("CreateUser failed finally", zap.Int("tried", tried), zap.Any("lastModel", *userModel))
+		xlog.Error("CreateUser failed finally", zap.Any("lastModel", *userModel))
 		return
 	}
 	return

@@ -123,7 +123,7 @@ func TestSignUp(t *testing.T) {
 				Sex:           enums.SexMale.Int32(),
 				Birthday:      "2023-01-01",
 				PhoneAreaCode: "86",
-				Phone:         "18855556666", // 若提示已被注册，先删除db账号记录
+				Phone:         "18855556666",
 				VerifyCode:    "xsd1",
 			},
 			wantErr: xerr.ErrParams.New("该手机号已被注册"),
@@ -140,12 +140,15 @@ func TestBatchSignUp(t *testing.T) {
 	tbase.TearUp(svc.User, deploy2.UserConf)
 	defer tbase.TearDown()
 
+	phone := 18855557777
 	for i := 0; i < 100; i++ {
 		req := &user.SignUpReq{
-			Nickname:   fmt.Sprintf("user%d", i), // 昵称限长10字符
-			Sex:        enums.SexMale.Int32(),
-			Birthday:   "2023-01-01",
-			VerifyCode: "",
+			Nickname:      fmt.Sprintf("user%d", i), // 昵称限长10字符
+			Sex:           enums.SexMale.Int32(),
+			Birthday:      "2023-01-01",
+			PhoneAreaCode: "86",
+			Phone:         fmt.Sprintf("%d", phone+i),
+			VerifyCode:    "xzdw",
 		}
 		if i%2 == 0 {
 			req.Sex = enums.SexFemale.Int32()
@@ -161,17 +164,20 @@ func TestConcurrencySignUp(t *testing.T) {
 
 	x := sync.WaitGroup{}
 
-	genUIDRepeatedErrCnt := atomic.Int32{}
+	uidRepeatedErrCnt := atomic.Int32{}
 
 	expectedErr := xerr.ErrInternal.New("太多人注册辣，隔几秒再试一下哦")
 	// 并发注册
-	total := 100
+	total := 100 // 业务代码中设置的号池容量为100，这里设置相同的并发参数100，则完全可以处理，不会出现重复ID
+	phone := 18855560818
 	for i := 0; i < total; i++ {
 		req := &user.SignUpReq{
-			Nickname:   fmt.Sprintf("user%d", i), // 昵称限长10字符
-			Sex:        enums.SexMale.Int32(),
-			Birthday:   "2023-01-01",
-			VerifyCode: "",
+			Nickname:      fmt.Sprintf("user%d", i), // 昵称限长10字符
+			Sex:           enums.SexMale.Int32(),
+			Birthday:      "2023-01-01",
+			PhoneAreaCode: "86",
+			Phone:         fmt.Sprintf("%d", phone+i),
+			VerifyCode:    "xzdw",
 		}
 		if i%2 == 0 {
 			req.Sex = enums.SexFemale.Int32()
@@ -181,7 +187,7 @@ func TestConcurrencySignUp(t *testing.T) {
 			_, err := rpcext.User().SignUp(tbase.NewTestCallCtx(), req)
 			if err != nil {
 				assert.Equal(t, expectedErr, err)
-				genUIDRepeatedErrCnt.Add(1)
+				uidRepeatedErrCnt.Add(1)
 			}
 			x.Done()
 		}()
@@ -189,8 +195,8 @@ func TestConcurrencySignUp(t *testing.T) {
 
 	x.Wait()
 
-	errCnt := genUIDRepeatedErrCnt.Load()
-	if errCnt > 40 {
+	errCnt := uidRepeatedErrCnt.Load()
+	if errCnt > 0 {
 		t.Errorf("并发次数：%d, 失败次数:%d 超出预期\n", total, errCnt)
 	} else {
 		t.Logf("并发次数：%d, 失败次数:%d 符合预期\n", total, errCnt)

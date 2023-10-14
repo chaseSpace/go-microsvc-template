@@ -3,14 +3,18 @@ package logic
 import (
 	"fmt"
 	"github.com/dlclark/regexp2"
+	"microsvc/infra/cache"
+	"microsvc/proto/model"
+	cache2 "microsvc/service/user/cache"
 	"microsvc/service/user/dao"
 	"microsvc/util"
-	"microsvc/xvendor/genuserid"
+	"microsvc/util/xlock"
+	"microsvc/xvendor/genuserid2"
 )
 
 // 一些需要全局使用的资源在这里初始化
 var (
-	uidGenerator genuserid.UidGeneratorApi
+	uidGenerator genuserid2.UIDGeneratorApi
 )
 
 func MustInit() {
@@ -22,13 +26,6 @@ type globalObjectCtrl struct {
 }
 
 func (globalObjectCtrl) InitUidGenerator() error {
-	maxUID, err := dao.GetMaxUid()
-	if err != nil {
-		return err
-	}
-	if maxUID < 1 {
-		maxUID = 100000 // 6位数
-	}
 	skipPattern := []string{
 		`(\d)\1(\d)\2$`, // aabb结尾模式
 		`(\d)\1{2}$`,    // aaa结尾模式，包含3个以上a结尾
@@ -45,6 +42,21 @@ func (globalObjectCtrl) InitUidGenerator() error {
 		return false, nil
 	}
 
-	uidGenerator = genuserid.NewUidGenerator(uint64(maxUID), dao.IsUidExists, skipFn)
+	locker := xlock.NewDLock("UidGenerator", cache.GetRedisClient(model.RedisDB))
+	pool := cache2.NewUidQueuedPool("UidGenerator", cache.GetRedisClient(model.RedisDB))
+
+	getMaxUid := func() (uint64, error) {
+		id, err := dao.GetMaxUid()
+		if err == nil && id < 1 {
+			id = 100000
+		}
+		return id, err
+	}
+
+	var opts = []genuserid2.Option{
+		genuserid2.WithSkipFunc(skipFn),
+		//genuserid2.WithPoolConfig(10, 2),
+	}
+	uidGenerator = genuserid2.NewUidGenerator(locker, pool, getMaxUid, opts...)
 	return nil
 }

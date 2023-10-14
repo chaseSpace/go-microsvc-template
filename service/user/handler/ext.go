@@ -21,7 +21,7 @@ func (UserExtCtrl) SignUp(ctx context.Context, req *user.SignUpReq) (*user.SignU
 	if err != nil {
 		return nil, err
 	}
-	err = logic.CreateUser(ctx, req, umodel)
+	err = logic.CreateUser(ctx, umodel)
 	if err != nil {
 		return nil, err
 	}

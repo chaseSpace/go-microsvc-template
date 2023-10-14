@@ -7,11 +7,11 @@ import (
 	"microsvc/proto/model/user"
 )
 
-func GetMaxUid() (int64, error) {
+func GetMaxUid() (uint64, error) {
 	row := new(user.User)
 	err := user.Q.Order("uid desc").Take(row).Error
 	err = orm.IgnoreNil(err)
-	return row.Uid, err
+	return uint64(row.Uid), err
 }
 
 func IsUidExists(uid uint64) (bool, error) {
