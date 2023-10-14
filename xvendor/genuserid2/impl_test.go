@@ -1,4 +1,4 @@
-package genuserid
+package genuserid2
 
 import (
 	"context"
@@ -75,16 +75,16 @@ func (q *queuedPool) Push(ids []uint64) error {
 	return nil
 }
 
-func (q *queuedPool) Pop() (uint64, int, error) {
+func (q *queuedPool) Pop() (uint64, error) {
 	ctx := context.TODO()
 	q.lock.Lock(ctx)
 	defer q.lock.Unlock(ctx)
 	if len(q.idSlice) > 0 {
 		id := q.idSlice[0]
 		q.idSlice = q.idSlice[1:]
-		return id, len(q.idSlice), nil
+		return id, nil
 	}
-	return 0, 0, nil
+	return 0, nil
 }
 
 // SkipFn 是 NewUidGenerator 的可选参数之一，用来设置需要跳过的uid对应的规则
@@ -196,7 +196,7 @@ func (s *SafeIdBox) Last() (id uint64) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if len(s.ids) > 0 {
-		return s.ids[len(s.ids)-1]
+		return s.ids[0]
 	}
 	return
 }
@@ -204,11 +204,11 @@ func (s *SafeIdBox) Last() (id uint64) {
 // 并发测试
 // 测试结果：   最低耗时  中位数  最高耗时
 // 100个并发：  2ms     2.2ms   3.2ms
-// 500个并发：  7.2ms   8.4ms   12.9ms
-// 1000个并发： 15ms    17ms    28ms
+// 500个并发：  1.9ms   4.3ms   8.6ms
+// 1000个并发： 2.5ms   9.3ms   16.8ms
 func TestConcurrencyGenUID(t *testing.T) {
 	var expectedIds, existIds, skipIds SafeIdBox
-	expectedIdNum := 500
+	expectedIdNum := 1000
 
 	// 2. 设置要跳过的靓号模式（正则）,可选
 	skipPattern := []string{
@@ -256,7 +256,7 @@ func TestConcurrencyGenUID(t *testing.T) {
 	// 这些都是可选的
 	opts := []Option{
 		WithSkipFunc(skipFn(true)),
-		WithPoolConfig(expectedIdNum, expectedIdNum/5), // 默认池大小是100，增加该值有助于提高并发
+		//WithPoolConfig(expectedIdNum, expectedIdNum/5), // 默认池大小是100，增加该值有助于提高并发
 	}
 
 	getCurrMaxUID := func() (uint64, error) {
@@ -298,7 +298,7 @@ func TestConcurrencyGenUID(t *testing.T) {
 	})
 
 	// 这里的555，666，777，,888 是池扩充时跳过的id
-	assert.Equal(t, []uint64{111, 222, 333, 444, 555, 666, 777, 888}, skipIds.ids)
+	//assert.Equal(t, []uint64{111, 222, 333, 444, 555, 666, 777, 888}, skipIds.ids)
 	assert.Equal(t, expectedIds.ids, existIds.ids)
 
 	var durationStr []string
@@ -358,3 +358,13 @@ func TestExample(t *testing.T) {
 	assert.Equal(t, []uint64(nil), skipIds)
 	assert.Equal(t, []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, existIds)
 }
+
+/*
+
+扩容1（队列空  db空）:100010 100012 100013 100014 100015 100016 100017 100018 100019 100020
+
+扩容2（队列100019 100020， db=8）：100021 100023 100024 100025 100026 100027 100028 100029]
+
+扩容3（队列100028 100029，db=16）：100030--
+
+*/

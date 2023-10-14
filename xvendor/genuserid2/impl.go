@@ -1,4 +1,4 @@
-package genuserid
+package genuserid2
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 )
 
 /*
-递增 userid 生成模块（号池模式版本，支持高并发调用）
+递增 userid 生成模块（号池版本，支持高并发调用）
 */
 
 var ErrPoolOperation = errors.New("pool operation func error")
@@ -32,71 +32,49 @@ type DistributeLock interface {
 
 type QueuedPool interface {
 	Push(ids []uint64) error
-	Pop() (uid uint64, size int, err error)
+	Pop() (uid uint64, err error)
 	Size() (size int, err error)
 	MaxUnusedUID() (uid uint64, err error)
 }
 
-func (u *IncrementalPoolUIDGenerator) GenUid(ctx context.Context) (uint64, error) {
+func (u *IncrementalPoolUIDGenerator) popFromPool(cc chan struct {
+	uid uint64
+	err error
+}, i int) {
+
 	var uid uint64
-	var currPoolSize int
-	var validId bool
-
-	var cc = make(chan struct{})
+	var size int
 	var err error
-
-	//st := time.Now()
-	//defer func() {
-	//	println(333, time.Since(st).String())
-	//}()
-	// 最多只需要2次循环（第一次pool空则填充，第二次可从pool中获取到id）
-	for i := 0; i < 2; i++ {
-		go func() {
-			defer func() {
-				cc <- struct{}{}
-			}()
-			uid, currPoolSize, err = u.pool.Pop()
-			if err != nil {
-				return
-			}
-			//println(444, currPoolSize, time.Since(st).String())
-			if uid == 0 || currPoolSize <= u.poolSizeThreshold {
-				err = u.fillPool(currPoolSize)
-
-				if err != nil {
-					return
-				}
-				if uid == 0 {
-					return // wait for next loop
-				}
-			}
-			validId = true
-		}()
-
-		select {
-		case <-ctx.Done():
-			return 0, ctx.Err()
-		case <-cc:
-			if err != nil {
-				return 0, err
-			}
-			if validId {
-				return uid, nil
-			}
-		}
+	defer func() {
+		cc <- struct {
+			uid uint64
+			err error
+		}{uid, err}
+	}()
+	uid, err = u.pool.Pop()
+	if err != nil {
+		return
 	}
 
-	// 2次都拿不到id，且上面也没有err，说明是 NewUidGenerator 提供的池操作函数有问题，需要调用方自行检查
-	return 0, ErrPoolOperation
+	size, err = u.pool.Size()
+	if err != nil {
+		return
+	}
+	//println(444, i, uid, size)
+
+	if uid == 0 || size <= u.poolSizeThreshold {
+		err = u.fillPool(size)
+	}
+	return
 }
 
-// 扩容号池
-// - 扩容时用了分布式锁，以提供并发取号性能
-func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
+func (u *IncrementalPoolUIDGenerator) GenUid(ctx context.Context) (uid uint64, err error) {
+	var cc = make(chan struct{})
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err = u.locker.Lock(ctx); err != nil {
-		return errors.Wrap(err, "lock")
+		return 0, errors.Wrap(err, "lock")
 	}
 	defer func() {
 		err2 := u.locker.Unlock(ctx)
@@ -104,13 +82,52 @@ func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
 			err = errors.Wrap(err2, "unlock")
 		}
 	}()
-	// 获得锁后，进行二次判断，避免并发时多次填充
-	if currPoolSize, err = u.pool.Size(); err != nil {
-		return errors.Wrapf(err, "pool size")
-	} else if currPoolSize > u.poolSizeThreshold {
-		return
-	}
 
+	var size int
+	//st := time.Now()
+	//defer func() {
+	//	println(333, time.Since(st).String())
+	//}()
+
+	// 当池容量 远小于 并发请求数时，循环次数会>2（所以要根据预估的业务的并发请求数 来配置 池容量，避免此操作阻塞过久）
+	for i := 0; ; i++ {
+		go func() {
+			defer func() {
+				cc <- struct{}{}
+			}()
+			uid, err = u.pool.Pop()
+			if err != nil {
+				return
+			}
+
+			size, err = u.pool.Size()
+			if err != nil {
+				return
+			}
+			//println(444, i, uid, size)
+
+			if uid == 0 || size <= u.poolSizeThreshold {
+				err = u.fillPool(size)
+			}
+		}()
+
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		case <-cc:
+			if err != nil {
+				return
+			}
+			if uid > 0 {
+				return
+			}
+		}
+	}
+}
+
+// 填充号池
+// - 填充时用了分布式锁，以保证并发安全
+func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
 	maxUnusedUID := uint64(0)
 	if currPoolSize > 0 {
 		maxUnusedUID, err = u.pool.MaxUnusedUID()
@@ -128,6 +145,7 @@ func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
 		}
 	}
 
+	//println(1122, maxUnusedUID)
 	defer func() {
 		u.readyToPushIds = u.readyToPushIds[:0] // reset
 	}()
@@ -145,7 +163,7 @@ func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
 		}
 		u.readyToPushIds = append(u.readyToPushIds, maxUnusedUID)
 	}
-	//fmt.Printf("5555 %v %v\n", currPoolSize, u.readyToPushIds)
+	//fmt.Printf("5555 %v %v\n",  currPoolSize, u.readyToPushIds)
 	return u.pool.Push(u.readyToPushIds)
 }
 
