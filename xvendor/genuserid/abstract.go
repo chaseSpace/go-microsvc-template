@@ -2,14 +2,14 @@ package genuserid
 
 import "context"
 
-// UidGeneratorApi
+// UIDGeneratorApi
 /*
 支持特性：
 - 指定起始id
 - 跳过指定uid（自定义逻辑，可使用正则等方式）
-- 串行生成（lock）
+- 递增
+- 使用号池模式，支持高并发(见 TestConcurrencyGenUID )
 */
-type UidGeneratorApi interface {
-	UpdateStartUid(uint64)
+type UIDGeneratorApi interface {
 	GenUid(ctx context.Context) (uint64, error) // 通过ctx设置timeout
 }

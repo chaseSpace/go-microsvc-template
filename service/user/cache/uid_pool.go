@@ -6,7 +6,7 @@ import (
 	"github.com/samber/lo"
 	"microsvc/infra/cache"
 	"microsvc/util"
-	"microsvc/xvendor/genuserid2"
+	"microsvc/xvendor/genuserid"
 )
 
 type UidQueuedPool struct {
@@ -14,7 +14,7 @@ type UidQueuedPool struct {
 	client   *redis.Client
 }
 
-var _ genuserid2.QueuedPool = (*UidQueuedPool)(nil)
+var _ genuserid.QueuedPool = (*UidQueuedPool)(nil)
 
 func NewUidQueuedPool(key string, client *redis.Client) *UidQueuedPool {
 	return &UidQueuedPool{

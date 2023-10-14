@@ -9,12 +9,12 @@ import (
 	"microsvc/service/user/dao"
 	"microsvc/util"
 	"microsvc/util/xlock"
-	"microsvc/xvendor/genuserid2"
+	"microsvc/xvendor/genuserid"
 )
 
 // 一些需要全局使用的资源在这里初始化
 var (
-	uidGenerator genuserid2.UIDGeneratorApi
+	uidGenerator genuserid.UIDGeneratorApi
 )
 
 func MustInit() {
@@ -53,10 +53,10 @@ func (globalObjectCtrl) InitUidGenerator() error {
 		return id, err
 	}
 
-	var opts = []genuserid2.Option{
-		genuserid2.WithSkipFunc(skipFn),
+	var opts = []genuserid.Option{
+		genuserid.WithSkipFunc(skipFn),
 		//genuserid2.WithPoolConfig(10, 2),
 	}
-	uidGenerator = genuserid2.NewUidGenerator(locker, pool, getMaxUid, opts...)
+	uidGenerator = genuserid.NewUidGenerator(locker, pool, getMaxUid, opts...)
 	return nil
 }
