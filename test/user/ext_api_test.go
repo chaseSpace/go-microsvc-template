@@ -168,7 +168,10 @@ func TestConcurrencySignUp(t *testing.T) {
 
 	expectedErr := xerr.ErrInternal.New("太多人注册辣，隔几秒再试一下哦")
 	// 并发注册
-	total := 100 // 业务代码中设置的号池容量为100，这里设置相同的并发参数100，则完全可以处理，不会出现重复ID
+
+	// 业务代码中设置的号池容量为100，这里设置相同的并发参数100，则完全可以处理，不会出现重复ID
+	// - 对于更高的并发，虽然也不会出现重复id，但会增加接口耗时，同时建议提高 号池容量 配置以提高并发性能
+	total := 100
 	phone := 18855560818
 	for i := 0; i < total; i++ {
 		req := &user.SignUpReq{
