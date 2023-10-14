@@ -81,6 +81,10 @@ func setupSvcDB() error {
 	return nil
 }
 
+func GetRedisClient(name string) *redis.Client {
+	return instMap[deploy.DBname(name)]
+}
+
 func Stop() {
 	for _, db := range instMap {
 		_ = db.Close()
@@ -102,4 +106,11 @@ func Setup(obj ...*RedisObj) {
 		}
 	}
 	servicesDB = obj
+}
+
+func IgnoreNil(err error) (bool, error) {
+	if err == redis.Nil {
+		return true, nil
+	}
+	return false, err
 }
