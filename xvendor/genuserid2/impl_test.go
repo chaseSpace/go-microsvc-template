@@ -202,6 +202,10 @@ func (s *SafeIdBox) Last() (id uint64) {
 }
 
 // 并发测试
+// 测试结果：   最低耗时  中位数  最高耗时
+// 100个并发：  2ms     2.2ms   3.2ms
+// 500个并发：  7.2ms   8.4ms   12.9ms
+// 1000个并发： 15ms    17ms    28ms
 func TestConcurrencyGenUID(t *testing.T) {
 	var expectedIds, existIds, skipIds SafeIdBox
 	expectedIdNum := 500
@@ -301,10 +305,6 @@ func TestConcurrencyGenUID(t *testing.T) {
 	for _, d := range durationBox.ids {
 		durationStr = append(durationStr, time.Duration(d).String())
 	}
-	// 测试结果：   最低耗时  中位数  最高耗时
-	// 100个并发：  2ms     2.2ms   3.2ms
-	// 500个并发：  7.2ms   8.4ms   12.9ms
-	// 1000个并发： 15ms    17ms    28ms
 	t.Logf("durations %+v", durationStr)
 }
 
