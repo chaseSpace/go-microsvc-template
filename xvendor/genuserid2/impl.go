@@ -10,14 +10,12 @@ import (
 递增 userid 生成模块（号池版本，支持高并发调用）
 */
 
-var ErrPoolOperation = errors.New("pool operation func error")
-
 type IncrementalPoolUIDGenerator struct {
-	poolSizeThreshold int // 池id数量<=这个值就会扩容
+	poolSizeThreshold int // 池剩余id数量<=这个值就会扩容
 	maxPoolSize       int // 池容量
-	readyToPushIds    []uint64
+	pushIdsBuffer     []uint64
 
-	// 分布式锁（池扩容时使用）
+	// 分布式锁
 	locker DistributeLock
 
 	getCurrentMaxUID func() (uint64, error)
@@ -35,37 +33,6 @@ type QueuedPool interface {
 	Pop() (uid uint64, err error)
 	Size() (size int, err error)
 	MaxUnusedUID() (uid uint64, err error)
-}
-
-func (u *IncrementalPoolUIDGenerator) popFromPool(cc chan struct {
-	uid uint64
-	err error
-}, i int) {
-
-	var uid uint64
-	var size int
-	var err error
-	defer func() {
-		cc <- struct {
-			uid uint64
-			err error
-		}{uid, err}
-	}()
-	uid, err = u.pool.Pop()
-	if err != nil {
-		return
-	}
-
-	size, err = u.pool.Size()
-	if err != nil {
-		return
-	}
-	//println(444, i, uid, size)
-
-	if uid == 0 || size <= u.poolSizeThreshold {
-		err = u.fillPool(size)
-	}
-	return
 }
 
 func (u *IncrementalPoolUIDGenerator) GenUid(ctx context.Context) (uid uint64, err error) {
@@ -145,9 +112,8 @@ func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
 		}
 	}
 
-	//println(1122, maxUnusedUID)
 	defer func() {
-		u.readyToPushIds = u.readyToPushIds[:0] // reset
+		u.pushIdsBuffer = u.pushIdsBuffer[:0] // reset
 	}()
 
 	// 确保每次把号池填满
@@ -161,10 +127,10 @@ func (u *IncrementalPoolUIDGenerator) fillPool(currPoolSize int) (err error) {
 			}
 			break
 		}
-		u.readyToPushIds = append(u.readyToPushIds, maxUnusedUID)
+		u.pushIdsBuffer = append(u.pushIdsBuffer, maxUnusedUID)
 	}
-	//fmt.Printf("5555 %v %v\n",  currPoolSize, u.readyToPushIds)
-	return u.pool.Push(u.readyToPushIds)
+	//fmt.Printf("5555 %v %v\n",  currPoolSize, u.pushIdsBuffer)
+	return u.pool.Push(u.pushIdsBuffer)
 }
 
 type Option func(generator *IncrementalPoolUIDGenerator)
