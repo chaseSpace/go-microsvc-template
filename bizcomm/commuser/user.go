@@ -15,12 +15,6 @@ func UserListToMap(list []*user.User) (umap map[int64]*user.User) {
 	return
 }
 
-func MergeUserListToMap(umap map[int64]*user.User, list []*user.User) {
-	for _, i := range list {
-		umap[i.Uid] = i
-	}
-}
-
 var supportedPhoneAreaCode = map[string]struct{}{
 	"86": {},
 }
