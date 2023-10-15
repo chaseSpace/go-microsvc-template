@@ -1,3 +1,3 @@
 package cache
 
-const UserCacheKey = "User:%v"
+const UserInfoCacheKey = "UserInfo:%v"
