@@ -63,7 +63,6 @@ func (u *User) ToPb() *user.User {
 	return &user.User{
 		Uid:      u.Uid,
 		Nickname: u.Nickname,
-		Age:      u.Age(),
 		Birthday: u.Birthday.Format(time.DateOnly),
 		Sex:      u.Sex.Int32(),
 	}
