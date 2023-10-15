@@ -18,28 +18,6 @@ import (
 /*
 测试RPC接口，需要先在本地启动待测试的微服务（不用启动网关）
 */
-
-func TestGetUser(t *testing.T) {
-	tbase.TearUp(svc.User, deploy2.UserConf)
-	defer tbase.TearDown()
-
-	rsp, err := rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{
-		Base: nil,
-		Uids: nil,
-	})
-	if !xerr.ErrParams.Equal(err) {
-		t.Fatalf("case 1: err is not ErrParams: %v", err)
-	}
-
-	rsp, err = rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{Uids: []int64{1}})
-	if err != nil {
-		t.Fatalf("case 2: err %v", err)
-	}
-	if len(rsp.Umap) != 2 {
-		t.Fatalf("case 2: rsp umap %+v", rsp.Umap)
-	}
-}
-
 func TestSignUp(t *testing.T) {
 	tbase.TearUp(svc.User, deploy2.UserConf)
 	defer tbase.TearDown()
@@ -276,5 +254,45 @@ func TestSignIn(t *testing.T) {
 			assert.NotEmpty(t, r.Token)
 			assert.NotEmpty(t, r.Info)
 		}
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	tbase.TearUp(svc.User, deploy2.UserConf)
+	defer tbase.TearDown()
+
+	// case-1: need `base` arg
+	_, err := rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{
+		Base: nil,
+		Uids: nil,
+	})
+	assert.Equal(t, xerr.ErrParams.AppendMsg("missing arg:`base`"), err)
+
+	// case-2: need `uids` arg
+	_, err = rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{
+		Base: tbase.TestBaseExtReq,
+		Uids: nil,
+	})
+	assert.Equal(t, xerr.ErrParams.New("missing arg:`uids`"), err)
+
+	// case-3: normal
+	rsp, err := rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{
+		Base: tbase.TestBaseExtReq,
+		Uids: []int64{100010, 0, 999}, // 仅 100010 有效
+	})
+	assert.Nil(t, err)
+	expectedMap := map[int64]*user.User{
+		100010: &user.User{
+			Uid:      100010,
+			Nickname: "user1",
+			Birthday: "2023-01-01",
+			Sex:      1,
+		}}
+	assert.Equal(t, len(expectedMap), len(rsp.Umap))
+	for key, val := range expectedMap {
+		actualVal, ok := rsp.Umap[key]
+		assert.True(t, ok, "Key不存在于实际的map中: %s", key)
+		assert.EqualExportedValues(t, *val, *actualVal)
+		//assert.Truef(t, proto.Equal(val, actualVal), "Val不相等: actualVal -> %+v", actualVal)
 	}
 }

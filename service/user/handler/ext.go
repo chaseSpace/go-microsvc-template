@@ -3,10 +3,13 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/k0kubun/pp"
+	"microsvc/bizcomm/auth"
 	"microsvc/bizcomm/commuser"
 	"microsvc/enums"
 	"microsvc/pkg/xerr"
 	"microsvc/protocol/svc/user"
+	"microsvc/service/user/cache"
 	"microsvc/service/user/dao"
 	"microsvc/service/user/logic"
 )
@@ -57,33 +60,20 @@ func (UserExtCtrl) SignIn(ctx context.Context, req *user.SignInReq) (*user.SignI
 }
 
 func (UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {
-	//u := auth.GetAuthUser(ctx)
-	//pp.Println(1111, u)
+	// 可直接通过ctx获取已经认证的自己的基础信息
+	u := auth.GetAuthUser(ctx)
+	_, _ = pp.Println("GetUser self:", u)
+
 	if len(req.Uids) == 0 {
-		return nil, xerr.ErrParams
+		return nil, xerr.ErrParams.New("missing arg:`uids`")
 	}
-	//umap, err := cache.GetUser(req.Uids...)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//rsp := &user.GetUserRes{Umap: make(map[int64]*user.User)}
-	//for _, i := range umap {
-	//	rsp.Umap[i.Uid] = i.ToPb()
-	//}
-	rsp := &user.GetUserRes{
-		Umap: map[int64]*user.User{
-			1: &user.User{
-				Uid:      1,
-				Nickname: "niko",
-				Age:      3,
-				Sex:      4,
-			},
-			2: &user.User{
-				Uid:      2,
-				Nickname: "lucy",
-				Age:      3,
-				Sex:      4,
-			},
-		}}
+	umap, err := cache.GetUser(req.Uids...)
+	if err != nil {
+		return nil, err
+	}
+	rsp := &user.GetUserRes{Umap: make(map[int64]*user.User)}
+	for _, i := range umap {
+		rsp.Umap[i.Uid] = i.ToPb()
+	}
 	return rsp, nil
 }
