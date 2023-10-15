@@ -405,10 +405,19 @@ type AdminClaims struct {
 	jwt.RegisteredClaims
 }
 
+type CarryBaseExtReq interface {
+	GetBase() *svc.BaseExtReq
+}
+
 func (s ServerInterceptor) Authentication(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if r, ok := req.(CarryBaseExtReq); ok && r.GetBase() == nil {
+		return nil, xerr.ErrParams.AppendMsg("missing arg:`base`")
+	}
+
 	if auth.NoAuthMethods[info.FullMethod] != nil || !sutil.isExtMethod(ctx) {
 		return handler(ctx, req)
 	}
+
 	tokenStr := strings.TrimPrefix(GetIncomingMdVal(ctx, MdKeyAuthToken), "Bearer ")
 	if tokenStr == "" {
 		if IsIncomingMdKeyExist(ctx, MdKeyTestCall) {
