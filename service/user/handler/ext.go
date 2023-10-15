@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/k0kubun/pp"
+	"github.com/samber/lo"
 	"microsvc/bizcomm/auth"
 	"microsvc/bizcomm/commuser"
 	"microsvc/enums"
@@ -64,9 +65,13 @@ func (UserExtCtrl) GetUser(ctx context.Context, req *user.GetUserReq) (*user.Get
 	u := auth.GetAuthUser(ctx)
 	_, _ = pp.Println("GetUser self:", u)
 
+	req.Uids = lo.Filter(req.Uids, func(item int64, i int) bool {
+		return item > 0
+	})
 	if len(req.Uids) == 0 {
 		return nil, xerr.ErrParams.New("missing arg:`uids`")
 	}
+
 	umap, err := cache.GetUser(req.Uids...)
 	if err != nil {
 		return nil, err

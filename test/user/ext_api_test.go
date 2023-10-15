@@ -275,12 +275,21 @@ func TestGetUser(t *testing.T) {
 	})
 	assert.Equal(t, xerr.ErrParams.New("missing arg:`uids`"), err)
 
-	// case-3: normal
+	// case-3: need valid `uids` arg (at least exist one)
+	_, err = rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{
+		Base: tbase.TestBaseExtReq,
+		Uids: []int64{0, 0, 0},
+	})
+	assert.Equal(t, xerr.ErrParams.New("missing arg:`uids`"), err)
+
+	// case-4: normal（如果 id:100010 不存在，请先运行上面的用例 TestSignUp 来注册id）
 	rsp, err := rpcext.User().GetUser(tbase.TestCallCtx, &user.GetUserReq{
 		Base: tbase.TestBaseExtReq,
 		Uids: []int64{100010, 0, 999}, // 仅 100010 有效
 	})
 	assert.Nil(t, err)
+
+	// 只返回有效的uid
 	expectedMap := map[int64]*user.User{
 		100010: &user.User{
 			Uid:      100010,
