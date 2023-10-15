@@ -6,17 +6,15 @@ import "include/google/protobuf/any.proto";
 
 // 由客户端提供此结构体信息
 message BaseExtReq {
-  bool this_is_ext_api = 1;
-  string app = 2; // client app package name
-  string app_version = 3;
+  string app = 1; // client app package name
+  string app_version = 2;
   //...
   map<string, string> extension = 10;
 }
 
 message AdminBaseReq{
-  bool this_is_admin_api = 1;
-  int64 uid = 2;
-  string nick = 3;
+  int64 uid = 1;
+  string nick = 2;
   // ...
   map<string, string> extension = 10;
 }

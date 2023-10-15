@@ -105,8 +105,13 @@ func NewTestCallCtx() context.Context {
 }
 
 var TestBaseExtReq = &svc2.BaseExtReq{
-	ThisIsExtApi: true,
-	App:          "test_app",
-	AppVersion:   "1.0.0",
-	Extension:    nil,
+	App:        "test_app",
+	AppVersion: "1.0.0",
+	Extension:  nil,
+}
+
+var TestBaseAdminReq = &svc2.AdminBaseReq{
+	Uid:       1,
+	Nick:      "Lucy",
+	Extension: nil,
 }
