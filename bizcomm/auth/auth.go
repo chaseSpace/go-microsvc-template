@@ -96,8 +96,8 @@ func (a *AuthenticatedUser) GetRegAt() time.Time {
 	return a._RegAt
 }
 
-func NewTestSvcUser(uid int64, sex enums.Sex) *SvcUser {
-	return &SvcUser{
+func NewTestSvcUser(uid int64, sex enums.Sex) SvcUser {
+	return SvcUser{
 		AuthenticatedUser{
 			Uid:     uid,
 			Sex:     sex,
@@ -107,8 +107,8 @@ func NewTestSvcUser(uid int64, sex enums.Sex) *SvcUser {
 	}
 }
 
-func NewTestAdminUser(uid int64, sex enums.Sex) *AdminUser {
-	return &AdminUser{
+func NewTestAdminUser(uid int64, sex enums.Sex) AdminUser {
+	return AdminUser{
 		AuthenticatedUser{
 			Uid:     uid,
 			Sex:     sex,
