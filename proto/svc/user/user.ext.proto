@@ -15,11 +15,9 @@ message GetUserRes{
 message User{
   int64 uid = 1;
   string nickname = 2;
-  int32 age = 3;
-  string birthday = 4;
-  int32 sex = 5;
+  string birthday = 3;
+  int32 sex = 4;
 }
-
 
 message SignUpReq{
   string nickname = 1;
