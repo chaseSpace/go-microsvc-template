@@ -77,56 +77,63 @@
 package main
 
 import (
-  "google.golang.org/grpc"
-  "microsvc/deploy"
-  "microsvc/enums"
-  "microsvc/infra"
-  "microsvc/infra/sd"
-  "microsvc/infra/svccli"
-  "microsvc/infra/xgrpc"
-  _ "microsvc/infra/xgrpc/protobytes"
-  "microsvc/pkg"
-  "microsvc/pkg/xkafka"
-  "microsvc/pkg/xlog"
-  "microsvc/protocol/svc/user"
-  deploy2 "microsvc/service/user/deploy"
-  "microsvc/service/user/handler"
-  "microsvc/util/graceful"
+	"google.golang.org/grpc"
+	"microsvc/deploy"
+	"microsvc/enums/svc"
+	"microsvc/infra"
+	"microsvc/infra/cache"
+	"microsvc/infra/orm"
+	"microsvc/infra/sd"
+	"microsvc/infra/svccli"
+	"microsvc/infra/xgrpc"
+	_ "microsvc/infra/xgrpc/protobytes"
+	"microsvc/pkg"
+	"microsvc/pkg/xkafka"
+	"microsvc/pkg/xlog"
+	"microsvc/protocol/svc/user"
+	deploy2 "microsvc/service/user/deploy"
+	"microsvc/service/user/handler"
+	"microsvc/service/user/logic"
+	"microsvc/util/graceful"
 )
 
 func main() {
-  graceful.SetupSignal()
-  defer graceful.OnExit()
+	graceful.SetupSignal()
+	defer graceful.OnExit()
 
-  // 初始化config
-  deploy.Init(enums.SvcUser, deploy2.UserConf)
+	// 初始化config
+	deploy.Init(svc.User, deploy2.UserConf)
 
-  // 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
-  pkg.Setup(
-    xlog.Init,
-    xkafka.Init,
-  )
+	// 初始化服务用到的基础组件（封装于pkg目录下），如log, kafka等
+	pkg.Setup(
+		xlog.Init,
+		xkafka.Init,
+	)
 
-  // 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
-  infra.Setup(
-    //cache.InitRedis(true),
-    //orm.InitGorm(true),
-    sd.Init(true),
-    svccli.Init(true),
-  )
+	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
+	// - 注意顺序
+	infra.Setup(
+		cache.InitRedis(true),
+		orm.InitGorm(true),
+		sd.Init(true),
+		svccli.Init(true),
+	)
 
-  x := xgrpc.New() // New一个封装好的grpc对象
-  x.Apply(func(s *grpc.Server) {
-    // 注册外部和内部的rpc接口对象
-    user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
-    user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
-  })
+	// 此服务需要的初始化(在infra初始化之后进行)
+	logic.MustInit()
 
-  x.Start(deploy.XConf)
-  // GRPC服务启动后 再注册服务
-  sd.Register(deploy.XConf)
+	x := xgrpc.New() // New一个封装好的grpc对象
+	x.Apply(func(s *grpc.Server) {
+		// 注册外部和内部的rpc接口对象
+		user.RegisterUserExtServer(s, new(handler.UserExtCtrl))
+		user.RegisterUserIntServer(s, new(handler.UserIntCtrl))
+	})
 
-  graceful.Run()
+	x.Start(deploy.XConf)
+	// GRPC服务启动后 再注册服务
+	sd.MustRegister(deploy.XConf)
+
+	graceful.Run()
 }
 ```
 
@@ -137,47 +144,83 @@ func main() {
 
 ```shell
 ************* init Share-Config OK *************
-&deploy.XConfig{                                           
-  Svc:   "admin",                                          
-  Env:   "dev",                                            
-  Mysql: map[string]*deploy.Mysql{                         
-    "microsvc": &deploy.Mysql{                             
-      DBname:   "microsvc",                                
-      Host:     "0.0.0.0",                                 
-      Port:     "3306",                                    
-      User:     "root",                                    
-      Password: "123",                                     
+&deploy.XConfig{
+  Svc:   "user",
+  Env:   "dev",
+  Mysql: map[string]*deploy.Mysql{
+    "biz": &deploy.Mysql{
+      DBname:   "biz",
+      Host:     "localhost",
+      Port:     "3306",
+      User:     "root",
+      Password: "123",
+      GormArgs: "charset=utf8mb4&parseTime=True&loc=Local",
+    },
+    "biz_log": &deploy.Mysql{
+      DBname:   "biz_log",
+      Host:     "localhost",
+      Port:     "3306",
+      User:     "root",
+      Password: "123",
+      GormArgs: "charset=utf8mb4&parseTime=True&loc=Local",
+    },
+  },
+  Redis: map[string]*deploy.Redis{
+    "admin": &deploy.Redis{
+      DBname:   "admin",
+      DB:       5,
+      Addr:     "localhost:6379",
+      Password: "123",
+    },
+    "biz": &deploy.Redis{
+      DBname:   "biz",
+      DB:       0,
+      Addr:     "localhost:6379",
       Password: "123",
     },
   },
-  SimpleSdHttpPort: 5000,
-  gRPCPort: 0,
-  httpPort: 0,
-  svcConf:  nil,
+  SimpleSdHttpPort:      6100,
+  SvcTokenSignKey:       "7DgF2kR9pE8hYsW6",
+  AdminTokenSignKey:     "5aR7Bp3W9Q2v8X1F",
+  SensitiveInfoCryptKey: "7D13gRSkd0o49xE9",
+  gRPCPort:              0,
+  httpPort:              0,
+  svcConf:               nil,
 }
 
 ************* init Svc-Config OK *************
 &deploy.SvcConfig{
   CommConfig: deploy.CommConfig{
-    Svc:      "admin",
+    Svc:      "user",
     LogLevel: "debug",
   },
 }
+#### infra.redis init success
+#### infra.mysql init success
+{"LEVEL":"x-debug","TIME":"2023-10-15 13:00:14.249","CALLER":"sd/base.go:113","MSG":"sd: no simple_sd server found, start it now on localhost:6100","SERVICE":"go-user"}
+2023/10/15 13:00:15 simple_sd - [Debug]: you can call SetLogLevel() to adjust log level
+2023/10/15 13:00:15 simple_sd - [Debug]: handlePing OK, req:&{Ping:true}
 
 Congratulations! ^_^
-Your service ["go-admin"] is serving gRPC on "localhost:60280"
+Your service ["go-user"] is serving gRPC on "localhost:60202"
 
-{"LEVEL":"x-info","TS":"2023-08-29 15:44:41.625","CALLER":"sd/base.go:61","MSG":"sd: register svc success","reg_svc":"go-admin","addr":"127.0.0.1:60280","SERVICE":"go-admin"}
+2023/10/15 13:00:15 simple_sd - [Debug]: handleRegister OK, dur:52.041µs service:go-user req:127.0.0.1:60202
+2023/10/15 13:00:15 simple_sd - [Debug]: service go-user launched health check
+{"LEVEL":"x-info","TIME":"2023-10-15 13:00:15.254","CALLER":"sd/base.go:70","MSG":"sd: register svc success","sd-name":"simple_sd","reg_svc":"go-user","addr":"127.0.0.1:60202","SERVICE":"go-user"}
+2023/10/15 13:00:18 simple_sd - [Debug]: handleHealthCheck OK, dur:0ms  req:&{Service:go-user Id:5Wsv}  --rsp:{"Code":200,"Msg":"OK","Data":{"Registered":true}}
+2023/10/15 13:00:21 simple_sd - [Debug]: handleHealthCheck OK, dur:0ms  req:&{Service:go-user Id:5Wsv}  --rsp:{"Code":200,"Msg":"OK","Data":{"Registered":true}}
+2023/10/15 13:00:24 simple_sd - [Debug]: handleHealthCheck OK, dur:0ms  req:&{Service:go-user Id:5Wsv}  --rsp:{"Code":200,"Msg":"OK","Data":{"Registered":true}}
 
 ### 停止服务...
 
-{"LEVEL":"x-warn","TS":"2023-08-29 15:44:43.163","CALLER":"graceful/base.go:46","MSG":"****** graceful ****** server ready to exit(signal)","SERVICE":"go-admin"}
-{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.163","CALLER":"svccli/base.go:69","MSG":"svccli: resource released...","SERVICE":"go-admin"}
-{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.164","CALLER":"sd/base.go:72","MSG":"sd: deregister success","svc":"go-admin","SERVICE":"go-admin"}
-{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.165","CALLER":"cache/redis.go:77","MSG":"cache-redis: resource released...","SERVICE":"go-admin"}
-{"LEVEL":"x-debug","TS":"2023-08-29 15:44:43.165","CALLER":"orm/mysql.go:85","MSG":"orm-mysql: resource released...","SERVICE":"go-admin"}
-{"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"xgrpc/grpc.go:79","MSG":"xgrpc: gRPC server shutdown completed","SERVICE":"go-admin"}
-{"LEVEL":"x-info","TS":"2023-08-29 15:44:43.165","CALLER":"graceful/base.go:30","MSG":"****** graceful ****** server exited","SERVICE":"go-admin"}
+{"LEVEL":"x-warn","TIME":"2023-10-15 13:06:54.272","CALLER":"graceful/base.go:57","MSG":"****** graceful ****** server ready to exit(signal)","SERVICE":"go-user"}
+{"LEVEL":"x-debug","TIME":"2023-10-15 13:06:54.272","CALLER":"svccli/base.go:77","MSG":"svccli: resource released...","SERVICE":"go-user"}
+2023/10/15 13:06:54 simple_sd - [Debug]: handleDeregister OK, req:&{Service:go-user Id:5Wsv}
+{"LEVEL":"x-info","TIME":"2023-10-15 13:06:54.274","CALLER":"sd/base.go:84","MSG":"sd: deregister success","sd-name":"simple_sd","svc":"go-user","SERVICE":"go-user"}
+{"LEVEL":"x-debug","TIME":"2023-10-15 13:06:54.274","CALLER":"cache/redis.go:93","MSG":"cache-redis: resource released...","SERVICE":"go-user"}
+{"LEVEL":"x-debug","TIME":"2023-10-15 13:06:54.275","CALLER":"orm/mysql.go:99","MSG":"orm-mysql: resource released...","SERVICE":"go-user"}
+{"LEVEL":"x-info","TIME":"2023-10-15 13:06:54.275","CALLER":"xgrpc/server.go:87","MSG":"xgrpc: gRPC server shutdown completed","SERVICE":"go-user"}
+{"LEVEL":"x-info","TIME":"2023-10-15 13:06:54.275","CALLER":"graceful/base.go:30","MSG":"****** graceful ****** server exited","SERVICE":"go-user"}
 ```
 
 </details>
