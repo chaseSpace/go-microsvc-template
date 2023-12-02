@@ -41,7 +41,7 @@ func stopAll() {
 	}
 }
 
-func Schedule(f func()) {
+func Register(f func()) {
 	go func() {
 		f()
 		Stop()

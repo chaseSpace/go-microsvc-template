@@ -7,11 +7,11 @@ message ReviewResourceReq{
   int64 uid = 2;
   int32 sex = 3;
   string content = 4;
-  string channel = 5; // review channel
+  string channel = 5; // 审核渠道
 }
 message ReviewResourceRes{
   ResultState state = 1;
-  // Add other fields as needed
+  // 根据需求添加其他字段
 }
 
 enum ReviewType {
