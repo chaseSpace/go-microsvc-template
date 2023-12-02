@@ -1,7 +1,7 @@
 package consts
 
 const (
-	EnvVar         = "MICROSVC_ENV"
+	EnvVar         = "MICRO_SVC_ENV"
 	EnvVarLogLevel = "LOG_LEVEL"
 )
 
