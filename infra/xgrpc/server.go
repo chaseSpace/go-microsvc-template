@@ -87,7 +87,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		xlog.Info("xgrpc: gRPC server shutdown completed")
 	})
 
-	graceful.Schedule(func() {
+	graceful.Register(func() {
 		err = x.svr.Serve(lis)
 		if err != nil {
 			xlog.Error("xgrpc: failed to serve GRPC", zap.String("grpcAddr", grpcAddr), zap.Error(err))
@@ -106,7 +106,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 		httpAddr := fmt.Sprintf(":%d", port)
 		fmt.Printf("serving HTTP on http://localhost%s\n", httpAddr)
 
-		graceful.Schedule(func() {
+		graceful.Register(func() {
 			time.Sleep(time.Second)
 			serveHTTP(grpcAddr, lis, x.extHttpRegister, x.intHttpRegister)
 		})

@@ -1,13 +1,14 @@
 package deploy
 
 import (
+	"fmt"
 	"microsvc/consts"
 	"microsvc/enums"
 	"os"
 )
 
 // 读取系统环境变量，默认dev
-// export MICROSVC_ENV=beta/prod
+// export MICRO_SVC_ENV=dev/beta/prod
 func readEnv() enums.Environment {
 	env := enums.Environment(os.Getenv(consts.EnvVar))
 	switch env {
@@ -16,7 +17,7 @@ func readEnv() enums.Environment {
 	case enums.EnvBeta, enums.EnvDev, enums.EnvProd:
 		return env
 	default:
-		panic("no valid env provided!")
+		panic(fmt.Sprintf("invalid env provided: %s", env))
 	}
 }
 

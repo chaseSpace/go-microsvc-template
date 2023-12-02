@@ -44,6 +44,8 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 	}
 }
 
+// MustRegister 执行注册服务，失败则panic
+// 如果使用DNS名称链接服务，则不需要注册
 func MustRegister(reg ...deploy.RegisterSvc) {
 	selfIp := "127.0.0.1"
 	if !deploy.XConf.Env.IsDev() {

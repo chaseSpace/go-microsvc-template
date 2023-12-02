@@ -69,10 +69,11 @@ func Init(svc svc.Svc, svcConfVar SvcConfImpl) {
 	XConf.Svc = svc
 	XConf.Env = readEnv()
 
-	// 设置配置文件名（不包含扩展名）
-	viper.SetConfigName("config")
 	// 设置配置文件所在的路径（可选，默认为当前目录）
 	viper.AddConfigPath(XConf.GetConfDir())
+
+	// 设置配置文件名及其后缀
+	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 
 	if err := viper.ReadInConfig(); err != nil {

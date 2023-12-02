@@ -1,3 +1,7 @@
+//go:build use_sd
+
+// go build -tags use_sd
+
 package rpcext
 
 import (
@@ -8,8 +12,9 @@ import (
 	"microsvc/protocol/svc/user"
 )
 
-// Service Discover is now in Multi addresses method.
-// TODO: upgrade to DNS method.
+// If you use this file, Service client use ServiceDiscovery method
+// to get service target address, ServiceDiscovery could be implemented
+// by Consul/etcd/ZooKeeper/Nacos etc.
 
 var (
 	userCli  = svccli.NewCli(svc.User, func(conn *grpc.ClientConn) interface{} { return user.NewUserExtClient(conn) })

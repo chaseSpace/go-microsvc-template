@@ -13,6 +13,10 @@ import (
 	"sync"
 )
 
+/*
+如果使用DNS名称连接服务，则不需要调用Init函数
+*/
+
 var defaultSD abstract.ServiceDiscovery
 
 func SetDefaultSD(sd abstract.ServiceDiscovery) {
@@ -24,7 +28,6 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 		var err error
 		if defaultSD == nil {
 			if cc.Env.IsDev() {
-				//defaultSD = mdns.New()
 				defaultSD = simple_sd.New(cc.SimpleSdHttpPort)
 			} else {
 				defaultSD, err = consul.New()

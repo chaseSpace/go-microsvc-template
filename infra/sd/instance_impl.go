@@ -3,6 +3,7 @@ package sd
 import (
 	"container/list"
 	"context"
+	"errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -74,7 +75,7 @@ func (i *InstanceImpl) getCurr() (instance *GrpcInstance, err error) {
 }
 
 func (i *InstanceImpl) isConnReady(instance *GrpcInstance) bool {
-	// if conn is idle, connect it
+	// if conn state is idle, do connect
 	if instance.Conn.GetState() == connectivity.Idle {
 		instance.Conn.Connect()
 		return true
@@ -124,7 +125,7 @@ func (i *InstanceImpl) query(block bool) error {
 	}
 	entries, err = discovery()
 	if err != nil {
-		if err == context.DeadlineExceeded {
+		if errors.Is(err, context.DeadlineExceeded) {
 			xlog.Debug(logPrefix + "discover timeout")
 		} else {
 			xlog.Error(logPrefix+"discover fail", zap.Error(err))
