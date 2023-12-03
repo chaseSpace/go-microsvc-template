@@ -51,7 +51,7 @@ func InitRedis(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 type RedisObj struct {
 	name deploy.DBname
 	*redis.Client
-	// 你可能希望在对象中包含一些其他自定义成员，在这里添加
+	// 这里可以添加一些其他自定义成员
 }
 
 func (m *RedisObj) IsInvalid() bool {
@@ -79,10 +79,6 @@ func setupSvcDB() error {
 		}
 	}
 	return nil
-}
-
-func GetRedisClient(name string) *redis.Client {
-	return instMap[deploy.DBname(name)]
 }
 
 func Stop() {
