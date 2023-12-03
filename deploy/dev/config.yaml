@@ -1,7 +1,7 @@
 # 存放公共相关配置，比如db信息
-grpc_port: 6000
-http_port: 6001
-simplesd_http_port: 6100
+grpc_port: 3000
+http_port: 3001
+simplesd_http_port: 3100
 svc_token_sign_key: 7DgF2kR9pE8hYsW6
 admin_token_sign_key: 5aR7Bp3W9Q2v8X1F
 sensitive_info_crypt_key: 7D13gRSkd0o49xE9
