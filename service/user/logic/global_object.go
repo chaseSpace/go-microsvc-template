@@ -3,8 +3,7 @@ package logic
 import (
 	"fmt"
 	"github.com/dlclark/regexp2"
-	"microsvc/infra/cache"
-	"microsvc/proto/model"
+	"microsvc/proto/model/user"
 	cache2 "microsvc/service/user/cache"
 	"microsvc/service/user/dao"
 	"microsvc/util"
@@ -42,8 +41,8 @@ func (globalObjectCtrl) InitUidGenerator() error {
 		return false, nil
 	}
 
-	locker := xlock.NewDLock("UidGenerator", cache.GetRedisClient(model.RedisDB))
-	pool := cache2.NewUidQueuedPool("UidGenerator", cache.GetRedisClient(model.RedisDB))
+	locker := xlock.NewDLock("UidGenerator", user.R.Client)
+	pool := cache2.NewUidQueuedPool("UidGenerator", user.R.Client)
 
 	getMaxUid := func() (uint64, error) {
 		id, err := dao.GetMaxUid()
