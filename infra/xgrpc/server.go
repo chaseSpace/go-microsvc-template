@@ -93,7 +93,7 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 	grpcAddr := fmt.Sprintf("localhost:%d", port)
 
 	fmt.Printf("\nCongratulations! ^_^\n")
-	_, _ = pp.Printf("Your service [%s] is serving gRPC on 333%s\n", portSetter.GetSvc(), grpcAddr)
+	_, _ = pp.Printf("Your service [%s] is serving gRPC on %s\n", portSetter.GetSvc(), grpcAddr)
 
 	// 手动设置微服务的健康状态
 	x.healthSrv.SetServingStatus(deploy.XConf.Svc.Name(), healthgrpc.HealthCheckResponse_SERVING)

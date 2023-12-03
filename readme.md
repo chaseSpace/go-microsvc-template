@@ -46,10 +46,10 @@
 - ✅ 定义微服务Error类型，以便跨服务传递error（在GRPC拦截器中解析），[查看代码](./pkg/xerr/err.go)
 - ✅ 跨多个服务传递metadata示例（通过Context），搜索函数`TraceGRPC`
 - ✅ gRPC Client 拦截器示例，包含`GRPCCallLog`, `ExtractGRPCErr`, `CircuitBreaker`, `Retry`, `WithFailedClient`
-- ✅ gRPC Server 拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
+- ✅ gRPC Server
+  拦截器示例，包含`RecoverGRPCRequest`, `ToCommonResponse`, `LogGRPCRequest`, `TraceGRPC`, `StandardizationGRPCErr`
 - ✅ 优化proto解析错误response，[查看示例](#41-优化proto参数错误的response)
 - 各微服务在Interceptor实现JWT+Cache鉴权（admin服务单独鉴权）
-
 
 运行通过的示例：
 
@@ -57,15 +57,15 @@
 - ✅ **本地**跨服务GRPC调用测试用例（[admin-ext_api_test](./test/admin/ext_api_test.go)）
 - ✅ **Gateway** HTTP接口测试（调用后端微服务），使用Goland `HTTP Request`功能（[apitest.http](./test/gateway/apitest.http)）
 
-
 目前已提供常见的微服务示例：
+
 - admin: 管理后台
 - user：用户模块（后续会实现基础的注册、登录功能）
 - assets（TODO）：资产模块（后续会实现一个简单含流水、消费、进账的货币功能）
 - review：审核模块（自行接入第三方）
 
-
 本项目文档指引：
+
 - [使用证书加密以及指定授权gRPC通信](./generate_cert_for_svc.md)
 
 ### Preview
@@ -306,6 +306,7 @@ go run service/gateway/main.go
 ```
 
 ### 4. 示例集合
+
 [【示例集合】](./examples.md)
 
 ### 5. 本地（dev）环境启动微服务的原理
@@ -315,29 +316,25 @@ go run service/gateway/main.go
 
 实现一个简单的注册中心模块，然后**在开发环境**随服务启动。
 
-- [~~网络协议之mDNS~~（由于windows支持不完善，不再使用）](https://www.cnblogs.com/Alanf/p/8653223.html)
+- [~~网络协议之mDNS~~（由于Windows支持不完善，不再使用）](https://www.cnblogs.com/Alanf/p/8653223.html)
 - [simple_sd实现](./xvendor/simple_sd)
 
 注意：dev环境启动的微服务仍然连接的是**beta环境的数据库**。
-
 
 ### 6. 工具下载（更新）
 
 #### 6.1 下载protoc
 
-linux、mac版本都已经包含在本仓库的`tool/`,`tool_mac/`目录下，无需再下载，已下载的是protoc
-v24版本，其余插件也是编写本文档时的最新版本（下载时间2023年8月17日）。
+工具以及插件的二进制文件都已经包含在本仓库的`tool/`,`tool_mac/`,`tool_win/`目录下，使用项目的每个人在拉取项目后都无需另外下载。
+已下载的是protoc v24.4版本，其余插件也是编写本项目时的最新版本（下载时间更新至2023年10月5日）。
 
 如需更换版本，可点击下方链接自行下载：
 
 https://github.com/protocolbuffers/protobuf/releases
 
-> windows环境暂未支持，请自行配置环境。  
-> 本模板配套的是shell脚本，在windows环境运行可能有问题，（但仍然建议使用类unix环境进行开发，以减少不必要的工作和麻烦）。
-
 #### 6.2 下载protoc插件
 
-本仓库的`tool/`,`tool_mac/`都已经包含这些插件，这里只是演示如何下载，以便你了解如何更新插件版本。
+本仓库的`tool/`,`tool_mac/`都已经包含这些插件，这里只是演示如何下载，你可以使用这个方式来更新插件版本。
 
 ```shell
 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
@@ -355,6 +352,8 @@ cp $GOPATH/bin/* tool/protoc_v24
 ```
 
 若要更改版本，建议同时修改`tool/proto_v24/`目录名称，并同步修改`build_pb.sh`脚本中对该目录的引用部分，以便更新版本后脚本能够正常运行。
+
+> 在Windows上运行shell脚本，你需要为系统配置`bash`解释器。
 
 ### 7. 其他
 
@@ -381,5 +380,6 @@ cp $GOPATH/bin/* tool/protoc_v24
 
 #### 资源链接
 
+- [K8s中文教程](https://github.com/chaseSpace/k8s-tutorial-cn/tree/main)
 - [Consul 官网介绍](https://developer.hashicorp.com/consul/docs/intro)
 - [Consul 服务发现原理](https://developer.hashicorp.com/consul/docs/concepts/service-discovery)
