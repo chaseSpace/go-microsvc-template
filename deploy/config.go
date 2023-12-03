@@ -22,9 +22,13 @@ type XConfig struct {
 	AdminTokenSignKey     string            `mapstructure:"admin_token_sign_key"`     // Admin鉴权token使用的key
 	SensitiveInfoCryptKey string            `mapstructure:"sensitive_info_crypt_key"` // 敏感信息加密key（如手机号、身份证等）
 
-	// 私有字段
-	gRPCPort int
-	httpPort int
+	// 动态端口
+	dynamicGRPCPort int
+	dynamicHTTPPort int
+
+	// 固定端口
+	GRPCPort int `mapstructure:"grpc_port"`
+	HTTPPort int `mapstructure:"http_port"`
 
 	// 接管svc的配置
 	svcConf SvcConfImpl
@@ -35,15 +39,15 @@ func (x *XConfig) GetSvc() string {
 }
 
 func (x *XConfig) SetGRPC(port int) {
-	x.gRPCPort = port
+	x.dynamicGRPCPort = port
 }
 
 func (x *XConfig) SetHTTP(port int) {
-	x.httpPort = port
+	x.dynamicHTTPPort = port
 }
 
 func (s *XConfig) RegGRPCBase() (name string, addr string, port int) {
-	return s.Svc.Name(), "", s.gRPCPort
+	return s.Svc.Name(), "", s.dynamicGRPCPort
 }
 
 func (s *XConfig) RegGRPCMeta() map[string]string {
