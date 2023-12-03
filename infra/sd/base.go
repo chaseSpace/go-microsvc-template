@@ -1,3 +1,5 @@
+//go:build !k8s
+
 package sd
 
 import (
@@ -23,7 +25,7 @@ const logPrefix = "sd: "
 var rootSD abstract.ServiceDiscovery
 
 func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
-	return func(cc *deploy.XConfig, onEnd func(must bool, err error)) {
+	return func(cc *deploy.XConfig, finished func(must bool, err error)) {
 		var err error
 		if cc.Env.IsDev() {
 			if cc.SimpleSdHttpPort > 0 {
@@ -40,7 +42,7 @@ func Init(must bool) func(*deploy.XConfig, func(must bool, err error)) {
 			//	xlog.Error(logPrefix+"New failed", zap.Error(err))
 			//}
 		}
-		onEnd(must, err)
+		finished(must, err)
 	}
 }
 

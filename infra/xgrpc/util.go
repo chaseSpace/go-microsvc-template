@@ -78,10 +78,12 @@ func (serverUtil) setupCtx(ctx context.Context, method string) (context.Context,
 	// method such as: /svc.user.UserExt/Signup
 	ss := strings.Split(method, "/")
 	if len(ss) == 3 {
-		if strings.HasSuffix(ss[1], "Ext") {
-			isExtMethod = true
-		} else if !strings.HasSuffix(ss[1], "Int") {
-			return nil, fmt.Errorf("illegal grpc method: %s", method)
+		if ss[1] != "grpc.health.v1.Health" {
+			if strings.HasSuffix(ss[1], "Ext") {
+				isExtMethod = true
+			} else if !strings.HasSuffix(ss[1], "Int") {
+				return nil, fmt.Errorf("illegal grpc method: %s", method)
+			}
 		}
 		ctx = context.WithValue(ctx, CtxServerSideKey{}, CtxServerSideVal{
 			IsExtMethod: isExtMethod,

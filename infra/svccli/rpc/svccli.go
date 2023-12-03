@@ -1,6 +1,4 @@
-//go:build use_sd
-
-// go build -tags use_sd
+//go:build !k8s
 
 package rpc
 

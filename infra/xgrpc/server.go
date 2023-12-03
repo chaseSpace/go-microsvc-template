@@ -12,6 +12,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -46,20 +48,27 @@ const httpPortMin = 61000
 const httpPortMax = 61999
 
 type XgRPC struct {
-	svr                              *grpc.Server
+	srv                              *grpc.Server
+	healthSrv                        *health.Server
 	extHttpRegister, intHttpRegister grpcHTTPRegister
 }
 
 func New(interceptors ...grpc.UnaryServerInterceptor) *XgRPC {
-	svr := newGRPCServer(deploy.XConf.Svc, interceptors...)
+	srv := newGRPCServer(deploy.XConf.Svc, interceptors...)
+
+	// 注册健康检查接口
+	healthSrv := health.NewServer()
+	healthgrpc.RegisterHealthServer(srv, healthSrv)
+
 	return &XgRPC{
-		svr:             svr,
+		srv:             srv,
+		healthSrv:       healthSrv,
 		extHttpRegister: nil,
 	}
 }
 
 func (x *XgRPC) Apply(regFunc func(s *grpc.Server)) {
-	regFunc(x.svr)
+	regFunc(x.srv)
 }
 
 func (x *XgRPC) SetHTTPExtRegister(register grpcHTTPRegister) {
@@ -71,24 +80,31 @@ func (x *XgRPC) SetHTTPIntRegister(register grpcHTTPRegister) {
 }
 
 func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
-	lisFetcher := util.NewTcpListenerFetcher(grpcPortMin, grpcPortMax)
-	lis, port, err := lisFetcher.Get()
+	var (
+		lis  net.Listener
+		err  error
+		port int
+	)
+
+	lis, port, err = getListener(deploy.XConf.GRPCPort, portSetter)
 	if err != nil {
 		xlog.Panic("failed to get grpc listener", zap.Error(err))
 	}
-	portSetter.SetGRPC(port)
 	grpcAddr := fmt.Sprintf("localhost:%d", port)
 
 	fmt.Printf("\nCongratulations! ^_^\n")
-	_, _ = pp.Printf("Your service [%s] is serving gRPC on %s\n", portSetter.GetSvc(), grpcAddr)
+	_, _ = pp.Printf("Your service [%s] is serving gRPC on 333%s\n", portSetter.GetSvc(), grpcAddr)
+
+	// 手动设置微服务的健康状态
+	x.healthSrv.SetServingStatus(deploy.XConf.Svc.Name(), healthgrpc.HealthCheckResponse_SERVING)
 
 	defer graceful.AddStopFunc(func() { // grpc server should stop before http
-		x.svr.GracefulStop()
+		x.srv.GracefulStop()
 		xlog.Info("xgrpc: gRPC server shutdown completed")
 	})
 
 	graceful.Register(func() {
-		err = x.svr.Serve(lis)
+		err = x.srv.Serve(lis)
 		if err != nil {
 			xlog.Error("xgrpc: failed to serve GRPC", zap.String("grpcAddr", grpcAddr), zap.Error(err))
 		}
@@ -96,21 +112,29 @@ func (x *XgRPC) Start(portSetter deploy.SvcListenPortSetter) {
 
 	// 可能需要为grpc服务添加HTTP代理网关
 	// NOTE：如果是gateway架构，则不需要
-	if x.extHttpRegister != nil || x.intHttpRegister != nil {
-		lisFetcher = util.NewTcpListenerFetcher(httpPortMin, httpPortMax)
-		lis, port, err := lisFetcher.Get()
-		if err != nil {
-			xlog.Panic("failed to get http listener", zap.Error(err))
-		}
-		portSetter.SetHTTP(port)
-		httpAddr := fmt.Sprintf(":%d", port)
-		fmt.Printf("serving HTTP on http://localhost%s\n", httpAddr)
-
-		graceful.Register(func() {
-			time.Sleep(time.Second)
-			serveHTTP(grpcAddr, lis, x.extHttpRegister, x.intHttpRegister)
-		})
-	}
+	//if x.extHttpRegister != nil || x.intHttpRegister != nil {
+	//	if deploy.XConf.Env.IsDev() {
+	//		lisFetcher = util.NewTcpListenerFetcher(httpPortMin, httpPortMax)
+	//		lis, port, err = lisFetcher.Get()
+	//		if err != nil {
+	//			xlog.Panic("failed to get http listener", zap.Error(err))
+	//		}
+	//		portSetter.SetHTTP(port)
+	//	} else {
+	//		port = deploy.XConf.HTTPPort
+	//		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
+	//		if err != nil {
+	//			xlog.Panic("failed to get grpc listener", zap.Error(err))
+	//		}
+	//	}
+	//	httpAddr := fmt.Sprintf(":%d", port)
+	//	fmt.Printf("serving HTTP on http://localhost%s\n", httpAddr)
+	//
+	//	graceful.Register(func() {
+	//		time.Sleep(time.Second)
+	//		serveHTTP(grpcAddr, lis, x.extHttpRegister, x.intHttpRegister)
+	//	})
+	//}
 	fmt.Println()
 }
 
