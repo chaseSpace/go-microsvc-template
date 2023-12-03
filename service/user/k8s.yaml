@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-svc-user
+spec:
+  type: ClusterIP
+  selector:
+    app: go-svc
+    name: user
+  ports:
+    - port: 3000 # service端口
+      targetPort: 3000 # 后端pod端口
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-svc-user
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: go-svc
+      name: user
+  template:
+    metadata:
+      labels:
+        app: go-svc
+        name: user
+    spec:
+      containers:
+        - image: leigg/go-svc-user
+          name: main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          livenessProbe:
+            # 如果grpc服务端开启TLS，则这里不能使用gRPC探针，建议使用TCP
+            # grpc探针在k8s 1.23以及上版本支持，并且1.23版本需要手动开启 GRPCContainerProbe 特性门控才支持
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 1 # N秒后开始探测
+            periodSeconds: 5 # 每N秒探测一次
+            timeoutSeconds: 1 # 单次探测超时，默认1
+            failureThreshold: 3 # 探测失败连续N次后重启Pod
