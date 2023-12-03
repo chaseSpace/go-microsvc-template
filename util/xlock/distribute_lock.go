@@ -58,7 +58,6 @@ func (d *DistributedLockInRedis) Lock(ctx context.Context) (err error) {
 	var cc = make(chan struct{})
 	var lockOK bool
 	for {
-
 		go func() {
 			defer func() { cc <- struct{}{} }()
 			ret := d.client.SetNX(ctx, d.uniqueId, randVal, defaultLockExpiry)

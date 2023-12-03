@@ -1,3 +1,5 @@
+# 此配置文件只需要定义单个服务的特定配置。
+# 全局配置以及在 项目根目录/deploy/$env/ 中配置。
 root:
   svc: admin
   log_level: debug

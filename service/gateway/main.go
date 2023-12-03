@@ -32,6 +32,6 @@ func main() {
 	ctrl := new(handler.GatewayCtrl)
 	server := xhttp.New(deploy2.GatewayConf.HttpPort, ctrl.Handler)
 
-	graceful.Schedule(server.Start)
+	graceful.Register(server.Start)
 	graceful.Run()
 }

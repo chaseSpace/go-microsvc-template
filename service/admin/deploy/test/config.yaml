@@ -1,0 +1,3 @@
+root:
+  svc: admin
+  log_level: debug

@@ -109,7 +109,7 @@ $ openssl req -newkey rsa:2048 -nodes -keyout client-key.pem -out client-req.pem
 # 这里多指定的 DNS 表示这个为这个client证书添加特定服务的授权（当 CN 验证失败时，server就会验证这个DNS），这就实现了开头所说的某些server仅对特定client授权
 $ openssl x509 -req -CA ca-cert.pem -CAkey ca-key.pem -CAcreateserial \
   -in client-req.pem -out client-cert.pem -days 365 \
-  -extfile <(printf "subjectAltName=DNS:go-user.client.microsvc,DNS:go-admin.client.microsvc")
+  -extfile <(printf "subjectAltName=DNS:user.client.microsvc,DNS:admin.client.microsvc")
 
 $ ls
 ca-cert.pem ca-cert.srl ca-key.pem client-cert.pem client-key.pem client-req.pem server-cert.pem server-key.pem server-req.pem
