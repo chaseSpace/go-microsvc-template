@@ -16,8 +16,13 @@ import (
 )
 
 /*
-测试RPC接口，需要先在本地启动待测试的微服务（不用启动网关）
+测试RPC接口，需要先在本地启动待测试的微服务（可不用启动网关）
 */
+
+func TestHealthCheck(t *testing.T) {
+	tbase.GRPCHealthCheck(t, svc.User, deploy2.UserConf)
+}
+
 func TestSignUp(t *testing.T) {
 	tbase.TearUp(svc.User, deploy2.UserConf)
 	defer tbase.TearDown()
