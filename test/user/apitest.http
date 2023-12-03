@@ -1,6 +1,0 @@
-POST http://localhost:61016/user/v1/GetUser
-Content-Type: application/json
-
-{
-  "uid": [1]
-}
