@@ -5,8 +5,6 @@ import (
 	"microsvc/deploy"
 	"microsvc/enums/svc"
 	"microsvc/infra"
-	"microsvc/infra/cache"
-	"microsvc/infra/orm"
 	"microsvc/infra/sd"
 	"microsvc/infra/svccli"
 	"microsvc/infra/xgrpc"
@@ -37,8 +35,8 @@ func main() {
 	// 初始化几乎每个服务都需要的infra组件，must参数指定是否必须初始化成功，若must=true且err非空则panic
 	// - 注意顺序
 	infra.Setup(
-		cache.InitRedis(true),
-		orm.InitGorm(true),
+		//cache.InitRedis(true),
+		//orm.InitGorm(true),
 		sd.Init(true),
 		svccli.Init(true),
 	)
@@ -54,7 +52,7 @@ func main() {
 	})
 
 	x.Start(deploy.XConf)
-	// GRPC服务启动后 再注册服务
+
 	sd.MustRegister(deploy.XConf)
 
 	graceful.Run()
