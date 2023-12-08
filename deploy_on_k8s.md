@@ -74,7 +74,6 @@ $ curl 127.0.0.1:30189/forward/svc.user.UserExt/SignUp -d {}
 此后，若要更新服务，按下面的步骤进行：
 
 - 修改代码
-- 更新对应微服务目录中的`helmValues.yaml`文件中的镜像tag
-- 推送项目
-- 使用Helm更新发布：`helm upgrade go-svc-$SVC ./deploy/go-svc-chart -f $helmValues.yaml --description <更新说明>`
+ - 推送项目
+- 使用Helm更新发布：`helm upgrade go-svc-$SVC ./deploy/go-svc-chart -f $helmValues.yaml --set image-tag=x.x.x --description <更新说明>`
 

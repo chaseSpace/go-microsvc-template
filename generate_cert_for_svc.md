@@ -80,18 +80,20 @@ notAfter=Aug 30 10:31:52 2033 GMT
 
 ```shell
 # 先生成server私钥和csr（证书签名请求）
+# 注意subject指定了一个泛域名，这样才能适配不同服务。同时在代码中用以访问每个服务的虚拟域名也必须是相同的格式，否则不能匹配证书
+# 这里的 .default.svc.cluster.local 表示一个k8s集群内通配的域名
 $ openssl req -newkey rsa:2048 -nodes -keyout server-key.pem -out server-req.pem \
-  -subj "/CN=server.microsvc" 
-  
+  -subj "/CN=*.default.svc.cluster.local"
+
 # 再使用ca私钥颁发server证书; 对于server证书，需要指定SAN（subjectAltName），用来替代CN，这个强制要求貌似来自Go的加密库
 # -- 这里SAN指定了两个HOST（满足域名格式），在client使用域名连接server时会自动验证，如果使用IP连接则会验证失败！
-# -- 可以同时指定IP：subjectAltName=DNS:server.microsvc, IP:127.0.0.1
-# -- 可以使用通配符匹配多个域名：subjectAltName=DNS:*.server.microsvc    (但不能匹配多个IP)
+# -- 可以同时指定IP：subjectAltName=DNS:xxx.default.svc.cluster.local, IP:127.0.0.1
+# -- 可以使用通配符匹配多个域名：subjectAltName=DNS:*.default.svc.cluster.local    (但不能匹配多个IP)
 # -- 这里添加 IP:127.0.0.1 是为了方便 Dev 环境使用
 $ openssl x509 -req -CA ca-cert.pem -CAkey ca-key.pem -CAcreateserial \
   -in server-req.pem -out server-cert.pem \
   -days 365 \
-  -extfile <(printf "subjectAltName=DNS:server.microsvc, IP:127.0.0.1")
+  -extfile <(printf "subjectAltName=DNS:*.default.svc.cluster.local, IP:127.0.0.1")
 
 $ ls
 ca-cert.pem     ca-cert.srl     ca-key.pem      server-cert.pem server-key.pem  server-req.pem
