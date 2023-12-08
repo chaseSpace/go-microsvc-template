@@ -3,7 +3,7 @@ package xgrpc
 const (
 	certRootCN   = "x.microsvc"
 	certClientCN = "client.microsvc"
-	certServerCN = "server.microsvc"
+	certServerCN = "*.default.svc.cluster.local"
 )
 const grpcUnmarshalReqErrPrefix = "grpc: error unmarshalling request: "
 
