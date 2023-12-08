@@ -1,0 +1,101 @@
+# 这个文件是helm配置文件的一部分，用于定义单个服务需要创建的K8s资源的各项配置
+# 每个微服务都需要定义一个此配置文件
+replicaCount: 2
+
+image:
+  repository: leigg/go-svc-user # 替换你的仓库+镜像名
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: [ ]
+nameOverride: "" # 这个名字会作为chart资源的第二个名字，会用作k8s资源标签
+fullnameOverride: "go-svc-user" # 这个名字会作为deployment、pod等资源的名字的前缀
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: { }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: { }
+
+# 自定义pod标签
+podLabels:
+  "customized-svc-type": "go-svc"
+  "customized-is-micro-svc": "true"
+
+
+podSecurityContext: { }
+# fsGroup: 2000
+
+securityContext: { }
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: { }
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+
+  hosts:
+    - host: go-svc-user # 服务的dns地址，自定义就行，如果配置证书则需要与证书保持一致
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: [ ]
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: [ ]
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: [ ]
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: { }
+
+tolerations: [ ]
+
+affinity: { }
