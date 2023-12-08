@@ -1,3 +1,7 @@
+### ping
+GET http://localhost:8000/ping
+
+
 ### UserExt/Signup
 POST http://localhost:8000/forward/svc.user.UserExt/SignUp
 Content-Type: application/json

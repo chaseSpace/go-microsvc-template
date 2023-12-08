@@ -33,8 +33,9 @@ func (GatewayCtrl) Handler(ctx *fasthttp.RequestCtx) {
 // ----------------------------------------------------------------
 
 const (
-	apiUnionPathPrefix = "/forward/"
-	ctxKeyFromGateway  = "from-gateway"
+	pathProxyPrefix   = "/forward/"
+	pathPing          = "/ping"
+	ctxKeyFromGateway = "from-gateway"
 )
 
 var (
@@ -50,11 +51,15 @@ func forwardHandler(fctx *fasthttp.RequestCtx) ([]byte, error) {
 	)
 
 	fullPath := string(fctx.Path())
-	if !strings.HasPrefix(fullPath, apiUnionPathPrefix) {
-		return nil, xerr.ErrNotFound.New("path must start with %s", apiUnionPathPrefix)
+	if !strings.HasPrefix(fullPath, pathProxyPrefix) {
+		switch fullPath {
+		case pathPing: // for test
+			return []byte("pong"), nil
+		}
+		return nil, xerr.ErrNotFound.New("path must start with %s", pathProxyPrefix)
 	}
 
-	dstPath := fullPath[len(apiUnionPathPrefix):]
+	dstPath := fullPath[len(pathProxyPrefix):]
 	items := routeRegexToSvc.FindStringSubmatch(dstPath)
 	if len(items) != 2 {
 		return nil, xerr.ErrNotFound
