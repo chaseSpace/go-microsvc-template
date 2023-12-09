@@ -16,7 +16,6 @@ import (
 // If you use this file, service client is directly use DNS name as service target address (e.g. in K8s environment).
 
 func getGRPCClient(svc svc.Svc) *grpc.ClientConn {
-	// e.g. `go-svc-user` is `user` service's dns name.
 	target := sd.GetSvcTargetInK8s(svc)
 	conn, err := xgrpc.NewGRPCClient(target, svc.Name())
 	if err != nil {
